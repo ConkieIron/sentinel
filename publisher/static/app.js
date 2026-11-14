@@ -64,6 +64,65 @@
     if (Number.isFinite(ts)) t.textContent = clock.format(ts);
   }
 
+  // World clock in the masthead: cycles through major cities. Tap for the next one; hovering or
+  // focusing it pauses the rotation.
+  const worldClock = document.querySelector('[data-world-clock]');
+  if (worldClock) {
+    const ZONES = [
+      ['London', 'Europe/London'],
+      ['New York', 'America/New_York'],
+      ['Los Angeles', 'America/Los_Angeles'],
+      ['São Paulo', 'America/Sao_Paulo'],
+      ['Lagos', 'Africa/Lagos'],
+      ['Moscow', 'Europe/Moscow'],
+      ['Dubai', 'Asia/Dubai'],
+      ['New Delhi', 'Asia/Kolkata'],
+      ['Beijing', 'Asia/Shanghai'],
+      ['Tokyo', 'Asia/Tokyo'],
+      ['Sydney', 'Australia/Sydney'],
+    ];
+    const formats = ZONES.flatMap(([city, timeZone]) => {
+      try {
+        const offset = new Intl.DateTimeFormat('en-GB', { timeZone, timeZoneName: 'shortOffset' });
+        return [{ city, time: new Intl.DateTimeFormat('en-GB', { timeZone, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }), day: new Intl.DateTimeFormat('en-GB', { timeZone, weekday: 'short' }), offset }];
+      } catch {
+        return [];
+      }
+    });
+    const [cityEl, timeEl, metaEl] = ['.wc-city', '.wc-time', '.wc-meta'].map((s) => worldClock.querySelector(s));
+    let index = 0;
+    let paused = false;
+    function render() {
+      const now = new Date();
+      const f = formats[index];
+      const offset = f.offset.formatToParts(now).find((p) => p.type === 'timeZoneName')?.value.replace('GMT', 'UTC') || '';
+      cityEl.textContent = f.city;
+      timeEl.textContent = f.time.format(now);
+      metaEl.textContent = `${f.day.format(now)} · ${offset === 'UTC' ? 'UTC+0' : offset}`;
+    }
+    function advance() {
+      worldClock.classList.add('is-switching');
+      setTimeout(() => {
+        index = (index + 1) % formats.length;
+        render();
+        worldClock.classList.remove('is-switching');
+      }, 250);
+    }
+    if (formats.length) {
+      render();
+      worldClock.hidden = false;
+      setInterval(render, 1000);
+      setInterval(() => !paused && !document.hidden && advance(), 5000);
+      worldClock.addEventListener('click', advance);
+      // Taps on touch screens leave focus and a synthetic hover behind, so only a real mouse or
+      // keyboard focus pauses it.
+      worldClock.addEventListener('pointerenter', (e) => (paused = e.pointerType === 'mouse'));
+      worldClock.addEventListener('pointerleave', () => (paused = false));
+      worldClock.addEventListener('focus', () => (paused = worldClock.matches(':focus-visible')));
+      worldClock.addEventListener('blur', () => (paused = false));
+    }
+  }
+
   // Category filter + "show more" for incident lists
   for (const list of $$('.story-list')) {
     const size = Number(list.dataset.pageSize) || 25;

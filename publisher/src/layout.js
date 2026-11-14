@@ -41,15 +41,12 @@ export function layout({ title, description, path, body, ctx, active = '' }) {
 </head>
 <body>
 <a class="skip" href="#content">Skip to content</a>
-<div class="utility"><div class="wrap">
-<span>${esc(fmtUtc(generated, { withYear: true }))}</span>
-<span class="utility-right"><span class="u-long">Static edition · checked for news every ~${esc(String(site.publishMinutes))} min · </span><a href="/about/#sources">${snapshot.stats.sourcesOnline}/${snapshot.stats.sourcesTotal} sources online</a></span>
-</div></div>
 <header class="masthead"><div class="wrap">
 <a class="brand" href="/" aria-label="SENTINEL home">
 <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="4"/><circle cx="16" cy="16" r="9"/><circle cx="16" cy="16" r="3.5"/><path d="M16 3v6M16 23v6M3 16h6M23 16h6"/></svg>
 <span class="brand-text"><strong>SENTINEL</strong><small>Global Incident &amp; Threat Monitor</small></span>
 </a>
+<button type="button" class="world-clock" data-world-clock hidden aria-label="World clock, show the next city"><span class="wc-face"><span class="wc-city"></span><span class="wc-time"></span><span class="wc-meta"></span></span></button>
 </div></header>
 <nav class="nav" aria-label="Sections"><div class="wrap"><ul>${nav}</ul></div></nav>
 <div class="update-banner" role="status" hidden><a href="" data-reload><span data-banner-text>New updates published</span> · Refresh</a></div>

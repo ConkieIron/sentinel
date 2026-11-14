@@ -41,15 +41,13 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
 .skip { position: absolute; left: -999px; top: 0; background: var(--navy); color: #fff; padding: 8px 12px; z-index: 100; }
 .skip:focus { left: 8px; }
 
-/* Utility bar, masthead, nav */
-.utility { background: var(--navy); color: #c9d6e8; font-size: 0.75rem; }
-.utility .wrap { display: flex; flex-wrap: wrap; gap: 4px 16px; justify-content: space-between; padding-top: 6px; padding-bottom: 6px; }
-.utility a { color: #fff; }
+/* Masthead, world clock, nav */
 @media (max-width: 599px) {
-  .utility .u-long { display: none; }
   .masthead .wrap { padding-top: 10px; padding-bottom: 8px; }
   .brand-mark { width: 34px; height: 34px; }
   .brand-text strong { font-size: 1.45rem; }
+  .brand-text small { font-size: 0.62rem; }
+  .world-clock .wc-time { font-size: 1.2rem; }
   .story-lead .dek { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 }
 .masthead { border-bottom: 1px solid var(--rule); }
@@ -62,6 +60,13 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
 .brand-mark circle:last-of-type { fill: #4f8fe6; stroke: none; }
 .brand-text strong { display: block; font-family: var(--serif); font-size: 1.75rem; letter-spacing: 0.08em; line-height: 1; }
 .brand-text small { display: block; color: var(--muted); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 4px; }
+.world-clock { margin-left: auto; padding: 4px 0 4px 12px; border: 0; border-left: 1px solid var(--rule); background: none; font: inherit; color: inherit; text-align: right; cursor: pointer; min-width: 92px; }
+.wc-face { display: block; transition: opacity 0.25s ease; }
+.world-clock.is-switching .wc-face { opacity: 0; }
+.wc-city { display: block; color: var(--blue); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+.wc-time { display: block; color: var(--navy); font-family: var(--serif); font-size: 1.5rem; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.wc-meta { display: block; color: var(--muted); font-size: 0.68rem; white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .wc-face { transition: none; } }
 .nav { background: #fff; border-bottom: 3px solid var(--blue); position: sticky; top: 0; z-index: 20; }
 .nav ul { display: flex; gap: 2px; list-style: none; margin: 0; padding: 0; overflow-x: auto; scrollbar-width: none; }
 .nav ul::-webkit-scrollbar { display: none; }
