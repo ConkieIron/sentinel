@@ -27,6 +27,8 @@ export function layout({ title, description, path, body, ctx, active = '' }) {
   const generated = Date.parse(snapshot.generatedAt);
   const fullTitle = title ? `${title} · SENTINEL` : 'SENTINEL · Global Incident & Threat Monitor';
   const canonical = site.url.replace(/\/$/, '') + path;
+  // Browsers keep favicons in a cache of their own, keyed by URL, so a changed icon gets a new URL.
+  const iconV = assets.icons ? `?v=${esc(assets.icons)}` : '';
   const nav = NAV.map(
     ([href, label, key]) => `<li><a href="${href}"${key === active ? ' aria-current="page"' : ''}>${esc(label)}</a></li>`,
   ).join('');
@@ -47,9 +49,10 @@ export function layout({ title, description, path, body, ctx, active = '' }) {
 <meta property="og:url" content="${esc(canonical)}">
 <meta name="twitter:card" content="summary">
 <meta name="sentinel-generated" content="${esc(snapshot.generatedAt)}">
-<link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="/favicon.ico${iconV}" sizes="16x16 32x32 48x48">
+<link rel="icon" href="/favicon-32.png${iconV}" type="image/png" sizes="32x32">
+<link rel="icon" href="/favicon.svg${iconV}" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png${iconV}">
 <link rel="manifest" href="/site.webmanifest">
 <link rel="stylesheet" href="${esc(assets.css)}">
 <script src="${esc(assets.js)}" defer></script>

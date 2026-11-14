@@ -103,6 +103,12 @@ async function fingerprint(name) {
   return out;
 }
 
+async function iconVersion() {
+  const hash = createHash('sha256');
+  for (const name of ['favicon.ico', 'favicon-32.png', 'favicon.svg', 'apple-touch-icon.png']) hash.update(await readFile(join(here, 'static/public', name)));
+  return hash.digest('hex').slice(0, 8);
+}
+
 const started = Date.now();
 const { snapshot, source } = await loadSnapshot();
 
@@ -124,7 +130,7 @@ const ctx = {
   liveFor: (inc) => liveByUrl.get(inc.url) || null,
   byId: new Map(snapshot.incidents.map((i) => [i.id, i])),
   regionNames: Object.fromEntries(snapshot.regions.map((r) => [r.id, r.name])),
-  assets: { css: await fingerprint('styles.css'), js: await fingerprint('app.js') },
+  assets: { css: await fingerprint('styles.css'), js: await fingerprint('app.js'), icons: await iconVersion() },
 };
 
 const pages = [

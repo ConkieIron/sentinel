@@ -115,6 +115,7 @@ function ico(images) {
 
 const files = {
   'favicon.ico': ico([16, 32, 48].map((size) => ({ size, data: png(size, render(size)) }))),
+  'favicon-32.png': png(32, render(32)),
   'icon-192.png': png(192, render(192)),
   'icon-512.png': png(512, render(512)),
   'icon-maskable-512.png': png(512, render(512, { inset: 0.14 })),
