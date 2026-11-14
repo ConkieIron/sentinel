@@ -324,6 +324,14 @@ Never commit secrets. `worker/.dev.vars` and `watcher/.dev.vars` are git-ignored
 `worker/src/data/countries.js` and `publisher/src/data/basemap.js`. Re-run it only when you
 change region definitions or map detail.
 
+## Site icons
+
+The mark is `publisher/static/public/favicon.svg`. `npm run icons` draws the same mark (from its
+own copy of the geometry in `tools/build-icons.mjs`, with no image libraries) as `favicon.ico`
+(16, 32 and 48px), `apple-touch-icon.png` (iOS home screen) and the 192/512px app icons in
+`site.webmanifest`, including a maskable one for Android. If you change the SVG, change the
+script to match and re-run it.
+
 ## Limitations
 
 The classifier reads headlines with keyword rules. It is transparent and cheap, but it will

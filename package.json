@@ -17,7 +17,8 @@
     "pages:deploy": "npm --prefix publisher run deploy",
     "watcher:dev": "npm --prefix watcher run dev",
     "watcher:deploy": "npm --prefix watcher run deploy",
-    "geodata": "node tools/build-geodata.mjs"
+    "geodata": "node tools/build-geodata.mjs",
+    "icons": "node tools/build-icons.mjs"
   },
   "engines": {
     "node": ">=20"
