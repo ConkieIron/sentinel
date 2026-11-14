@@ -63,6 +63,28 @@ Add or remove feeds in `worker/src/config.js`.
 All weights and thresholds are in `MODEL` in `worker/src/config.js`. The site's
 Methodology page explains the model to readers.
 
+## Live coverage of developing stories
+
+`worker/src/analysis/live.js` picks up to three major developing stories, such as a nationwide
+flight ground stop. A story qualifies when at least 3 outlets have reported it and the newest
+report is under 3 hours old. Each story gets a BBC-style page at `/live/<id>/` with every outlet's
+report, newest first, each linking to the original article. The front page shows a live box above
+the headlines.
+
+Reports are matched by vocabulary, not by the incident classifier, so follow-ups like "airlines
+clear backlog" are included:
+- Words are weighted by how rare they are across everything gathered, so "FAA" counts for far more
+  than "flights".
+- A report must also share a word pair with the story ("ground stop", "global outage").
+- Pairs made only of place names ("Russia … Ukraine") never count, because they appear in a lot of
+  unrelated news.
+- Stories that pick up the same reports are merged.
+
+Every new report on a live story counts as a new edition, so it publishes on the next run. The
+watcher (below) also starts a run as soon as Reuters, AP or CNN posts a matching update. Open live
+pages check for a new edition every minute and show a "3 new updates · Refresh" button.
+Thresholds are in `LIVE` in `worker/src/analysis/live.js`.
+
 ## Local testing
 
 Requires Node 20+. On this machine Node is installed at `~/.local/node`:
@@ -190,12 +212,14 @@ runs every minute on the Workers Free plan. It reads the latest Reuters, AP and 
 plus USGS earthquakes from the last hour, and puts any new headline through the shared classifier.
 When something rates severity 4 or above (`BREAKING_MIN_SEVERITY`), it starts the publish workflow
 straight away through GitHub's `workflow_dispatch` API, so major news is live in about 2 minutes.
-Every `NUDGE_MINUTES` (5) it also starts a routine run, which keeps the cadence steady when GitHub's
-schedule slips. The workflow still deploys only when the edition changed.
+It does the same when a new wire post matches a story the site is covering live. It reads those
+stories' topics from the published `SITE_URL/data/live.json`. Every `NUDGE_MINUTES` (5) it also
+starts a routine run, which keeps the cadence steady when GitHub's schedule slips. The workflow
+still deploys only when the edition changed.
 
-Breaking publishes are at least 90 seconds apart. KV remembers which stories already triggered one,
-and is written only when that happens, well inside the free 1,000 writes a day. Each run classifies
-at most 20 new headlines, so it stays within the 10ms CPU limit.
+Fast publishes (breaking or live) are at least 90 seconds apart. KV remembers which posts already
+triggered one, and is written only when that happens, well inside the free 1,000 writes a day.
+Each run classifies at most 20 new headlines, so it stays within the 10ms CPU limit.
 
 To set it up, run these in `watcher/`:
 

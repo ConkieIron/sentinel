@@ -8,6 +8,7 @@ import { classify, extractCasualties, CATEGORIES } from './analysis/classify.js'
 import { locate, nearestCountry, COUNTRY_BY_ISO } from './analysis/geo.js';
 import { clusterItems } from './analysis/cluster.js';
 import { incidentWeight, scoreRegions, pickBreaking } from './analysis/threat.js';
+import { findLiveStories } from './analysis/live.js';
 
 export const SCHEMA_VERSION = 1;
 
@@ -74,6 +75,9 @@ export async function runPipeline(env = {}, { now = Date.now(), history = [] } =
 
   const seen = new Set();
   const enriched = [];
+  // Every publisher report, incident or not: live coverage of a developing story includes
+  // follow-ups ("flights resume", "airlines clear backlog") that the classifier ignores.
+  const reports = [];
   let scanned = 0;
   for (const { items } of results) {
     for (const item of items) {
@@ -81,6 +85,7 @@ export async function runPipeline(env = {}, { now = Date.now(), history = [] } =
       const key = item.dedupeKey || canonicalUrl(item.url);
       if (seen.has(key)) continue;
       seen.add(key);
+      if (item.type === 'publisher') reports.push(item);
       const cls = item.forced
         ? { ...item.forced, casualties: extractCasualties(item.title + '. ' + item.summary), retrospective: false }
         : classify(item.title, item.summary);
@@ -132,6 +137,7 @@ export async function runPipeline(env = {}, { now = Date.now(), history = [] } =
       categoryCounts,
     },
     breakingId: pickBreaking(incidents, now),
+    live: findLiveStories(incidents, reports, now),
     regions,
     incidents,
     sources,

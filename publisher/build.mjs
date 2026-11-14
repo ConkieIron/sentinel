@@ -14,7 +14,7 @@ import { createHash } from 'node:crypto';
 import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage } from './src/pages.js';
+import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage, livePage } from './src/pages.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dist = join(here, 'dist');
@@ -63,8 +63,9 @@ async function codeVersion() {
   return hash.digest('hex').slice(0, 12);
 }
 
-// Identifies what a reader would notice: the site design, the breaking story, region levels and
-// the significant incidents. Minor churn (new sev-1/2 reports, extra sources) does not change it.
+// Identifies what a reader would notice: the site design, the breaking story, region levels, the
+// significant incidents and every report on a live story. Other minor churn (new sev-1/2
+// reports, extra sources) does not change it.
 function editionFingerprint(snapshot, version) {
   const material = {
     version,
@@ -74,6 +75,7 @@ function editionFingerprint(snapshot, version) {
       .filter((i) => i.severity >= 3)
       .map((i) => `${i.id}:${i.severity}:${i.category}`)
       .sort(),
+    live: (snapshot.live || []).map((s) => [s.id, ...s.updates.map((u) => u.url)]),
   };
   return createHash('sha256').update(JSON.stringify(material)).digest('hex').slice(0, 16);
 }
@@ -106,10 +108,13 @@ const site = {
   publishMinutes: Number(process.env.PUBLISH_INTERVAL_MINUTES || 120),
   homeIncidents: 80,
 };
+const live = snapshot.live || [];
+const liveByUrl = new Map(live.flatMap((s) => s.updates.map((u) => [u.url, s])));
 const ctx = {
   snapshot,
   site,
   now: Date.parse(snapshot.generatedAt),
+  liveFor: (inc) => liveByUrl.get(inc.url) || null,
   byId: new Map(snapshot.incidents.map((i) => [i.id, i])),
   regionNames: Object.fromEntries(snapshot.regions.map((r) => [r.id, r.name])),
   assets: { css: await fingerprint('styles.css'), js: await fingerprint('app.js') },
@@ -122,6 +127,7 @@ const pages = [
   ['about/index.html', aboutPage(ctx)],
   ['404.html', notFoundPage(ctx)],
   ...snapshot.regions.map((r) => [`region/${r.id}/index.html`, regionPage(ctx, r)]),
+  ...live.map((s) => [`live/${s.id}/index.html`, livePage(ctx, s)]),
 ];
 for (const [path, html] of pages) await writePage(path, html);
 
@@ -130,8 +136,24 @@ await writePage(
   'data/meta.json',
   JSON.stringify({ generatedAt: snapshot.generatedAt, incidents: snapshot.incidents.length, fingerprint: editionFingerprint(snapshot, await codeVersion()) }),
 );
+// Read by open live pages (new-update count) and by the breaking-news watcher (topic matching).
+await writePage(
+  'data/live.json',
+  JSON.stringify({
+    generatedAt: snapshot.generatedAt,
+    stories: live.map((s) => ({
+      id: s.id,
+      title: s.title,
+      path: `/live/${s.id}/`,
+      updatedAt: s.updatedAt,
+      reportCount: s.reportCount,
+      times: s.updates.map((u) => u.time),
+      topics: s.topics,
+    })),
+  }),
+);
 
-const urls = ['/', '/regions/', '/terrorism/', '/about/', ...snapshot.regions.map((r) => `/region/${r.id}/`)];
+const urls = ['/', '/regions/', '/terrorism/', '/about/', ...snapshot.regions.map((r) => `/region/${r.id}/`), ...live.map((s) => `/live/${s.id}/`)];
 await writePage(
   'sitemap.xml',
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls

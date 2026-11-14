@@ -1,9 +1,10 @@
 // SENTINEL breaking-news watcher (Cloudflare Worker, free plan).
 //
 // Every minute it polls the fastest wire sources (Reuters, AP and CNN on Bluesky, USGS
-// earthquakes). When a new severity 4–5 incident appears it asks GitHub Actions to run the
-// publish workflow immediately. Every NUDGE_MINUTES it also starts a routine publish, because
-// GitHub's own schedule is frequently delayed.
+// earthquakes). It asks GitHub Actions to run the publish workflow immediately when a new
+// severity 4–5 incident appears, or when a wire posts an update on a story the site is covering
+// live (topics read from the site's /data/live.json). Every NUDGE_MINUTES it also starts a
+// routine publish, because GitHub's own schedule is frequently delayed.
 //
 // The work per run is deliberately tiny (only new, recent headlines go through the shared
 // classifier) so it fits the Workers Free 10ms CPU limit; time spent waiting on the network
@@ -12,6 +13,7 @@
 import { classify } from '../../worker/src/analysis/classify.js';
 import { quakeSeverity } from '../../worker/src/sources/usgs.js';
 import { fetchWithTimeout } from '../../worker/src/lib/http.js';
+import { topicFeatures, topicMatches } from '../../worker/src/analysis/live.js';
 
 // The classifier's casualty patterns cost ~15ms to compile on first use. Doing it at load time
 // moves that into Worker startup, which has its own 1s allowance, instead of the 10ms per run.
@@ -76,16 +78,36 @@ async function fetchQuakes() {
   });
 }
 
-export async function fetchSources() {
-  const jobs = [...WIRES.map((w) => fetchWire(w)), fetchQuakes()];
-  const results = await Promise.allSettled(jobs);
+async function fetchLive(siteUrl) {
+  if (!siteUrl) return [];
+  const res = await fetchWithTimeout(`${siteUrl.replace(/\/$/, '')}/data/live.json`, { timeoutMs: 8000, headers: { Accept: 'application/json' } });
+  const data = await res.json();
+  return (data.stories || []).map((s) => ({ id: s.id, title: s.title, topics: s.topics || [] }));
+}
+
+export async function fetchSources(env = {}) {
+  const [live, ...results] = await Promise.allSettled([fetchLive(env.SITE_URL), ...WIRES.map((w) => fetchWire(w)), fetchQuakes()]);
   const items = [];
   const errors = [];
   for (const r of results) {
     if (r.status === 'fulfilled') items.push(...r.value);
     else errors.push(r.reason?.message || String(r.reason));
   }
-  return { items, errors };
+  if (live.status === 'rejected') errors.push(`live.json: ${live.reason?.message || live.reason}`);
+  return { items, live: live.status === 'fulfilled' ? live.value : [], errors };
+}
+
+/** New, recent wire posts that match a story the site is covering live. */
+export function findLiveUpdates(items, live, { now, seen }) {
+  if (!live.length) return [];
+  const out = [];
+  for (const item of items) {
+    if (!item.key.startsWith('bsky:') || seen.has(item.key) || now - item.time > item.maxAgeMs || item.time > now + 5 * 60000) continue;
+    const features = topicFeatures(item.title);
+    const story = live.find((s) => s.topics.some((t) => topicMatches(features, t)));
+    if (story) out.push({ ...item, story });
+  }
+  return out.sort((a, b) => b.time - a.time);
 }
 
 // Classifier results survive between runs while Cloudflare reuses the isolate. KV would make
@@ -145,20 +167,28 @@ export async function dispatchPublish(env, reason) {
 export async function tick(env, now = Date.now(), deps = { fetchSources, dispatchPublish }) {
   const kv = env.WATCHER_KV;
   const state = (kv && (await kv.get('state', 'json'))) || { seen: [], lastBreakingAt: 0 };
-  const { items, errors } = await deps.fetchSources();
-  const breaking = kv ? findBreaking(items, { now, seen: new Set(state.seen), minSeverity: Number(env.BREAKING_MIN_SEVERITY || 4) }) : [];
+  const { items, live = [], errors } = await deps.fetchSources(env);
+  const seen = new Set(state.seen);
+  const breaking = kv ? findBreaking(items, { now, seen, minSeverity: Number(env.BREAKING_MIN_SEVERITY || 4) }) : [];
+  const liveUpdates = kv ? findLiveUpdates(items, live, { now, seen }) : [];
   const nudgeEvery = Number(env.NUDGE_MINUTES || 5);
-  const result = { at: new Date(now).toISOString(), checked: items.length, errors, action: 'none' };
+  const result = { at: new Date(now).toISOString(), checked: items.length, live: live.length, errors, action: 'none' };
 
   // Items are only marked as seen once a publish has been requested, so a story that arrives
   // during the cool-down is picked up on the next minute instead of being dropped.
-  if (breaking.length && now - state.lastBreakingAt >= MIN_GAP_MS) {
-    const lead = breaking[0];
-    const sent = await deps.dispatchPublish(env, `Breaking (${lead.source}): ${lead.title}`);
-    state.seen = [...breaking.map((b) => b.key), ...state.seen].slice(0, SEEN_LIMIT);
+  const fast = breaking.length || liveUpdates.length;
+  if (fast && now - state.lastBreakingAt >= MIN_GAP_MS) {
+    const lead = breaking[0] || liveUpdates[0];
+    const reason = breaking.length ? `Breaking (${lead.source}): ${lead.title}` : `Live update (${lead.source}): ${lead.title}`;
+    const sent = await deps.dispatchPublish(env, reason);
+    state.seen = [...breaking.map((b) => b.key), ...liveUpdates.map((u) => u.key), ...state.seen].slice(0, SEEN_LIMIT);
     state.lastBreakingAt = now;
     await kv.put('state', JSON.stringify(state));
-    Object.assign(result, { action: 'breaking', dryRun: sent.dryRun, headlines: breaking.map((b) => `${b.source}: ${b.title}`) });
+    Object.assign(result, {
+      action: breaking.length ? 'breaking' : 'live-update',
+      dryRun: sent.dryRun,
+      headlines: [...breaking, ...liveUpdates].map((b) => `${b.source}: ${b.title}`),
+    });
   } else if (nudgeEvery > 0 && Math.floor(now / 60000) % nudgeEvery === 0) {
     const sent = await deps.dispatchPublish(env, 'Routine check');
     Object.assign(result, { action: 'nudge', dryRun: sent.dryRun });

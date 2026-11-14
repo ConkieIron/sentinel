@@ -23,12 +23,12 @@ function memoryKv(initial) {
   };
 }
 
-function harness(items) {
+function harness(items, live = []) {
   const calls = [];
   return {
     calls,
     deps: {
-      fetchSources: async () => ({ items, errors: [] }),
+      fetchSources: async () => ({ items, live, errors: [] }),
       dispatchPublish: async (_env, reason) => {
         calls.push(reason);
         return { dryRun: false };
@@ -84,6 +84,33 @@ test('routine nudge fires on the configured minute boundary only', async () => {
   assert.equal((await tick(env, onBoundary, deps)).action, 'nudge');
   assert.equal((await tick(env, onBoundary + MIN, deps)).action, 'none');
   assert.deepEqual(calls, ['Routine check']);
+});
+
+const LIVE = [
+  {
+    id: 'faa',
+    title: 'U.S. flights resume after hours-long outage as FAA lifts nationwide ground stop',
+    topics: [{ terms: { faa: 3.9, lifts: 4.4, ground: 2.9, stop: 3.1, nation: 2.8, flight: 2.8, us: 1.8 }, phrases: ['ground~stop', 'flight~us', 'ground~nation'], minScore: 3.8 }],
+  },
+];
+
+test('a wire update on a live story publishes straight away, once', async () => {
+  const kv = memoryKv();
+  const items = [
+    wire('bsky:u1', 'Airlines cancel thousands more flights after nationwide ground stop'),
+    wire('bsky:u2', 'Central bank holds interest rates steady'),
+  ];
+  const { calls, deps } = harness(items, LIVE);
+  const first = await tick({ WATCHER_KV: kv }, NOW + 1000, deps);
+  assert.equal(first.action, 'live-update');
+  assert.deepEqual(calls, ['Live update (Reuters): Airlines cancel thousands more flights after nationwide ground stop']);
+  assert.equal((await tick({ WATCHER_KV: kv }, NOW + 2 * MIN + 1000, deps)).action, 'none');
+});
+
+test('headlines that only share common words with a live story are ignored', async () => {
+  const { calls, deps } = harness([wire('bsky:u3', 'Storm causes flight cancellations across southern Europe')], LIVE);
+  assert.equal((await tick({ WATCHER_KV: memoryKv() }, NOW + 1000, deps)).action, 'none');
+  assert.equal(calls.length, 0);
 });
 
 test('without KV, breaking detection is off but nudges continue', async () => {

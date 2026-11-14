@@ -3,7 +3,7 @@
 
 import { hashId } from '../lib/text.js';
 
-const STOP = new Set(
+export const STOP = new Set(
   ('says said after amid over into with from that this have been were their about what more than will would could ' +
     'year years first last week weeks people news live latest update updates report reports reported officials ' +
     'official government minister president country countries world global least least killed kill kills dead ' +

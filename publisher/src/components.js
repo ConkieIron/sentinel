@@ -1,4 +1,4 @@
-import { esc, safeHref, timeTag, trim, fmtUtc, LEVEL_LABEL, TREND, EVIDENCE } from './util.js';
+import { esc, safeHref, timeTag, clockTag, trim, fmtUtc, LEVEL_LABEL, TREND, EVIDENCE } from './util.js';
 
 export function levelBadge(level) {
   return `<span class="lvl lvl-${esc(level)}">${esc(LEVEL_LABEL[level])}</span>`;
@@ -71,8 +71,10 @@ export function incidentCard(inc, ctx, { variant = 'item', anchor = true } = {})
   const showSources = variant !== 'tile' && inc.sources.length > 1;
   const src = primarySource(inc);
   const dekLen = DEK[variant] ?? 200;
+  const live = ctx.liveFor?.(inc);
 
   const meta = [
+    live ? `<a class="live-link" href="/live/${esc(live.id)}/"><span class="live-pill">Live</span> Follow coverage</a>` : '',
     variant === 'row' ? '' : timeTag(inc.time, now),
     src ? `<span class="src">${esc(src.name)}</span>` : '',
     showSev ? `<span class="sev sev-${inc.severity}" title="Severity ${inc.severity} of 5">Severity ${inc.severity}/5</span>` : '',
@@ -90,6 +92,39 @@ ${showSources ? `<details class="sources"><summary>${sourceSummary(inc.sources)}
   return `<article class="story story-${variant}"${anchor ? ` id="i-${esc(inc.id)}"` : ''} data-cat="${esc(inc.category)}" data-ev="${esc(inc.evidence)}">
 ${variant === 'row' ? `<div class="row-time">${timeTag(inc.time, now)}</div><div class="row-body">${body}</div>` : body}
 </article>`;
+}
+
+function liveHeadline(u) {
+  return `<a href="${esc(safeHref(u.url))}" target="_blank" rel="noopener noreferrer">${esc(u.title)}<span class="vh"> (opens ${esc(u.source)} in a new tab)</span></a>`;
+}
+
+/** Front-page teaser for a live story: the newest updates, then a link to the full coverage. */
+export function liveTeaser(story, ctx, { main = false } = {}) {
+  const kicker = `<p class="live-kicker"><span class="live-pill">Live</span><span>${story.outlets.length} outlets · updated ${timeTag(story.updatedAt, ctx.now)}</span></p>`;
+  if (!main) {
+    return `<article class="live-teaser live-teaser-more">${kicker}<h3 class="live-title"><a href="/live/${esc(story.id)}/">${esc(story.title)}</a></h3></article>`;
+  }
+  return `<article class="live-teaser live-teaser-main">
+${kicker}
+<h3 class="live-title"><a href="/live/${esc(story.id)}/">${esc(story.title)}</a></h3>
+<ul class="live-latest">${story.updates
+    .slice(0, 2)
+    .map((u) => `<li>${clockTag(u.time)}<span class="src">${esc(u.source)}</span>${liveHeadline(u)}</li>`)
+    .join('')}</ul>
+<a class="live-more" href="/live/${esc(story.id)}/">Follow live coverage: ${story.reportCount} update${story.reportCount === 1 ? '' : 's'} →</a>
+</article>`;
+}
+
+/** One post in a live-coverage timeline. The whole post opens the original article. */
+export function liveUpdate(u, now) {
+  return `<li class="live-post">
+<div class="live-time">${clockTag(u.time)}${timeTag(u.time, now)}</div>
+<article class="story live-update">
+<p class="live-src"><span class="src">${esc(u.source)}</span>${u.via ? ` <span class="muted">via ${esc(u.via)}</span>` : ''}</p>
+<h3 class="headline">${liveHeadline(u)}</h3>
+${u.summary && u.summary !== u.title ? `<p class="dek">${esc(trim(u.summary, 300))}</p>` : ''}
+</article>
+</li>`;
 }
 
 export function regionRow(r, rank) {

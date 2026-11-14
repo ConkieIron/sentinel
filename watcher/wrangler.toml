@@ -11,6 +11,8 @@ crons = ["* * * * *"]
 GITHUB_REPO = "ConkieIron/sentinel"
 GITHUB_WORKFLOW = "publish-pages.yml"
 GITHUB_REF = "main"
+# Published site; its /data/live.json lists the stories covered live.
+SITE_URL = "https://sentinelglobalnews.pages.dev"
 NUDGE_MINUTES = "5"
 BREAKING_MIN_SEVERITY = "4"
 

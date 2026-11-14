@@ -68,9 +68,9 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
 .nav a { display: block; padding: 12px 12px 10px; color: var(--ink); font-weight: 600; font-size: 0.9rem; white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -3px; }
 .nav a:hover { color: var(--blue); text-decoration: none; }
 .nav a[aria-current='page'] { color: var(--blue); border-bottom-color: var(--navy); }
-.update-banner { background: var(--blue-soft); border-bottom: 1px solid #c6d8f2; font-size: 0.9rem; }
-.update-banner .wrap { padding-top: 8px; padding-bottom: 8px; }
-.update-banner a { font-weight: 700; }
+.update-banner { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 30; max-width: calc(100% - 24px); }
+.update-banner a { display: block; background: var(--navy); color: #fff; font-weight: 700; font-size: 0.9rem; padding: 10px 18px; border-radius: 999px; box-shadow: 0 4px 14px rgba(11, 37, 69, 0.3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.update-banner a:hover { text-decoration: none; background: var(--blue-dark); }
 
 /* Breaking */
 .breaking { background: #fff5f5; border-bottom: 1px solid #f1caca; }
@@ -272,6 +272,38 @@ table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
 th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--rule-soft); vertical-align: top; }
 th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); border-bottom: 1px solid var(--rule); }
 .num { text-align: right; }
+
+/* Live coverage */
+.live-pill { display: inline-flex; align-items: center; gap: 5px; background: var(--breaking); color: #fff; font: 800 0.68rem/1 var(--sans); letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 7px 4px 6px; border-radius: 2px; }
+.live-pill::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: live-pulse 1.6s ease-in-out infinite; }
+@keyframes live-pulse { 50% { opacity: 0.25; } }
+.live-box { padding-top: 16px; display: grid; gap: 8px; }
+.live-teaser-more { padding: 8px 14px; }
+.live-teaser-more .live-kicker { margin-bottom: 2px; }
+.live-teaser-more .live-title { font-size: 1rem; margin: 0; }
+.live-teaser { border: 1px solid #f1caca; border-left: 4px solid var(--breaking); background: #fffafa; padding: 12px 14px; }
+.live-kicker { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 0.8rem; color: var(--muted); margin: 0 0 6px; }
+.live-title { font-size: 1.12rem; margin-bottom: 8px; }
+.live-teaser-main .live-title { font-size: clamp(1.35rem, 4.6vw, 1.8rem); line-height: 1.2; }
+.live-title a { color: var(--ink); }
+.live-title a:hover { color: var(--blue); text-decoration: underline; }
+.live-latest { list-style: none; margin: 0 0 8px; padding: 0; font-size: 0.9rem; }
+.live-latest li { display: flex; flex-wrap: wrap; gap: 2px 8px; padding: 6px 0; border-top: 1px solid var(--rule-soft); }
+.live-latest .clock { font-weight: 700; color: var(--breaking); }
+.live-latest .src { font-weight: 700; color: var(--body); }
+.live-latest a { flex: 1 1 100%; color: var(--ink); font-family: var(--serif); font-weight: 700; line-height: 1.3; }
+.live-more { font-weight: 700; font-size: 0.9rem; }
+.live-link { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+.live-hero { border-bottom: 3px solid var(--breaking); }
+.live-hero .eyebrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.live-hero .eyebrow a { color: var(--blue); }
+.live-feed { list-style: none; margin: 0; padding: 0; }
+.live-post { display: grid; grid-template-columns: 62px minmax(0, 1fr); gap: 0 12px; border-bottom: 1px solid var(--rule); }
+.live-time { padding: 14px 8px 0 0; border-right: 2px solid var(--breaking); display: flex; flex-direction: column; gap: 2px; font-size: 0.75rem; color: var(--muted); }
+.live-time .clock { font-size: 1rem; font-weight: 800; color: var(--ink); }
+.live-update { border-bottom: 0; }
+.live-src { margin: 0 0 4px; font-size: 0.82rem; color: var(--muted); }
+.outlet-list li { padding: 5px 0; }
 
 /* Prose (methodology) */
 .prose { padding-bottom: 40px; }

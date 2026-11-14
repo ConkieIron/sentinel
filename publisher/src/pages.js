@@ -10,6 +10,8 @@ import {
   levelBadge,
   indexBar,
   trendTag,
+  liveTeaser,
+  liveUpdate,
 } from './components.js';
 import { esc, safeHref, timeTag, fmtUtc, LEVEL_LABEL } from './util.js';
 
@@ -63,6 +65,82 @@ function homePanels(ctx, serious) {
     )
     .join('')}</ol>
 </section>`;
+}
+
+function liveBox(ctx) {
+  const live = ctx.snapshot.live || [];
+  if (!live.length) return '';
+  return `<section class="live-box" aria-label="Live coverage">
+${live.map((s, i) => liveTeaser(s, ctx, { main: i === 0 })).join('')}
+</section>`;
+}
+
+export function livePage(ctx, story) {
+  const { snapshot, now, regionNames } = ctx;
+  const counts = new Map();
+  for (const u of story.updates) counts.set(u.source, (counts.get(u.source) || 0) + 1);
+  const others = (snapshot.live || []).filter((s) => s.id !== story.id);
+  const loc = story.location;
+  const region = loc?.region && regionNames[loc.region];
+  const shown = story.updates.length;
+
+  const body = `<div class="wrap">
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <span>Live coverage</span></nav>
+<section class="hero hero-small live-hero">
+<p class="eyebrow"><span class="live-pill">Live</span> <span class="cat cat-${esc(story.category)}">${esc(snapshot.categories[story.category] || '')}</span>${
+    region ? ` · <a href="/region/${esc(loc.region)}/">${esc(region)}</a>` : ''
+  }</p>
+<h1>${esc(story.title)}</h1>
+${story.summary ? `<p class="hero-dek">${esc(story.summary)}</p>` : ''}
+<ul class="facts">
+<li><strong>${story.reportCount}</strong> report${story.reportCount === 1 ? '' : 's'}</li>
+<li><strong>${story.outlets.length}</strong> outlets</li>
+<li>Latest ${timeTag(story.updatedAt, now)}</li>
+<li>First report ${esc(fmtUtc(story.startedAt))}</li>
+</ul>
+</section>
+<div class="layout">
+<div class="main-col">
+<section class="section section-first">
+${sectionHead('Latest updates', { id: 'updates' })}
+<p class="section-dek">Newest first. Every update links to the original report on the publisher's site. SENTINEL groups reports automatically by matching headlines, so a closely related story can occasionally appear.</p>
+<ol class="live-feed" data-live-id="${esc(story.id)}" data-latest="${story.updatedAt}">
+${story.updates.map((u) => liveUpdate(u, now)).join('')}
+</ol>
+${story.reportCount > shown ? `<p class="small muted">Showing the newest ${shown} of ${story.reportCount} reports.</p>` : ''}
+</section>
+</div>
+<aside class="sidebar">
+<section class="panel">
+<h2 class="panel-title">Outlets covering this story</h2>
+<ul class="link-list outlet-list">${[...counts]
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, n]) => `<li><span>${esc(name)}</span><span class="muted">${n}</span></li>`)
+    .join('')}</ul>
+</section>
+${
+  others.length
+    ? `<section class="panel">
+<h2 class="panel-title">Also live</h2>
+<ul class="link-list">${others.map((s) => `<li><a href="/live/${esc(s.id)}/">${esc(s.title)}</a></li>`).join('')}</ul>
+</section>`
+    : ''
+}
+<section class="panel">
+<h2 class="panel-title">About live coverage</h2>
+<p>A story gets live coverage when at least three outlets are reporting it and it is still developing. Updates from Reuters, AP and CNN can publish within about two minutes; others appear within about five.</p>
+<p><a href="/">Back to the latest briefing →</a></p>
+</section>
+</aside>
+</div>
+</div>`;
+  return layout({
+    title: `Live: ${story.title}`,
+    description: `Live coverage from ${story.outlets.length} outlets: ${story.title}`,
+    path: `/live/${story.id}/`,
+    body,
+    ctx,
+  });
 }
 
 function sidebar(ctx, extra = '') {
@@ -125,6 +203,7 @@ ${threatStrip(snapshot)}
 <h1 class="vh">SENTINEL: latest world incidents and suspected terrorism</h1>
 <div class="layout">
 <div class="main-col">
+${liveBox(ctx)}
 <section class="section section-first">
 ${sectionHead('Latest headlines', { more: { href: '#latest', label: 'All updates' } })}
 ${

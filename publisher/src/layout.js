@@ -52,7 +52,7 @@ export function layout({ title, description, path, body, ctx, active = '' }) {
 </a>
 </div></header>
 <nav class="nav" aria-label="Sections"><div class="wrap"><ul>${nav}</ul></div></nav>
-<div class="update-banner" hidden><div class="wrap">A newer edition has been published. <a href="" data-reload>Refresh</a></div></div>
+<div class="update-banner" role="status" hidden><a href="" data-reload><span data-banner-text>New updates published</span> · Refresh</a></div>
 <main id="content">
 ${body}
 </main>

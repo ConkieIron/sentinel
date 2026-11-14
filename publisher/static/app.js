@@ -58,6 +58,11 @@
   }
   refreshTimes();
   setInterval(refreshTimes, 60000);
+  const clock = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  for (const t of $$('time[data-clock]')) {
+    const ts = Date.parse(t.getAttribute('datetime'));
+    if (Number.isFinite(ts)) t.textContent = clock.format(ts);
+  }
 
   // Category filter + "show more" for incident lists
   for (const list of $$('.story-list')) {
@@ -156,22 +161,32 @@
     });
   }
 
-  // Notify when a newer static edition has been published.
+  // Notify when a newer static edition has been published. Live pages check every minute and
+  // count the new updates on their story.
   const generated = document.querySelector('meta[name="sentinel-generated"]')?.content;
   const banner = document.querySelector('.update-banner');
+  const bannerText = banner?.querySelector('[data-banner-text]');
+  const feed = document.querySelector('.live-feed[data-live-id]');
   async function checkEdition() {
     if (document.hidden || !generated || !banner) return;
     try {
       const res = await fetch('/data/meta.json', { cache: 'no-store' });
       if (!res.ok) return;
       const meta = await res.json();
-      if (meta.generatedAt && meta.generatedAt !== generated) banner.hidden = false;
+      if (!meta.generatedAt || meta.generatedAt === generated) return;
+      if (feed && bannerText) {
+        const live = await (await fetch('/data/live.json', { cache: 'no-store' })).json();
+        const story = (live.stories || []).find((s) => s.id === feed.dataset.liveId);
+        const fresh = story ? story.times.filter((t) => t > Number(feed.dataset.latest)).length : 0;
+        if (fresh) bannerText.textContent = `${fresh} new update${fresh === 1 ? '' : 's'}`;
+      }
+      banner.hidden = false;
     } catch {}
   }
   banner?.querySelector('[data-reload]')?.addEventListener('click', (e) => {
     e.preventDefault();
     location.reload();
   });
-  setInterval(checkEdition, 5 * 60000);
+  setInterval(checkEdition, (feed ? 1 : 2) * 60000);
   document.addEventListener('visibilitychange', checkEdition);
 })();

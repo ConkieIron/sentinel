@@ -32,6 +32,12 @@ export function timeTag(ts, now) {
   return `<time datetime="${iso}" title="${esc(fmtUtc(ts, { withYear: true }))}" data-rel>${esc(ago(ts, now))}</time>`;
 }
 
+/** Clock time ("14:05", UTC in the HTML; the script switches it to the reader's time zone). */
+export function clockTag(ts) {
+  const d = new Date(ts);
+  return `<time class="clock" datetime="${d.toISOString()}" title="${esc(fmtUtc(ts, { withYear: true }))}" data-clock>${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}</time>`;
+}
+
 export function trim(s, max) {
   const t = String(s || '').trim();
   return t.length <= max ? t : t.slice(0, max - 1).replace(/\s+\S*$/, '') + '…';

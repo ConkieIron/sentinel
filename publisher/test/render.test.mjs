@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { esc, safeHref, ago } from '../src/util.js';
-import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage } from '../src/pages.js';
+import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage, livePage } from '../src/pages.js';
 import { project, MAP_WIDTH, MAP_HEIGHT } from '../src/projection.js';
 
 const fixture = JSON.parse(await readFile(new URL('../fixtures/sample-snapshot.json', import.meta.url), 'utf8'));
@@ -27,7 +27,34 @@ function allPages(ctx) {
     aboutPage(ctx),
     notFoundPage(ctx),
     ...ctx.snapshot.regions.map((r) => regionPage(ctx, r)),
+    ...(ctx.snapshot.live || []).map((s) => livePage(ctx, s)),
   ];
+}
+
+function withLiveStory(snapshot, { title = 'US flights resume after nationwide ground stop', url = 'https://www.bbc.co.uk/news/ground-stop' } = {}) {
+  const now = Date.parse(snapshot.generatedAt);
+  const copy = structuredClone(snapshot);
+  copy.live = [
+    {
+      id: 'abc123',
+      title,
+      summary: 'Flights resumed after an hours-long halt.',
+      category: 'infrastructure',
+      severity: 3,
+      location: null,
+      startedAt: now - 10 * 3600000,
+      updatedAt: now - 600000,
+      outlets: ['BBC News', 'Reuters', 'CNN'],
+      reportCount: 3,
+      topics: [],
+      updates: [
+        { title, summary: 'What we know.', url, source: 'BBC News', time: now - 600000 },
+        { title: 'FAA lifts ground stop', summary: '', url: 'https://www.reuters.com/x', source: 'Reuters', via: 'Bluesky', time: now - 3600000 },
+        { title: 'All US flights grounded', summary: '', url: 'https://edition.cnn.com/y', source: 'CNN', time: now - 10 * 3600000 },
+      ],
+    },
+  ];
+  return copy;
 }
 
 test('esc escapes all HTML-significant characters', () => {
@@ -96,6 +123,25 @@ test('hostile feed content is escaped and unsafe links neutralised', () => {
   assert.ok(html.includes('&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;'), 'hostile title should appear escaped');
   assert.ok(!html.includes('<script>alert('), 'raw script tag leaked');
   assert.ok(!html.includes('<img src=x'), 'raw img tag leaked');
+  assert.ok(!/href="javascript:/i.test(html), 'javascript: link leaked');
+});
+
+test('live stories get a front-page teaser and a page listing every update, newest first', () => {
+  const ctx = context(withLiveStory(fixture));
+  const home = homePage(ctx);
+  assert.match(home, /class="live-box"/);
+  assert.match(home, /href="\/live\/abc123\/"/);
+  const page = livePage(ctx, ctx.snapshot.live[0]);
+  const order = ['www.bbc.co.uk/news/ground-stop', 'www.reuters.com/x', 'edition.cnn.com/y'].map((u) => page.indexOf(u));
+  assert.ok(order.every((i) => i > 0) && order[0] < order[1] && order[1] < order[2], 'updates newest first');
+  assert.match(page, /data-live-id="abc123"/);
+  assert.match(page, /via Bluesky/);
+});
+
+test('hostile content in live stories is escaped', () => {
+  const ctx = context(withLiveStory(fixture, { title: EVIL, url: 'javascript:alert(1)' }));
+  const html = allPages(ctx).join('\n');
+  assert.ok(!html.includes('<script>alert('), 'raw script tag leaked');
   assert.ok(!/href="javascript:/i.test(html), 'javascript: link leaked');
 });
 
