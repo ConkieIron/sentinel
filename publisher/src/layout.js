@@ -47,6 +47,8 @@ export function layout({ title, description, path, body, ctx, active = '' }) {
 <meta property="og:title" content="${esc(fullTitle)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${esc(canonical)}">
+<meta property="og:image" content="${esc(site.url.replace(/\/$/, ''))}/icon-512.png">
+<meta property="og:image:alt" content="SENTINEL logo">
 <meta name="twitter:card" content="summary">
 <meta name="sentinel-generated" content="${esc(snapshot.generatedAt)}">
 <link rel="icon" href="/favicon.ico${iconV}" sizes="16x16 32x32 48x48">
@@ -61,8 +63,8 @@ export function layout({ title, description, path, body, ctx, active = '' }) {
 <a class="skip" href="#content">Skip to content</a>
 <header class="masthead"><div class="wrap">
 <a class="brand" href="/" aria-label="SENTINEL home">
-<svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="4"/><circle cx="16" cy="16" r="9"/><circle cx="16" cy="16" r="3.5"/><path d="M16 3v6M16 23v6M3 16h6M23 16h6"/></svg>
-<span class="brand-text"><strong>SENTINEL</strong><small>Global Incident &amp; Threat Monitor</small></span>
+<svg class="brand-mark" viewBox="0 0 240 240" aria-hidden="true"><rect width="240" height="240" rx="42" fill="#1c2753"/><path d="M20 119.5A129.7 129.7 0 0 1 219 119.5A129.7 129.7 0 0 1 20 119.5Z" fill="none" stroke="#fff" stroke-width="10" stroke-linejoin="round"/><circle cx="119.5" cy="119.5" r="44.25" fill="#1c2753" stroke="#0078ff" stroke-width="9.5"/><ellipse cx="119.5" cy="119.5" rx="17.5" ry="44.25" fill="none" stroke="#0078ff" stroke-width="8"/><path d="M75 119.5H164" stroke="#0078ff" stroke-width="9"/></svg>
+<span class="brand-text"><img class="brand-word" src="/sentinel-wordmark.png${iconV}" alt="SENTINEL" width="320" height="34"><small>Global Incident &amp; Threat Monitor</small></span>
 </a>
 <div class="masthead-tools">
 ${marketTicker(snapshot.markets)}
