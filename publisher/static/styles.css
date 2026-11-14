@@ -341,18 +341,19 @@ th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; colo
 .live-latest .src { font-weight: 700; color: var(--body); }
 .live-latest a { flex: 1 1 100%; color: var(--ink); font-family: var(--serif); font-weight: 700; line-height: 1.3; }
 .live-more { font-weight: 700; font-size: 0.9rem; }
-.story-figure { margin: 0; }
-.story-figure img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; background: var(--rule-soft); }
-.story-figure figcaption { font-size: 0.72rem; color: var(--muted); padding-top: 3px; }
-.story-figure figcaption a { color: var(--muted); }
-.live-teaser-figure { margin: -12px -14px 10px; }
-.live-teaser-figure figcaption { padding: 3px 14px 0; }
+.story-figure { position: relative; margin: 0; background: var(--rule-soft); }
+.story-figure > a { display: block; }
+.story-figure img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; }
+.story-figure figcaption { position: absolute; right: 0; bottom: 0; max-width: 100%; padding: 3px 8px; background: rgba(10, 20, 35, 0.62); color: #fff; font-size: 0.7rem; line-height: 1.3; }
+.story-figure figcaption a { color: #fff; }
+.story-figure figcaption a:hover { text-decoration: underline; }
+.live-teaser-main.has-figure { padding: 0; }
+.live-teaser-main.has-figure .live-teaser-body { padding: 12px 14px 14px; }
 @media (min-width: 720px) {
-  .live-teaser-main.has-figure { display: grid; grid-template-columns: minmax(0, 46%) minmax(0, 1fr); gap: 0 16px; align-items: start; }
-  .live-teaser-figure { margin: 0; }
-  .live-teaser-figure figcaption { padding: 3px 0 0; }
+  .live-teaser-figure img { aspect-ratio: 2 / 1; }
+  .live-teaser-main.has-figure .live-teaser-body { padding-top: 16px; padding-bottom: 16px; }
 }
-.live-hero-figure { max-width: 640px; margin: 16px 0 14px; }
+.live-hero-figure { max-width: 640px; margin: 18px 0 16px; }
 .live-link { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
 .live-hero { border-bottom: 3px solid var(--breaking); }
 .live-hero .eyebrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }

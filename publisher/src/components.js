@@ -131,7 +131,8 @@ export function liveTeaser(story, ctx, { main = false } = {}) {
   }
   const figure = storyFigure(story, { href: `/live/${story.id}/`, className: 'live-teaser-figure' });
   return `<article class="live-teaser live-teaser-main${figure ? ' has-figure' : ''}">
-${figure}<div class="live-teaser-body">
+${figure}
+<div class="live-teaser-body">
 ${kicker}
 <h3 class="live-title"><a href="/live/${esc(story.id)}/">${esc(story.title)}</a></h3>
 <ul class="live-latest">${story.updates

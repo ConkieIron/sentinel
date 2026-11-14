@@ -152,19 +152,18 @@ function leadSummary(all, lead, inc) {
 }
 
 /**
- * A picture for the story from its own coverage: the lead report's if it has a decent one, else
- * the newest decent one from a major outlet, then from anyone. Website reports only, since
- * Bluesky link cards often show a different article.
+ * A picture for the story from its own coverage, sharpest first: at each size the lead report's,
+ * else the newest from a major outlet, then from anyone. Website reports only, since Bluesky link
+ * cards often show a different article.
  */
 export function storyImage(all, lead) {
   const usable = (r) => r && !r.via && r.image?.url && isStraightHeadline(r.title);
-  const big = (r) => usable(r) && (!r.image.width || r.image.width >= 600);
-  const pick =
-    (big(lead) && lead) ||
-    all.find((r) => big(r) && HEADLINE_OUTLETS.has(r.sourceName)) ||
-    all.find(big) ||
-    (usable(lead) && lead) ||
-    all.find(usable);
+  let pick = null;
+  for (const min of [900, 600, 0]) {
+    const ok = (r) => usable(r) && (!r.image.width || r.image.width >= min);
+    pick = (ok(lead) && lead) || all.find((r) => ok(r) && HEADLINE_OUTLETS.has(r.sourceName)) || all.find(ok);
+    if (pick) break;
+  }
   return pick ? { url: pick.image.url, source: pick.sourceName, link: pick.url, title: pick.title } : undefined;
 }
 
