@@ -22,7 +22,8 @@ const FAA = [
   report('The Hindu', 'U.S. flights resume after hours-long outage as FAA lifts nationwide ground stop', 11),
   report('BBC News', "What we know about the ground stop and what to do if you're affected", 6),
   report('Euronews', 'Passengers continue to face delays and cancellations after US lifts nationwide ground stop', 7),
-  report('Africanews', 'United States nationwide ground stop lifted after longest shutdown since 2001', 4),
+  report('Africanews', 'United States nationwide ground stop lifted after longest shutdown since 2001', 2.5),
+  report('The Hindu', "U.S. FAA ground stop updates: Flights resume as hours-long halt lifted; Trump admin. blames 'overloaded' systems", 1.5),
   report('Associated Press', 'What to know about flights after the US nationwide ground stop', 0.2),
 ];
 
@@ -95,7 +96,7 @@ test('straight headlines exclude explainers, questions and live blogs', async ()
   const { isStraightHeadline } = await import('../src/analysis/live.js');
   assert.ok(isStraightHeadline('FAA lifts nationwide ground stop on all US flights'));
   assert.ok(isStraightHeadline('U.S. flights resume after hours-long outage as FAA lifts ground stop'));
-  for (const t of ['Why did a Brooklyn building collapse suddenly?', "What we know about the ground stop and what to do if you're affected", 'Live: flights resume across the US after outage', 'Analysis: the ground stop exposes ageing systems', 'Ground stop: how the outage unfolded, explained', 'A Brooklyn building fell in seconds. Grief reached around the world', 'Doorbell video captures harrowing moment building collapsed in NYC'])
+  for (const t of ['Why did a Brooklyn building collapse suddenly?', "What we know about the ground stop and what to do if you're affected", 'Live: flights resume across the US after outage', 'Analysis: the ground stop exposes ageing systems', 'Ground stop: how the outage unfolded, explained', 'A Brooklyn building fell in seconds. Grief reached around the world', 'Doorbell video captures harrowing moment building collapsed in NYC', 'Microsoft Outage updates: Global outage ends after tech giant restores services'])
     assert.ok(!isStraightHeadline(t), t);
 });
 
@@ -138,6 +139,52 @@ test('a story with no recent reports is no longer live', () => {
   const old = FAA.map((r) => ({ ...r, time: r.time - 6 * H }));
   const incidents = [incident('U.S. flights resume after hours-long outage as FAA lifts nationwide ground stop', 17)];
   assert.deepEqual(findLiveStories(incidents, [...old, ...BACKGROUND], NOW), []);
+});
+
+test('a day-old story is not kept live by later headlines that share a couple of its words', () => {
+  const incidents = [incident('US air force responds to suspected drone activity over UK airbase', 20, { category: 'conflict' })];
+  const DRONE = [
+    report('CNA (Asia)', 'US air force responds to suspected drone activity over UK airbase', 20),
+    report('CNN', 'US Air Force personnel at the RAF Lakenheath base in Britain responded to suspected unauthorized drone activity', 19.5),
+    report('South China Morning Post', 'US Air Force responds to suspected drone activity over UK airbase', 18),
+    report('The Kyiv Independent', 'US Air Force responds to suspected drone activity at military base in UK', 17.7),
+  ];
+  const STRAYS = [
+    report('CNA (Asia)', "US Air Force captain arrested in Japan's Okinawa for alleged drunk driving", 8),
+    report('The Japan Times', 'U.S. Air Force captain arrested in Okinawa for alleged drunk driving', 8),
+    report('The Independent', 'Called 911? A drone may now be the first response', 0.5),
+  ];
+  assert.deepEqual(findLiveStories(incidents, [...DRONE, ...STRAYS, ...BACKGROUND], NOW), []);
+  // While it was developing, the same reports made a live story, without the strays.
+  const then = NOW - 17 * H;
+  const [story] = findLiveStories(incidents, [...DRONE, ...STRAYS.map((r) => ({ ...r, time: r.time - 17 * H }))], then + H);
+  assert.ok(story, 'live while outlets were reporting it');
+  assert.deepEqual(story.updates.map((u) => u.source).sort(), DRONE.map((r) => r.sourceName).sort());
+});
+
+test('one late report does not keep a story live', () => {
+  const old = FAA.map((r) => ({ ...r, time: r.time - 6 * H }));
+  const late = report('Dawn (Pakistan)', 'US flights resume after rare hours-long nationwide ground stop', 0.3);
+  const incidents = [incident('U.S. flights resume after hours-long outage as FAA lifts nationwide ground stop', 17)];
+  assert.deepEqual(findLiveStories(incidents, [...old, late, ...BACKGROUND], NOW), []);
+});
+
+test('a story that has ended is not kept live by a couple of late re-reports', () => {
+  const incidents = [incident("Microsoft announces service 'restored', global outage over", 0.2, { category: 'infrastructure' })];
+  const MSFT = [
+    report('The Japan Times', 'Microsoft says services fully restored after outage roiled world', 12.8),
+    report('BBC News', 'Microsoft says services fully restored after day-long global outage', 11),
+    report('CBS News', 'Microsoft says it "restored service" after major worldwide outage', 10.2),
+    report('CNA (Asia)', 'Microsoft restores service to Outlook and Teams after global outage', 9.7),
+    report('The Hindu', 'Microsoft says services fully restored after hourslong global outage', 7.7),
+    report('The Independent', 'Microsoft confirms services fully restored after major global outage', 6.5),
+    report('Sky News', 'Microsoft confirms all services are restored after global outage', 2.8),
+    report('Dawn (Pakistan)', "Microsoft announces service 'restored', global outage over", 0.2),
+  ];
+  const background = BACKGROUND.filter((r) => !/Microsoft/.test(r.title));
+  assert.deepEqual(findLiveStories(incidents, [...MSFT, ...background], NOW), []);
+  const busy = [...MSFT, report('Reuters', 'Microsoft says global outage fully restored, cause under review', 1)];
+  assert.equal(findLiveStories(incidents, [...busy, ...background], NOW).length, 1, 'still live while three outlets are on it');
 });
 
 test('published topics match new wire headlines on the story and nothing else', () => {

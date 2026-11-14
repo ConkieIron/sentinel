@@ -6,7 +6,9 @@
 // Matching weights each word by how rare it is across everything gathered, so "FAA" counts for
 // far more than "flights". A report must share at least three words with the story, two of them
 // as a pair ("ground stop", "global outage"), which stops unrelated headlines that happen to
-// reuse a stock phrase or a few common words.
+// reuse a stock phrase or a few common words. Two shared words are enough only for one of the
+// story's core phrases, and only close in time to a stronger match: "drone ... response" in a
+// feature published a day later is not news about the airbase drones.
 
 import { STOP } from './cluster.js';
 import { truncate, hashId } from '../lib/text.js';
@@ -19,6 +21,14 @@ export const LIVE = {
   minOutlets: 3,
   minReports: 4,
   activeHours: 3,
+  // A story is still developing only while this many outlets have reported it in activeHours;
+  // once it is matureHours old it needs matureOutlets, so late re-reports of a story that has
+  // ended ("services restored") don't keep it live.
+  activeOutlets: 2,
+  matureHours: 12,
+  matureOutlets: 3,
+  // A two-word match must fall this close to a stronger match on the same story.
+  weakMatchHours: 4,
   lookbackHours: 36,
   maxUpdates: 60,
   maxTerms: 14,
@@ -86,6 +96,11 @@ export function topicFeatures(text) {
  * headline ("demand answers", "raises questions") would pull in unrelated reports.
  */
 export function topicMatches(features, topic) {
+  return matchStrength(features, topic) > 0;
+}
+
+/** 2: three or more shared words including a phrase; 1: two words forming a core phrase; 0: no match. */
+export function matchStrength(features, topic) {
   let shared = 0;
   let score = 0;
   for (const t of features.terms) {
@@ -93,9 +108,23 @@ export function topicMatches(features, topic) {
     shared++;
     score += topic.terms[t];
   }
-  if (shared < 2 || score < topic.minScore) return false;
-  if (shared === 2) return (topic.core || []).some((p) => features.pairs.has(p));
-  return topic.phrases.some((p) => features.pairs.has(p));
+  if (shared < 2 || score < topic.minScore) return 0;
+  if (shared === 2) return (topic.core || []).some((p) => features.pairs.has(p)) ? 1 : 0;
+  return topic.phrases.some((p) => features.pairs.has(p)) ? 2 : 0;
+}
+
+/** Reports on a topic; two-word matches count only near a strong one. */
+function matchReports(pool, topic) {
+  const hits = [];
+  const strong = [];
+  for (const r of pool) {
+    const s = matchStrength(r.features, topic);
+    if (!s) continue;
+    hits.push([r, s]);
+    if (s === 2) strong.push(r.time);
+  }
+  const near = LIVE.weakMatchHours * 3600000;
+  return hits.filter(([r, s]) => s === 2 || strong.some((t) => Math.abs(t - r.time) <= near)).map(([r]) => r);
 }
 
 function buildTopic(seed, weightOf, isPhrase, extraTerms = [], extraPairs = []) {
@@ -124,7 +153,7 @@ const HEADLINE_OUTLETS = new Set([
 const NOT_HEADLINE_START =
   /^(?:why|how|what|who|when|where|which|is|are|was|were|can|could|should|would|will|does|do|did|inside|analysis|opinion|comment|explainer|explained|watch|listen|video|live|in pictures|timeline|the latest|here'?s|here is|everything|a look|[0-9]+ things|follow)\b/i;
 const NOT_HEADLINE =
-  /\?|\b(?:what we know|what to know|what you need|live updates?|live blog|explained|in pictures|key takeaways|timeline|podcast|newsletter|opinion|analysis|explainer|as it happened|the latest|raises questions|demands? answers|follow (?:our|live)|(?:video|footage|photos?|images?) (?:shows?|captures?)|captures? (?:the )?(?:\w+ )?moments?|moment (?:a|an|the)|in their own words)\b/i;
+  /\?|\bupdates?:|\b(?:what we know|what to know|what you need|live updates?|live blog|explained|in pictures|key takeaways|timeline|podcast|newsletter|opinion|analysis|explainer|as it happened|the latest|raises questions|demands? answers|follow (?:our|live)|(?:video|footage|photos?|images?) (?:shows?|captures?)|captures? (?:the )?(?:\w+ )?moments?|moment (?:a|an|the)|in their own words)\b/i;
 
 /** A straight news headline: a statement of what happened, not an explainer, question or blog. */
 export function isStraightHeadline(title) {
@@ -202,7 +231,7 @@ export function findLiveStories(incidents, reports, now) {
     const seed = topicFeatures(inc.title);
     if (seed.terms.size < 2) continue;
     let topic = buildTopic(seed, weightOf, isPhrase);
-    let matched = pool.filter((r) => topicMatches(r.features, topic));
+    let matched = matchReports(pool, topic);
     if (matched.length < 2) continue;
 
     // One round of expansion: terms and pairs that most matched reports share join the topic, so
@@ -214,7 +243,7 @@ export function findLiveStories(incidents, reports, now) {
       return [...m].filter(([, c]) => c >= need).map(([x]) => x);
     };
     topic = buildTopic(seed, weightOf, isPhrase, count('terms'), count('pairs'));
-    matched = pool.filter((r) => topicMatches(r.features, topic));
+    matched = matchReports(pool, topic);
     if (!matched.length) continue;
 
     // Candidates that pick up any of the same reports are the same story told differently
@@ -262,7 +291,8 @@ export function findLiveStories(incidents, reports, now) {
       (s) =>
         s.outlets.length >= LIVE.minOutlets &&
         s.reportCount >= LIVE.minReports &&
-        now - s.updatedAt <= LIVE.activeHours * 3600000,
+        new Set(s.updates.filter((u) => now - u.time <= LIVE.activeHours * 3600000).map((u) => u.source)).size >=
+          (now - s.startedAt >= LIVE.matureHours * 3600000 ? LIVE.matureOutlets : LIVE.activeOutlets),
     )
     .sort((a, b) => b.outlets.length - a.outlets.length || b.updatedAt - a.updatedAt)
     .slice(0, LIVE.maxStories);

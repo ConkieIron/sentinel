@@ -97,8 +97,10 @@ Methodology page explains the model to readers.
 ## Live coverage of developing stories
 
 `worker/src/analysis/live.js` picks up to three major developing stories, such as a nationwide
-flight ground stop. A story qualifies when at least 3 outlets have reported it and the newest
-report is under 3 hours old. Each story gets a BBC-style page at `/live/<id>/` with every outlet's
+flight ground stop. A story qualifies when at least 3 outlets have reported it and at least 2
+outlets have reported it in the last 3 hours, or 3 once the story is more than 12 hours old. So
+one late or stray report can't keep an old story live, and nor can a couple of outlets
+republishing "services restored" after a story has ended. Each story gets a BBC-style page at `/live/<id>/` with every outlet's
 report, newest first, each linking to the original article. The front page shows these stories at
 the top, above the headlines. The leading one is tagged "Breaking" and the others "Live"; there is
 no separate breaking-news banner.
@@ -123,6 +125,9 @@ clear backlog" are included:
 - A report must also share a word pair with the story ("ground stop", "global outage"), plus a
   third word unless the pair is one the story's coverage keeps repeating. That stops a stock
   phrase in the lead headline ("demand answers") from pulling in unrelated reports.
+- A two-word match only counts within 4 hours of a stronger match on the same story. Otherwise a
+  later, unrelated headline that happens to pair the same words ("drone ... response",
+  "US Air Force captain arrested") would join the story and keep it live.
 - Pairs made only of place names, seats of government or the most-reported leaders
   ("Russia … Ukraine", "White House", "Trump … Putin") never count, because they appear in a lot
   of unrelated news.

@@ -586,7 +586,7 @@ export function aboutPage(ctx) {
 <p>Reports about the same event (same country, compatible category, within 36 hours, overlapping key terms) are merged into one incident. Independent coverage by several outlets raises confidence; social posts alone never do.</p>
 
 <h2>5. Breaking and live coverage</h2>
-<p>A story gets its own live page when at least three outlets have reported it, with at least four reports in total, and the newest is under three hours old. Reports are matched by their distinctive words and phrases, so follow-ups such as “flights resume” join the story even when they don't repeat its first headline. The most widely reported live story is marked <strong>Breaking</strong> and the others <strong>Live</strong>.</p>
+<p>A story gets its own live page when at least three outlets have reported it, with at least four reports in total, and at least two outlets have reported it in the last three hours (three, once a story is more than 12 hours old, so late re-reports of a story that has ended don't keep it live). Reports are matched by their distinctive words and phrases, so follow-ups such as “flights resume” join the story even when they don't repeat its first headline. A report that shares only a couple of words with a story is added only if it appeared within a few hours of the story's main coverage. The most widely reported live story is marked <strong>Breaking</strong> and the others <strong>Live</strong>.</p>
 <p>A live story's title is the newest straight news headline from the last two hours, preferring major outlets, so it follows events rather than the first report. Explainers, questions and video teasers are never used as the title. Every update links to the outlet's original report.</p>
 
 <h2>6. Regional threat index</h2>
