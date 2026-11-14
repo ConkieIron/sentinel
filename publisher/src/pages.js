@@ -103,8 +103,9 @@ export function homePage(ctx) {
   const tiles = fresh.filter((i) => i !== lead);
   const headlineIds = new Set(fresh.map((i) => i.id));
 
+  // The full timeline, headlines included, so its first row is always the newest report.
   const feed = snapshot.incidents
-    .filter((i) => i.severity >= 2 && !headlineIds.has(i.id))
+    .filter((i) => i.severity >= 2)
     .sort(newestFirst)
     .slice(0, ctx.site.homeIncidents);
   const listedIds = new Set([...headlineIds, ...feed.map((i) => i.id)]);
