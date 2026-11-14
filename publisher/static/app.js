@@ -2,6 +2,7 @@
 (() => {
   'use strict';
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  const $ = (sel, root = document) => root.querySelector(sel);
 
   // Content moves between editions, so the browser's restored scroll position on refresh lands
   // mid-page. Fresh visits and refreshes start at the top; only back/forward restores position.
@@ -164,7 +165,7 @@
       matching.slice(0, limit).forEach((s) => (s.hidden = false));
       const remaining = matching.length - limit;
       button.hidden = remaining <= 0;
-      button.textContent = `Show ${Math.min(remaining, size)} more of ${remaining}`;
+      if (remaining > 0) button.textContent = `Show ${Math.min(remaining, size)} more of ${remaining}`;
     }
     button.addEventListener('click', () => {
       limit += size;
@@ -187,6 +188,53 @@
       });
     }
     apply();
+  }
+
+  // Country search: an exact (or unambiguous) name opens that country's page; anything else
+  // falls through to the A–Z list, which filters itself by the query.
+  for (const form of $$('[data-country-search]')) {
+    const input = $('input', form);
+    const options = $$('option', form).map((o) => ({ key: o.value.toLowerCase(), href: o.dataset.href }));
+    const find = (value) => {
+      const q = value.trim().toLowerCase();
+      if (!q) return null;
+      const starts = options.filter((o) => o.key.startsWith(q));
+      return options.find((o) => o.key === q) || (starts.length === 1 ? starts[0] : null);
+    };
+    form.addEventListener('submit', (e) => {
+      const hit = find(input.value);
+      if (hit) {
+        e.preventDefault();
+        location.href = hit.href;
+      }
+    });
+    // Picking a suggestion from the list goes straight there.
+    input.addEventListener('input', (e) => {
+      if (e.inputType && e.inputType !== 'insertReplacementText') return;
+      const q = input.value.trim().toLowerCase();
+      const hit = options.find((o) => o.key === q);
+      if (hit) location.href = hit.href;
+    });
+  }
+  const countryList = $('[data-country-list]');
+  if (countryList) {
+    const input = $('[data-country-search] input');
+    const empty = $('[data-country-empty]');
+    const rows = $$('li', countryList);
+    const filter = () => {
+      const q = (input?.value || '').trim().toLowerCase();
+      let shown = 0;
+      for (const row of rows) {
+        row.hidden = Boolean(q) && !row.dataset.name.includes(q);
+        if (!row.hidden) shown++;
+      }
+      if (empty) empty.hidden = shown > 0;
+    };
+    if (input) {
+      input.value = new URLSearchParams(location.search).get('q') || '';
+      input.addEventListener('input', filter);
+    }
+    filter();
   }
 
   // Reveal an incident targeted by a map pin even if it is collapsed or paged out.

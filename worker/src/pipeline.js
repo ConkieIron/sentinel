@@ -8,7 +8,7 @@ import { fetchMarkets } from './sources/markets.js';
 import { classify, extractCasualties, CATEGORIES } from './analysis/classify.js';
 import { locate, nearestCountry, COUNTRY_BY_ISO } from './analysis/geo.js';
 import { clusterItems } from './analysis/cluster.js';
-import { incidentWeight, scoreRegions, pickBreaking } from './analysis/threat.js';
+import { incidentWeight, scoreRegions, pickBreaking, isReportedTerror } from './analysis/threat.js';
 import { findLiveStories } from './analysis/live.js';
 
 export const SCHEMA_VERSION = 1;
@@ -134,7 +134,7 @@ export async function runPipeline(env = {}, { now = Date.now(), history = [] } =
       incidentReports: enriched.length,
       incidents: incidents.length,
       located: incidents.filter((i) => i.location?.region).length,
-      terrorism: categoryCounts.terrorism,
+      terrorism: incidents.filter(isReportedTerror).length,
       severe: incidents.filter((i) => i.severity >= 4).length,
       sourcesOnline: sources.filter((s) => s.ok).length,
       sourcesTotal: sources.length,

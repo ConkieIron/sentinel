@@ -1,4 +1,5 @@
-import { esc, safeHref, timeTag, clockTag, trim, fmtUtc, LEVEL_LABEL, TREND, EVIDENCE } from './util.js';
+import { esc, safeHref, timeTag, clockTag, trim, fmtUtc, filterCategory, LEVEL_LABEL, TREND, EVIDENCE } from './util.js';
+import { countriesOf, countryPath } from './countries.js';
 
 export function levelBadge(level) {
   return `<span class="lvl lvl-${esc(level)}">${esc(LEVEL_LABEL[level])}</span>`;
@@ -21,12 +22,13 @@ function casualtyText(c, evidence) {
   return parts.length ? `<span class="toll">${parts.join(', ')} reported</span>` : '';
 }
 
-function regionLink(inc, regionNames) {
+function regionLink(inc, ctx) {
   const loc = inc.location;
   if (!loc) return '<span>Location unclear</span>';
-  const place = [loc.place, loc.country].filter(Boolean).join(', ');
-  const region = loc.region && regionNames[loc.region];
-  return `${region ? `<a href="/region/${esc(loc.region)}/">${esc(region)}</a> · ` : ''}<span>${esc(place)}</span>`;
+  const region = loc.region && ctx.regionNames[loc.region];
+  const href = countryPath(ctx, loc.iso3);
+  const country = href ? `<a href="${esc(href)}">${esc(loc.country)}</a>` : esc(loc.country);
+  return `${region ? `<a href="/region/${esc(loc.region)}/">${esc(region)}</a> · ` : ''}<span>${loc.place ? `${esc(loc.place)}, ` : ''}${country}</span>`;
 }
 
 function sourceSummary(sources) {
@@ -57,7 +59,7 @@ const DEK = { lead: 320, tile: 150, item: 200, row: 0, compact: 0 };
  * item (full card for region/terrorism lists), compact (headline only).
  */
 export function incidentCard(inc, ctx, { variant = 'item', anchor = true } = {}) {
-  const { snapshot, now, regionNames } = ctx;
+  const { snapshot, now } = ctx;
   const sources = inc.sources
     .map(
       (s) =>
@@ -83,13 +85,13 @@ export function incidentCard(inc, ctx, { variant = 'item', anchor = true } = {})
     inc.retrospective ? '<span class="muted">Background / retrospective</span>' : '',
   ].join('');
 
-  const body = `<div class="kicker"><span class="cat cat-${esc(inc.category)}">${esc(snapshot.categories[inc.category])}</span>${regionLink(inc, regionNames)}</div>
+  const body = `<div class="kicker"><span class="cat cat-${esc(inc.category)}">${esc(snapshot.categories[inc.category])}</span>${regionLink(inc, ctx)}</div>
 ${headline(inc, 'h3')}
 ${inc.summary && dekLen ? `<p class="dek">${esc(trim(inc.summary, dekLen))}</p>` : ''}
 <div class="meta">${meta}</div>
 ${showSources ? `<details class="sources"><summary>${sourceSummary(inc.sources)}</summary><ul>${sources}</ul></details>` : ''}`;
 
-  return `<article class="story story-${variant}"${anchor ? ` id="i-${esc(inc.id)}"` : ''} data-cat="${esc(inc.category)}" data-ev="${esc(inc.evidence)}">
+  return `<article class="story story-${variant}"${anchor ? ` id="i-${esc(inc.id)}"` : ''} data-cat="${esc(filterCategory(inc))}" data-ev="${esc(inc.evidence)}">
 ${variant === 'row' ? `<div class="row-time">${timeTag(inc.time, now)}</div><div class="row-body">${body}</div>` : body}
 </article>`;
 }
@@ -150,19 +152,36 @@ export function sectionHead(title, { id, more } = {}) {
   return `<header class="section-head"${id ? ` id="${esc(id)}"` : ''}><h2>${esc(title)}</h2>${more ? `<a class="more" href="${esc(more.href)}">${esc(more.label)} →</a>` : ''}</header>`;
 }
 
-export function filterChips(snapshot, incidents) {
+export function filterChips(snapshot, incidents, adviceCount = 0) {
   const counts = {};
-  for (const i of incidents) counts[i.category] = (counts[i.category] || 0) + 1;
+  for (const i of incidents) counts[filterCategory(i)] = (counts[filterCategory(i)] || 0) + 1;
   const chips = Object.entries(snapshot.categories)
     .filter(([k]) => counts[k])
     .map(([k, label]) => `<button type="button" class="chip" data-filter="${esc(k)}" aria-pressed="false">${esc(label)} <span>${counts[k]}</span></button>`)
     .join('');
-  return `<div class="chips" role="toolbar" aria-label="Filter incidents by category" hidden><button type="button" class="chip" data-filter="all" aria-pressed="true">All <span>${incidents.length}</span></button>${chips}<button type="button" class="chip chip-alt" data-filter="verified" aria-pressed="false">Hide unverified social</button></div>`;
+  const advice = adviceCount ? `<button type="button" class="chip" data-filter="advice" aria-pressed="false">Travel advice <span>${adviceCount}</span></button>` : '';
+  return `<div class="chips" role="toolbar" aria-label="Filter incidents by category" hidden><button type="button" class="chip" data-filter="all" aria-pressed="true">All <span>${incidents.length + adviceCount}</span></button>${chips}${advice}<button type="button" class="chip chip-alt" data-filter="verified" aria-pressed="false">Hide unverified social</button></div>`;
 }
 
-export function incidentList(list, ctx, { filterable = false, pageSize = 25, variant = 'item', empty = 'No incidents in this window.' } = {}) {
-  if (!list.length) return `<p class="empty">${esc(empty)}</p>`;
-  return `${filterable ? filterChips(ctx.snapshot, list) : ''}<div class="story-list" data-page-size="${pageSize}">${list.map((i) => incidentCard(i, ctx, { variant })).join('')}</div>`;
+/** A change to official travel advice, as a row in the Latest feed. */
+export function adviceRow(change, ctx) {
+  const country = countriesOf(ctx).get(change.iso3);
+  const region = country && ctx.regionNames[country.region];
+  const gov = change.gov === 'us' ? 'US State Department' : 'UK Foreign Office';
+  return `<article class="story story-row story-advice${change.raised ? ' advice-raised' : ''}" data-cat="advice" data-ev="official">
+<div class="row-time">${timeTag(change.time, ctx.now)}</div><div class="row-body"><div class="kicker"><span class="cat cat-advice">Travel advice</span>${region ? `<a href="/region/${esc(country.region)}/">${esc(region)}</a> · ` : ''}${country ? `<a href="${esc(country.path)}">${esc(country.name)}</a>` : ''}</div>
+<h3 class="headline"><a href="${esc(safeHref(change.url))}" target="_blank" rel="noopener noreferrer">${esc(change.title)}<span class="vh"> (opens the ${esc(gov)} in a new tab)</span></a></h3>
+<div class="meta"><span class="src">${esc(gov)}</span>${change.summary ? `<span class="muted">${esc(trim(change.summary, 160))}</span>` : ''}</div>
+</div>
+</article>`;
+}
+
+/** Incidents, optionally interleaved with travel advice changes, newest first. */
+export function incidentList(list, ctx, { filterable = false, pageSize = 25, variant = 'item', empty = 'No incidents in this window.', advice = [] } = {}) {
+  if (!list.length && !advice.length) return `<p class="empty">${esc(empty)}</p>`;
+  const rows = [...list.map((i) => ({ time: i.time, html: () => incidentCard(i, ctx, { variant }) })), ...advice.map((c) => ({ time: c.time, html: () => adviceRow(c, ctx) }))];
+  if (advice.length) rows.sort((a, b) => b.time - a.time);
+  return `${filterable ? filterChips(ctx.snapshot, list, advice.length) : ''}<div class="story-list" data-page-size="${pageSize}">${rows.map((r) => r.html()).join('')}</div>`;
 }
 
 export function sourceTable(sources, now) {

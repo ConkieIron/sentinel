@@ -44,6 +44,15 @@ export function trim(s, max) {
 }
 
 export const LEVEL_LABEL = { high: 'High', medium: 'Medium', low: 'Low' };
+
+/** Same rule as the gatherer's counts: reported by an outlet or official source, not a look back. */
+export const isReportedTerror = (i) => i.category === 'terrorism' && i.evidence !== 'social' && !i.retrospective;
+
+/** The category a list filter files an incident under, so the terrorism chip agrees with the terrorism counts. */
+export const filterCategory = (i) => (i.category === 'terrorism' && !isReportedTerror(i) ? 'unconfirmed' : i.category);
+
+/** Latest leaves out severity-1 items (minor quakes, anniversaries). */
+export const inLatest = (i) => i.severity >= 2;
 export const TREND = {
   rising: ['▲', 'Rising'],
   falling: ['▼', 'Falling'],

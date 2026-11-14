@@ -3,7 +3,7 @@
 
 import { SHAPES, WIDTH, HEIGHT } from './data/basemap.js';
 import { project } from './projection.js';
-import { esc, safeHref, LEVEL_LABEL, fmtUtc } from './util.js';
+import { esc, safeHref, LEVEL_LABEL, fmtUtc, isReportedTerror } from './util.js';
 
 // Lon/lat framing for region pages.
 const REGION_VIEW = {
@@ -78,7 +78,7 @@ export function renderMap(snapshot, { incidents = [], focusRegion = null, captio
       const place = [i.location.place, i.location.country].filter(Boolean).join(', ');
       const meta = `${snapshot.categories[i.category]} · ${place} · ${fmtUtc(i.time)}`;
       const shape =
-        i.category === 'terrorism'
+        isReportedTerror(i)
           ? `<rect x="${(x - r).toFixed(1)}" y="${(y - r).toFixed(1)}" width="${(r * 2).toFixed(1)}" height="${(r * 2).toFixed(1)}" transform="rotate(45 ${x.toFixed(1)} ${y.toFixed(1)})"/>`
           : `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}"/>`;
       return `<a href="#i-${esc(i.id)}" class="pin pin-${esc(i.category)} ev-${esc(i.evidence)}${i.location.precision === 'country' ? ' approx' : ''}" data-title="${esc(i.title)}" data-meta="${esc(meta)}" data-id="${esc(i.id)}" data-region="${esc(i.location.region || '')}" data-url="${esc(safeHref(i.url))}"><title>${esc(i.title)}</title>${shape}</a>`;

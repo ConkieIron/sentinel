@@ -14,7 +14,8 @@ import { createHash } from 'node:crypto';
 import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage, livePage } from './src/pages.js';
+import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage, livePage, countryPage, countriesIndexPage } from './src/pages.js';
+import { countriesOf, adviceChanges } from './src/countries.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dist = join(here, 'dist');
@@ -81,6 +82,7 @@ function editionFingerprint(snapshot, version) {
       .map((i) => `${i.id}:${i.severity}:${i.category}`)
       .sort(),
     live: (snapshot.live || []).map((s) => [s.id, ...s.updates.map((u) => u.url)]),
+    advice: adviceChanges(snapshot, Date.parse(snapshot.generatedAt)).map((c) => `${c.iso3}:${c.gov}:${c.time}`),
   };
   return createHash('sha256').update(JSON.stringify(material)).digest('hex').slice(0, 16);
 }
@@ -133,6 +135,8 @@ const pages = [
   ['404.html', notFoundPage(ctx)],
   ...snapshot.regions.map((r) => [`region/${r.id}/index.html`, regionPage(ctx, r)]),
   ...live.map((s) => [`live/${s.id}/index.html`, livePage(ctx, s)]),
+  ['countries/index.html', countriesIndexPage(ctx)],
+  ...[...countriesOf(ctx).values()].map((c) => [`${c.path.slice(1)}index.html`, countryPage(ctx, c)]),
 ];
 for (const [path, html] of pages) await writePage(path, html);
 
@@ -158,7 +162,16 @@ await writePage(
   }),
 );
 
-const urls = ['/', '/regions/', '/terrorism/', '/about/', ...snapshot.regions.map((r) => `/region/${r.id}/`), ...live.map((s) => `/live/${s.id}/`)];
+const urls = [
+  '/',
+  '/regions/',
+  '/terrorism/',
+  '/about/',
+  '/countries/',
+  ...snapshot.regions.map((r) => `/region/${r.id}/`),
+  ...live.map((s) => `/live/${s.id}/`),
+  ...[...countriesOf(ctx).values()].map((c) => c.path),
+];
 await writePage(
   'sitemap.xml',
   `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls

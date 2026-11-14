@@ -73,7 +73,7 @@ ${body}
 <div class="footer-brand"><strong>SENTINEL</strong> · Open-source situational awareness</div>
 <p>SENTINEL automatically aggregates public reporting from news publishers, official hazard agencies and public social posts. Headlines are links to original reporting; classifications, locations and threat levels are automated heuristics, not verified intelligence or official advice. In an emergency follow guidance from local authorities.</p>
 <p class="small">Edition generated ${esc(fmtUtc(generated, { withYear: true }))} from a ${snapshot.windowHours}-hour window · Map data: Natural Earth (public domain) · Seismic data: USGS · Hazard alerts: GDACS · Content © respective publishers.</p>
-<ul class="footer-links"><li><a href="/about/">Methodology</a></li><li><a href="/about/#sources">Sources</a></li><li><a href="/regions/">All regions</a></li><li><a href="/data/snapshot.json">Data (JSON)</a></li></ul>
+<ul class="footer-links"><li><a href="/about/">Methodology</a></li><li><a href="/about/#sources">Sources</a></li><li><a href="/regions/">All regions</a></li><li><a href="/countries/">Countries</a></li><li><a href="/data/snapshot.json">Data (JSON)</a></li></ul>
 </div></footer>
 </body>
 </html>`;

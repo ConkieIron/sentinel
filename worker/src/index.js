@@ -37,7 +37,7 @@ export async function gather(env, now = Date.now()) {
   const [snapshot, travel] = await Promise.all([runPipeline(env, { now, history }), refreshTravelAdvice(cachedTravel, now).catch(() => cachedTravel)]);
   const nextHistory = appendHistory(history, snapshot, now);
   snapshot.history = nextHistory;
-  snapshot.travel = travelForSnapshot(travel, snapshot.incidents);
+  snapshot.travel = travelForSnapshot(travel, snapshot.incidents, now, snapshot.windowHours * 3600000);
 
   await env.SENTINEL_KV.put(KEYS.snapshot, JSON.stringify(snapshot));
   await env.SENTINEL_KV.put(KEYS.history, JSON.stringify(nextHistory));

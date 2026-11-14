@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseFcdo, parseUsAdvisories, refreshTravelAdvice, travelForSnapshot, TRAVEL_REFRESH_MS } from '../src/sources/travel.js';
+import { parseFcdo, parseUsAdvisories, refreshTravelAdvice, travelForSnapshot, markLevelChanges, TRAVEL_REFRESH_MS } from '../src/sources/travel.js';
 
 const child = (name, slug, synonyms = []) => ({
   base_path: `/foreign-travel-advice/${slug}`,
@@ -45,6 +45,27 @@ test('cached advice is reused until it is due a refresh', async () => {
   const now = Date.parse('2026-11-14T12:00:00Z');
   const cached = { fetchedAt: now - TRAVEL_REFRESH_MS + 60000, fcdo: {}, us: {} };
   assert.equal(await refreshTravelAdvice(cached, now), cached);
+});
+
+test('a US level change is spotted against the previous fetch and remembered for a week', () => {
+  const t0 = Date.parse('2026-11-14T12:00:00Z');
+  const first = markLevelChanges({ IRN: { level: 4 }, FRA: { level: 2 } }, { IRN: { level: 3 }, FRA: { level: 2 } }, t0);
+  assert.deepEqual(first.IRN, { level: 4, previousLevel: 3, levelChangedAt: t0 });
+  assert.equal(first.FRA.levelChangedAt, undefined);
+  const later = markLevelChanges({ IRN: { level: 4 } }, first, t0 + 6 * 3600000);
+  assert.equal(later.IRN.levelChangedAt, t0, 'kept on the next refresh');
+  const weekOn = markLevelChanges({ IRN: { level: 4 } }, later, t0 + 8 * 86400000);
+  assert.equal(weekOn.IRN.levelChangedAt, undefined, 'dropped after a week');
+  assert.deepEqual(markLevelChanges({ IRN: { level: 4 } }, null, t0), { IRN: { level: 4 } }, 'no previous fetch, no change');
+});
+
+test('countries whose advice changed recently are carried even when not in the news', () => {
+  const now = Date.parse('2026-11-14T12:00:00Z');
+  const advice = {
+    fcdo: { PER: { url: 'https://www.gov.uk/foreign-travel-advice/peru', updated: now - 5 * 3600000 }, CHL: { url: 'https://www.gov.uk/foreign-travel-advice/chile', updated: now - 9 * 86400000 } },
+    us: { BOL: { level: 3, label: 'Reconsider Travel', previousLevel: 2, levelChangedAt: now - 3600000 } },
+  };
+  assert.deepEqual(Object.keys(travelForSnapshot(advice, [], now)).sort(), ['BOL', 'PER']);
 });
 
 test('the snapshot carries advice for countries in the news and US "Do not travel" countries', () => {

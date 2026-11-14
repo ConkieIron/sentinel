@@ -38,6 +38,9 @@ function trendFor(regionId, score, history, now) {
   return 'steady';
 }
 
+/** Counted as suspected terrorism: reported by an outlet or official source, and not a look back. */
+export const isReportedTerror = (inc) => inc.category === 'terrorism' && inc.evidence !== 'social' && !inc.retrospective;
+
 export function scoreRegions(incidents, now, model, history = []) {
   const countriesByRegion = new Map(REGIONS.map((r) => [r.id, []]));
   for (const c of COUNTRIES) countriesByRegion.get(c.region)?.push(c.iso3);
@@ -52,7 +55,7 @@ export function scoreRegions(incidents, now, model, history = []) {
     if (!a) continue;
     a.score += inc.weight * Math.pow(model.diminishingReturns, a.incidents);
     a.incidents++;
-    if (inc.category === 'terrorism') a.terrorism++;
+    if (isReportedTerror(inc)) a.terrorism++;
     if (inc.severity >= 4) a.severe++;
     a.killed += inc.evidence === 'social' ? 0 : inc.casualties.killed;
     a.byCountry[inc.location.iso3] = (a.byCountry[inc.location.iso3] || 0) + 1;

@@ -78,14 +78,44 @@ export async function refreshTravelAdvice(cached, now) {
     // A partial failure retries in half an hour rather than waiting for the next full refresh.
     fetchedAt: ok(fcdo) && ok(us) ? now : now - TRAVEL_REFRESH_MS + 30 * 60000,
     fcdo: ok(fcdo) ? fcdo : cached?.fcdo || {},
-    us: ok(us) ? us : cached?.us || {},
+    us: ok(us) ? markLevelChanges(us, cached?.us, now) : cached?.us || {},
   };
 }
 
-/** The advice the site needs: countries in this edition's news, plus every US "Do not travel" country. */
-export function travelForSnapshot(advice, incidents) {
+const LEVEL_CHANGE_KEEP_MS = 7 * 86400000;
+
+/**
+ * The State Department feed only gives the current level, so a change is spotted by comparing
+ * with the previous fetch and remembered for a week.
+ */
+export function markLevelChanges(us, previous, now) {
+  if (!previous || !Object.keys(previous).length) return us;
+  const out = {};
+  for (const [iso3, a] of Object.entries(us)) {
+    const before = previous[iso3];
+    if (before && before.level !== a.level) out[iso3] = { ...a, previousLevel: before.level, levelChangedAt: now };
+    else if (before?.levelChangedAt && now - before.levelChangedAt < LEVEL_CHANGE_KEEP_MS && before.level === a.level)
+      out[iso3] = { ...a, previousLevel: before.previousLevel, levelChangedAt: before.levelChangedAt };
+    else out[iso3] = a;
+  }
+  return out;
+}
+
+/** When a country's advice last changed, by either government. */
+export function adviceChangedAt(a) {
+  return Math.max(a?.fcdo?.updated || 0, a?.us?.levelChangedAt || 0, a?.us?.updated || 0);
+}
+
+/**
+ * The advice the site needs: countries in this edition's news, every US "Do not travel" country,
+ * and any country whose advice changed within the window (listed under Latest updates).
+ */
+export function travelForSnapshot(advice, incidents, now = Date.now(), windowMs = 72 * 3600000) {
   const wanted = new Set(incidents.map((i) => i.location?.iso3).filter(Boolean));
   for (const [iso3, a] of Object.entries(advice?.us || {})) if (a.level === 4) wanted.add(iso3);
+  for (const iso3 of new Set([...Object.keys(advice?.us || {}), ...Object.keys(advice?.fcdo || {})])) {
+    if (now - adviceChangedAt({ fcdo: advice?.fcdo?.[iso3], us: advice?.us?.[iso3] }) <= windowMs) wanted.add(iso3);
+  }
   const out = {};
   for (const iso3 of wanted) {
     const fcdo = advice?.fcdo?.[iso3];

@@ -14,7 +14,8 @@ import {
   liveUpdate,
   livePill,
 } from './components.js';
-import { esc, safeHref, timeTag, fmtUtc, LEVEL_LABEL } from './util.js';
+import { esc, safeHref, timeTag, fmtUtc, ago, LEVEL_LABEL, isReportedTerror, filterCategory, inLatest } from './util.js';
+import { countriesOf, countryPath, adviceChangedAt, adviceChanges } from './countries.js';
 
 const OFFICIAL_LINKS = [
   ['UK FCDO travel advice', 'https://www.gov.uk/foreign-travel-advice'],
@@ -158,6 +159,13 @@ ${sourceTable(snapshot.sources, now)}
 </aside>`;
 }
 
+/** The Latest timeline on the home page, headlines included, newest first. */
+const latestFeed = (ctx) =>
+  ctx.snapshot.incidents
+    .filter(inLatest)
+    .sort((a, b) => b.time - a.time)
+    .slice(0, ctx.site.homeIncidents);
+
 export function homePage(ctx) {
   const { snapshot, now } = ctx;
   const s = snapshot.stats;
@@ -173,13 +181,10 @@ export function homePage(ctx) {
   const headlineIds = new Set(fresh.map((i) => i.id));
 
   // The full timeline, headlines included, so its first row is always the newest report.
-  const feed = snapshot.incidents
-    .filter((i) => i.severity >= 2)
-    .sort(newestFirst)
-    .slice(0, ctx.site.homeIncidents);
+  const feed = latestFeed(ctx);
   const listedIds = new Set([...headlineIds, ...feed.map((i) => i.id)]);
   const serious = snapshot.incidents.filter((i) => i.evidence !== 'social' && !i.retrospective).slice(0, 5);
-  const terror = snapshot.incidents.filter((i) => i.category === 'terrorism' && isReportedTerror(i)).sort(newestFirst);
+  const terror = snapshot.incidents.filter(isReportedTerror).sort(newestFirst);
   const pins = snapshot.incidents.filter((i) => i.location && (listedIds.has(i.id) || i.severity >= 3)).slice(0, 220);
   const pinnedNotListed = pins.filter((i) => !listedIds.has(i.id));
 
@@ -208,7 +213,7 @@ ${tiles.map((i) => incidentCard(i, ctx, { variant: 'tile' })).join('')}
 
 <section class="section">
 ${sectionHead('Latest updates', { id: 'latest' })}
-${incidentList(feed, ctx, { filterable: true, pageSize: 20, variant: 'row' })}
+${incidentList(feed, ctx, { filterable: true, pageSize: 20, variant: 'row', advice: adviceChanges(snapshot, now) })}
 </section>
 
 <section id="map" class="section">
@@ -250,6 +255,8 @@ export function regionsIndexPage(ctx) {
 <p class="eyebrow">Regional threat index</p>
 <h1>Incident map</h1>
 <p class="hero-dek">${pins.length} located incidents and ${snapshot.regions.length} regions ranked by weighted incident activity over the last ${snapshot.windowHours} hours. Levels are relative to one another.</p>
+${countrySearch(ctx)}
+<p class="small"><a href="/countries/">Browse all ${countriesOf(ctx).size} country briefings →</a></p>
 </section>
 ${renderMap(snapshot, { incidents: pins })}
 <ol class="region-list region-list-full">${snapshot.regions.map((r, i) => regionRow(r, i + 1)).join('')}</ol>
@@ -259,13 +266,25 @@ ${renderMap(snapshot, { incidents: pins })}
 
 const US_LEVEL_CLASS = { 1: 'adv-1', 2: 'adv-2', 3: 'adv-3', 4: 'adv-4' };
 const shortDate = (t) => new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+// Advice that changed this recently is flagged next to the country.
+const ADVICE_NEW_MS = 48 * 3600000;
+
+const usBadge = (a) => (a.us ? `<span class="adv ${US_LEVEL_CLASS[a.us.level] || ''}">US Level ${a.us.level}: ${esc(a.us.label)}</span>` : '');
+
+function adviceChangedBadge(a, now) {
+  const at = adviceChangedAt(a);
+  if (!at || now - at > ADVICE_NEW_MS) return '';
+  const raised = a.us?.levelChangedAt === at && a.us.previousLevel && a.us.level > a.us.previousLevel;
+  return `<span class="adv-new${raised ? ' adv-new-raised' : ''}">${raised ? 'US level raised' : 'Advice changed'} ${esc(ago(at, now))}</span>`;
+}
 
 /** Official advice for countries in this region's news, then any others the US says not to visit. */
-function travelPanel(snapshot, region, list) {
+function travelPanel(ctx, region, list) {
+  const { snapshot, now } = ctx;
   const counts = {};
   for (const i of list) if (i.location?.iso3) counts[i.location.iso3] = (counts[i.location.iso3] || 0) + 1;
   const rows = Object.entries(snapshot.travel || {})
-    .filter(([iso3, a]) => a.region === region.id && (counts[iso3] || a.us?.level === 4))
+    .filter(([iso3, a]) => a.region === region.id && (counts[iso3] || a.us?.level === 4 || now - adviceChangedAt(a) <= ADVICE_NEW_MS))
     .sort(([a, x], [b, y]) => (counts[b] || 0) - (counts[a] || 0) || (y.us?.level || 0) - (x.us?.level || 0) || x.name.localeCompare(y.name));
   if (!rows.length) return '';
   const row = ([iso3, a]) => {
@@ -274,9 +293,8 @@ function travelPanel(snapshot, region, list) {
       a.us && `<a href="${esc(safeHref(a.us.url))}" target="_blank" rel="noopener noreferrer">US State Dept</a>`,
     ].filter(Boolean);
     const updated = a.fcdo?.updated ? `UK advice updated ${shortDate(a.fcdo.updated)}` : '';
-    return `<li class="adv-row"><div class="adv-head"><strong>${esc(a.name)}</strong>${counts[iso3] ? `<span class="muted small">${counts[iso3]} in the news</span>` : ''}</div>${
-      a.us ? `<span class="adv ${US_LEVEL_CLASS[a.us.level] || ''}">US Level ${a.us.level}: ${esc(a.us.label)}</span>` : ''
-    }<div class="adv-links small">${links.join(' · ')}${updated ? `<span class="muted"> · ${updated}</span>` : ''}</div></li>`;
+    const href = countryPath(ctx, iso3);
+    return `<li class="adv-row"><div class="adv-head"><strong>${href ? `<a href="${esc(href)}">${esc(a.name)}</a>` : esc(a.name)}</strong>${counts[iso3] ? `<span class="muted small">${counts[iso3]} in the news</span>` : ''}</div>${usBadge(a)}${adviceChangedBadge(a, now)}<div class="adv-links small">${links.join(' · ')}${updated ? `<span class="muted"> · ${updated}</span>` : ''}</div></li>`;
   };
   const first = rows.slice(0, 8);
   const rest = rows.slice(8);
@@ -324,14 +342,24 @@ ${incidentList(list, ctx, { filterable: list.length > 6, pageSize: 25, empty: 'N
 </section>
 </div>
 <aside class="sidebar">
-${travelPanel(snapshot, region, list)}
+${travelPanel(ctx, region, list)}
 <section class="panel">
 <h2 class="panel-title">Seven-day trend</h2>
 ${sparkline(snapshot.history || [], region.id)}
 </section>
 <section class="panel">
 <h2 class="panel-title">Hotspots</h2>
-${region.hotspots.length ? `<ol class="hotspots">${region.hotspots.map((h) => `<li><span>${esc(h.name)}</span><strong>${h.count}</strong></li>`).join('')}</ol>` : '<p class="muted">None in this window.</p>'}
+${
+  region.hotspots.length
+    ? `<ol class="hotspots">${region.hotspots
+        .map((h) => {
+          const href = countryPath(ctx, h.iso3);
+          return `<li><span>${href ? `<a href="${esc(href)}">${esc(h.name)}</a>` : esc(h.name)}</span><strong>${h.count}</strong></li>`;
+        })
+        .join('')}</ol>`
+    : '<p class="muted">None in this window.</p>'
+}
+<p class="small"><a href="/countries/">All countries →</a></p>
 </section>
 <section class="panel">
 <h2 class="panel-title">Other regions</h2>
@@ -353,7 +381,121 @@ ${region.hotspots.length ? `<ol class="hotspots">${region.hotspots.map((h) => `<
   });
 }
 
-const isReportedTerror = (i) => i.evidence !== 'social' && !i.retrospective;
+/** Jumps straight to a country page with JavaScript; without it, opens the A–Z list. */
+export function countrySearch(ctx) {
+  const options = [...countriesOf(ctx).values()].map((c) => `<option value="${esc(c.name)}" data-href="${esc(c.path)}"></option>`).join('');
+  return `<form class="country-search" action="/countries/" method="get" role="search" data-country-search>
+<label for="country-q">Find a country</label>
+<div class="cs-row"><input id="country-q" name="q" type="search" list="country-names" autocomplete="off" placeholder="Start typing, e.g. Ukraine"><button type="submit">Go</button></div>
+<datalist id="country-names">${options}</datalist>
+</form>`;
+}
+
+function adviceBox(ctx, country) {
+  const a = country.travel;
+  const { now } = ctx;
+  const fallback = `<p>No official advice was found for ${esc(country.name)} in this edition. See the <a href="https://www.gov.uk/foreign-travel-advice" target="_blank" rel="noopener noreferrer">UK FCDO</a> or the <a href="https://travel.state.gov/content/travel/en/traveladvisories/traveladvisories.html" target="_blank" rel="noopener noreferrer">US State Department</a>.</p>`;
+  const us = a?.us
+    ? `<div class="advice-card"><h3>US State Department</h3>${usBadge(a)}${
+        a.us.levelChangedAt && a.us.previousLevel
+          ? `<p class="small"><strong>${a.us.level > a.us.previousLevel ? 'Raised' : 'Lowered'} from Level ${a.us.previousLevel}</strong> ${esc(ago(a.us.levelChangedAt, now))}.</p>`
+          : ''
+      }${a.us.updated ? `<p class="small muted">Advisory dated ${shortDate(a.us.updated)}</p>` : ''}<p><a href="${esc(safeHref(a.us.url))}" target="_blank" rel="noopener noreferrer">Read the US advisory →</a></p></div>`
+    : '';
+  const uk = a?.fcdo
+    ? `<div class="advice-card"><h3>UK Foreign Office</h3>${a.fcdo.change ? `<p>${esc(a.fcdo.change)}</p>` : ''}${
+        a.fcdo.updated ? `<p class="small muted">Updated ${shortDate(a.fcdo.updated)}${now - a.fcdo.updated <= ADVICE_NEW_MS ? ` <span class="adv-new">${esc(ago(a.fcdo.updated, now))}</span>` : ''}</p>` : ''
+      }<p><a href="${esc(safeHref(a.fcdo.url))}" target="_blank" rel="noopener noreferrer">Read the FCDO advice →</a></p></div>`
+    : '';
+  return `<section class="section advice-box">
+${sectionHead('Official travel advice')}
+${us || uk ? `<div class="advice-grid">${uk}${us}</div>` : fallback}
+<p class="small muted">SENTINEL's threat levels compare news activity between regions; they are not travel advice. Always read the full official advice before you travel.</p>
+</section>`;
+}
+
+export function countryPage(ctx, country) {
+  const { snapshot } = ctx;
+  const region = snapshot.regions.find((r) => r.id === country.region);
+  const list = country.incidents;
+  const verified = list.filter((i) => i.evidence !== 'social');
+  const deaths = verified.reduce((n, i) => n + (i.casualties?.killed || 0), 0);
+  const terror = list.filter(isReportedTerror).length;
+  const neighbours = [...countriesOf(ctx).values()].filter((c) => c.region === country.region && c.iso3 !== country.iso3 && c.incidents.length).sort((a, b) => b.incidents.length - a.incidents.length);
+
+  const body = `<div class="wrap">
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/regions/">Incident map</a> › ${region ? `<a href="/region/${esc(region.id)}/">${esc(region.name)}</a> › ` : ''}<span>${esc(country.name)}</span></nav>
+<section class="hero hero-small${region ? ` region-hero lvl-border-${esc(region.level)}` : ''}">
+<p class="eyebrow">Country briefing</p>
+<h1>${esc(country.name)}</h1>
+${region ? `<p class="hero-dek">Part of <a href="/region/${esc(region.id)}/">${esc(region.name)}</a>, which is at ${levelBadge(region.level)} relative threat (index ${region.index}/100). ${country.travel ? `${usBadge(country.travel)} ${adviceChangedBadge(country.travel, ctx.now)}` : ''}</p>` : ''}
+<ul class="facts">
+<li><strong>${list.length}</strong> incident${list.length === 1 ? '' : 's'}</li>
+<li><strong>${list.filter((i) => i.severity >= 4).length}</strong> severe (4–5)</li>
+<li><strong>${terror}</strong> suspected terrorism</li>
+<li><strong>${deaths.toLocaleString('en-GB')}</strong> deaths reported*</li>
+</ul>
+<p class="small muted">In the last ${snapshot.windowHours} hours. *Sum of the highest figure cited per incident in publisher reports; tolls are often revised and may double count.</p>
+</section>
+<div class="layout">
+<div class="main-col">
+${adviceBox(ctx, country)}
+${list.some((i) => i.location) ? renderMap(snapshot, { incidents: list, focusRegion: country.region }) : ''}
+<section class="section">
+${sectionHead(`Incidents in ${country.name}`)}
+${incidentList(list, ctx, { filterable: list.length > 6, pageSize: 25, empty: `No incidents in ${country.name} were reported in the last ${snapshot.windowHours} hours.` })}
+</section>
+</div>
+<aside class="sidebar">
+<section class="panel">
+${countrySearch(ctx)}
+</section>
+${
+  neighbours.length
+    ? `<section class="panel"><h2 class="panel-title">Elsewhere in ${esc(region?.name || 'the region')}</h2><ul class="link-list">${neighbours
+        .slice(0, 10)
+        .map((c) => `<li><a href="${esc(c.path)}">${esc(c.name)}</a><span class="muted small">${c.incidents.length}</span></li>`)
+        .join('')}</ul></section>`
+    : ''
+}
+<section class="panel"><p class="small"><a href="/countries/">All countries →</a></p></section>
+</aside>
+</div>
+</div>`;
+  return layout({
+    title: `${country.name} briefing`,
+    description: `${country.name}: ${list.length} incidents in the last ${snapshot.windowHours} hours, with UK and US official travel advice.`,
+    path: country.path,
+    body,
+    ctx,
+    active: 'regions',
+  });
+}
+
+export function countriesIndexPage(ctx) {
+  const { snapshot, now } = ctx;
+  const countries = [...countriesOf(ctx).values()];
+  const inNews = countries.filter((c) => c.incidents.length).length;
+  const rows = countries
+    .map(
+      (c) => `<li class="country-row" data-name="${esc(c.name.toLowerCase())}"><a href="${esc(c.path)}"><strong>${esc(c.name)}</strong></a><span class="muted small">${esc(ctx.regionNames[c.region] || '')}</span><span class="small">${
+        c.incidents.length ? `${c.incidents.length} incident${c.incidents.length === 1 ? '' : 's'}` : '<span class="muted">No incidents</span>'
+      }</span>${c.travel ? `${usBadge(c.travel)}${adviceChangedBadge(c.travel, now)}` : ''}</li>`,
+    )
+    .join('');
+  const body = `<div class="wrap narrow">
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/regions/">Incident map</a> › <span>Countries</span></nav>
+<section class="hero hero-small">
+<p class="eyebrow">Country briefings</p>
+<h1>Countries</h1>
+<p class="hero-dek">${inNews} countries in the news in the last ${snapshot.windowHours} hours, plus every country the US advises against visiting and any whose official advice changed recently.</p>
+${countrySearch(ctx)}
+</section>
+<ul class="country-list" data-country-list>${rows}</ul>
+<p class="empty" data-country-empty hidden>No country with a briefing matches that name. Only countries in this edition's news, or with notable travel advice, have a page.</p>
+</div>`;
+  return layout({ title: 'Countries', description: 'Country briefings: incidents in the news and official UK and US travel advice.', path: '/countries/', body, ctx, active: 'regions' });
+}
 
 export function terrorismPage(ctx) {
   const { snapshot } = ctx;
@@ -398,23 +540,34 @@ ${sidebar(ctx)}
 export function aboutPage(ctx) {
   const { snapshot, now } = ctx;
   const m = snapshot.model;
+  const inFeed = {};
+  for (const i of latestFeed(ctx)) inFeed[filterCategory(i)] = (inFeed[filterCategory(i)] || 0) + 1;
   const catRows = Object.entries(snapshot.categories)
-    .map(([k, label]) => `<tr><td><span class="cat cat-${esc(k)}">${esc(label)}</span></td><td class="num">${m.categoryWeight[k]}</td><td class="num">${snapshot.stats.categoryCounts[k] || 0}</td></tr>`)
+    .map(([k, label]) => `<tr><td><span class="cat cat-${esc(k)}">${esc(label)}</span></td><td class="num">${m.categoryWeight[k]}</td><td class="num">${inFeed[k] || 0}</td></tr>`)
     .join('');
+  // Outlets with two feeds (BBC News and "BBC News (top stories)") are named once.
+  const names = (kind) => [...new Set(snapshot.sources.filter((s) => s.kind === kind).map((s) => s.name.replace(/\s*\((?:top stories|Bluesky)\)$/, '')))];
+  const rss = names('rss');
+  const bskyPublishers = names('bluesky-publisher');
+  const listNames = (list) => (list.length > 8 ? `${list.slice(0, 8).join(', ')} and others` : list.join(', '));
   const body = `<div class="wrap narrow">
 <section class="hero hero-small">
 <p class="eyebrow">Methodology &amp; sources</p>
 <h1>How SENTINEL builds each edition</h1>
-<p class="hero-dek">SENTINEL is a static site. A scheduled Cloudflare Worker gathers public reporting, scores it and stores a snapshot; Cloudflare Pages then compiles this snapshot into plain HTML. There is no database behind these pages.</p>
+<p class="hero-dek">SENTINEL is a static site. Every few minutes an automated job gathers public reporting, scores it and compiles the result into plain HTML pages. There is no database behind these pages.</p>
 </section>
 
 <article class="prose">
-<h2>1. Collection</h2>
-<p>Every 15 minutes the gatherer reads public RSS feeds from international publishers (BBC, Al Jazeera, Sky News, The Guardian, France 24, DW, Euronews and others), official publisher accounts on Bluesky (including CNN, Reuters and AP), public Bluesky posts matching incident keywords, USGS earthquake data and GDACS multi-hazard alerts. Only items from the last ${snapshot.windowHours} hours are used.</p>
+<h2>1. Collection and publishing</h2>
+<p>Every five minutes SENTINEL reads ${snapshot.sources.length} sources: news feeds from ${rss.length} publishers (${esc(listNames(rss))}), the official Bluesky accounts of ${bskyPublishers.length} news organisations (${esc(listNames(bskyPublishers))}), public Bluesky posts matching incident keywords, USGS earthquake data and GDACS disaster alerts. Only items from the last ${snapshot.windowHours} hours are used.</p>
+<p>A new edition is published whenever something a reader would notice has changed, and at least once an hour. Separately, a watcher checks the wire services and other major outlets every minute. When one reports major breaking news or a new development in a story covered live, it starts a rebuild straight away, so these usually appear within two or three minutes.</p>
+<p>Stock market figures in the masthead come from Yahoo Finance and can be delayed by up to 15 minutes.</p>
 
 <h2>2. Classification</h2>
-<p>Each headline and standfirst is matched against an explainable rule set that assigns a category, extracts reported casualty figures and sets a <strong>severity from 1 to 5</strong>. Retrospective items (anniversaries, trials, sentencing) are capped at severity 1. Commentary, sport and business stories are excluded. The Global terror list only shows reports from news outlets and official sources; unverified social posts and anniversaries are listed separately underneath it.</p>
-<div class="table-wrap"><table><thead><tr><th>Category</th><th class="num">Weight</th><th class="num">This edition</th></tr></thead><tbody>${catRows}</tbody></table></div>
+<p>Each headline and standfirst is matched against an explainable rule set that assigns a category, extracts reported casualty figures and sets a <strong>severity from 1 to 5</strong>. Retrospective items (anniversaries, trials, sentencing) are capped at severity 1. Commentary, sport and business stories are excluded. Public social posts that read as jokes or satire are dropped.</p>
+<p>Suspected terrorism counts, the Global terror list and the diamond markers on the maps include only reports from news outlets and official sources. Unverified social posts, and coverage of past attacks such as anniversaries and trials, are listed separately at the foot of the Global terror page.</p>
+<div class="table-wrap"><table><thead><tr><th>Category</th><th class="num">Weight</th><th class="num">In Latest now</th></tr></thead><tbody>${catRows}</tbody></table></div>
+<p class="muted small">Latest lists reports of severity 2 and above. Unverified social posts and look-backs that read as terrorism stay in Latest but are not counted as suspected terrorism.</p>
 
 <h2>3. Location</h2>
 <p>Places named in the report are matched against a gazetteer of every country plus key cities and conflict hotspots. USGS and GDACS markers use exact coordinates; others sit on the city or country centre and are approximate.</p>
@@ -422,7 +575,11 @@ export function aboutPage(ctx) {
 <h2>4. Corroboration</h2>
 <p>Reports about the same event (same country, compatible category, within 36 hours, overlapping key terms) are merged into one incident. Independent coverage by several outlets raises confidence; social posts alone never do.</p>
 
-<h2>5. Regional threat index</h2>
+<h2>5. Breaking and live coverage</h2>
+<p>A story gets its own live page when at least three outlets have reported it, with at least four reports in total, and the newest is under three hours old. Reports are matched by their distinctive words and phrases, so follow-ups such as “flights resume” join the story even when they don't repeat its first headline. The most widely reported live story is marked <strong>Breaking</strong> and the others <strong>Live</strong>.</p>
+<p>A live story's title is the newest straight news headline from the last two hours, preferring major outlets, so it follows events rather than the first report. Explainers, questions and video teasers are never used as the title. Every update links to the outlet's original report.</p>
+
+<h2>6. Regional threat index</h2>
 <p>Each incident contributes <code>severity weight × category weight × evidence weight × recency</code>. Severity weights are ${m.severityWeight.slice(1).join(', ')} for levels 1 to 5. Evidence weights are ${Object.entries(m.evidenceWeight).map(([k, v]) => `${k} ${v}`).join(', ')}. Recency halves every ${m.recencyHalfLifeHours} hours.</p>
 <p>A region's score adds up its incidents, heaviest first, with diminishing returns: the second-heaviest incident counts at ${Math.round((m.diminishingReturns ?? 1) * 100)}% of its weight, the third at ${Math.round((m.diminishingReturns ?? 1) ** 2 * 100)}%, and so on. This stops a high volume of minor stories from outranking a few severe events. Levels are <strong>relative</strong>: the index is the square root of each region's score divided by the most active region's score, from 0 to 100. The square root keeps one extreme hotspot from flattening every other region.</p>
 <ul>
@@ -432,7 +589,10 @@ export function aboutPage(ctx) {
 </ul>
 <p>The absolute floors stop a quiet news day from painting any region red. Because the index measures <em>reported</em> activity, regions with heavy media coverage can score higher than equally affected regions with less coverage.</p>
 
-<h2>6. Limitations</h2>
+<h2>7. Official travel advice</h2>
+<p>Region and country pages show the UK Foreign, Commonwealth &amp; Development Office (FCDO) and US State Department advice for each country in the news, plus every country the US rates Level 4, “Do not travel”. Both are read from the governments' own public feeds every six hours. A change to either government's advice is flagged on the country's page and listed under Latest updates. SENTINEL's threat levels compare news activity between regions and are not travel advice.</p>
+
+<h2>8. Limitations</h2>
 <ul>
 <li>Classifications are automated keyword heuristics and will sometimes be wrong.</li>
 <li>“Suspected terrorism” reflects how events are reported, not an official designation.</li>

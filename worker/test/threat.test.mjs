@@ -57,6 +57,17 @@ test('scoreRegions ranks regions and applies diminishing returns', () => {
   assert.equal(regions.length, 16);
 });
 
+test('regional terrorism counts leave out unverified posts and anniversaries', () => {
+  const incidents = [
+    incident('t1', 'west-africa', { category: 'terrorism', evidence: 'publisher' }),
+    incident('t2', 'west-africa', { category: 'terrorism', evidence: 'social' }),
+    incident('t3', 'west-africa', { category: 'terrorism', evidence: 'publisher', retrospective: true }),
+  ];
+  const region = scoreRegions(incidents, NOW, MODEL).find((r) => r.id === 'west-africa');
+  assert.equal(region.incidents, 3);
+  assert.equal(region.terrorism, 1);
+});
+
 test('trend compares with history from 18-30h ago', () => {
   const incidents = [incident('a', 'oceania', { severity: 5 })];
   const history = [{ t: NOW - 24 * H, s: { oceania: 1 } }];

@@ -2,7 +2,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { esc, safeHref, ago } from '../src/util.js';
-import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage, livePage } from '../src/pages.js';
+import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage, livePage, countryPage, countriesIndexPage } from '../src/pages.js';
+import { buildCountries } from '../src/countries.js';
 import { project, MAP_WIDTH, MAP_HEIGHT } from '../src/projection.js';
 
 const fixture = JSON.parse(await readFile(new URL('../fixtures/sample-snapshot.json', import.meta.url), 'utf8'));
@@ -28,6 +29,8 @@ function allPages(ctx) {
     notFoundPage(ctx),
     ...ctx.snapshot.regions.map((r) => regionPage(ctx, r)),
     ...(ctx.snapshot.live || []).map((s) => livePage(ctx, s)),
+    countriesIndexPage(ctx),
+    ...[...buildCountries(ctx.snapshot).values()].map((c) => countryPage(ctx, c)),
   ];
 }
 
@@ -87,7 +90,7 @@ test('projection keeps the visible world inside the map frame', () => {
 
 test('every page renders a complete document from the fixture', () => {
   const pages = allPages(context(fixture));
-  assert.equal(pages.length, 5 + fixture.regions.length);
+  assert.equal(pages.length, 6 + fixture.regions.length + buildCountries(fixture).size);
   for (const html of pages) {
     assert.match(html, /^<!doctype html>/i);
     assert.match(html, /<\/html>\s*$/);
@@ -181,6 +184,10 @@ test('Global terror lists outlet reports; social posts and anniversaries sit apa
   const panel = home.slice(home.indexOf('<h2>Suspected terrorism</h2>'));
   assert.match(panel, /Gunmen kill 12/);
   assert.doesNotMatch(panel.slice(0, panel.indexOf('</section>')), /Americans unable|France marks/);
+  // The Latest filter chip and the Methodology table count the same reports.
+  assert.match(home, /data-filter="terrorism" aria-pressed="false">Suspected terrorism <span>1<\/span>/);
+  assert.match(home, /data-cat="unconfirmed"/);
+  assert.match(aboutPage(context(snapshot)), /cat-terrorism">Suspected terrorism<\/span><\/td><td class="num">[\d.]+<\/td><td class="num">1<\/td>/);
 });
 
 test('region pages show official travel advice for countries in the news', () => {
@@ -199,13 +206,61 @@ test('region pages show official travel advice for countries in the news', () =>
   };
   const html = regionPage(context(snapshot), region);
   assert.match(html, /Official travel advice/);
-  assert.match(html, /<strong>Testland<\/strong>/);
+  assert.match(html, /<strong><a href="\/country\/[a-z-]+\/">Testland<\/a><\/strong>/);
   assert.match(html, /class="adv adv-4">US Level 4: Do Not Travel/);
   assert.match(html, /href="https:\/\/www\.gov\.uk\/foreign-travel-advice\/testland" target="_blank" rel="noopener noreferrer" title="Updated safety advice">UK FCDO/);
   assert.match(html, /UK advice updated 2 Oct 2026/);
   assert.doesNotMatch(html, /Elsewhere/);
   delete snapshot.travel;
   assert.doesNotMatch(regionPage(context(snapshot), region), /Official travel advice/);
+});
+
+test('every country in the news gets a page with its incidents, linked from incident cards', () => {
+  const ctx = context(fixture);
+  const countries = [...buildCountries(fixture).values()];
+  const located = fixture.incidents.filter((i) => i.location?.iso3 && i.location.region);
+  assert.equal(countries.length, new Set(located.map((i) => i.location.iso3)).size);
+  assert.equal(new Set(countries.map((c) => c.path)).size, countries.length, 'paths are unique');
+  for (const c of countries) assert.match(c.path, /^\/country\/[a-z0-9-]+\/$/);
+
+  const busiest = [...countries].sort((a, b) => b.incidents.length - a.incidents.length)[0];
+  const page = countryPage(ctx, busiest);
+  assert.match(page, /^<!doctype html>/i);
+  assert.match(page, new RegExp(`<h1>${busiest.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}</h1>`.replace(/&/g, '&amp;')));
+  assert.match(page, /No official advice was found/, 'fixture has no travel data');
+  for (const i of busiest.incidents.slice(0, 3)) assert.ok(page.includes(`id="i-${i.id}"`));
+  assert.ok(homePage(ctx).includes(`href="${busiest.path}"`), 'incident cards link to the country');
+
+  const index = countriesIndexPage(ctx);
+  assert.match(index, /data-country-search/);
+  assert.equal((index.match(/class="country-row"/g) || []).length, countries.length);
+});
+
+test('travel advice changes appear in Latest and are flagged on the country page', () => {
+  const snapshot = structuredClone(fixture);
+  const now = Date.parse(snapshot.generatedAt);
+  const inc = snapshot.incidents.find((i) => i.location?.iso3);
+  snapshot.travel = {
+    [inc.location.iso3]: {
+      name: inc.location.country,
+      region: inc.location.region,
+      fcdo: { url: 'https://www.gov.uk/foreign-travel-advice/x', updated: now - 3 * 3600000, change: 'New warning about protests' },
+      us: { level: 4, label: 'Do Not Travel', previousLevel: 3, levelChangedAt: now - 3600000, url: 'https://travel.state.gov/x.html' },
+    },
+    ZZZ: { name: 'Quietland', region: inc.location.region, fcdo: { url: 'https://www.gov.uk/foreign-travel-advice/q', updated: now - 10 * 86400000 } },
+  };
+  const ctx = context(snapshot);
+  const home = homePage(ctx);
+  assert.match(home, /data-filter="advice" aria-pressed="false">Travel advice <span>2<\/span>/);
+  assert.match(home, new RegExp(`US raises travel advisory for ${inc.location.country} to Level 4: Do Not Travel`));
+  assert.match(home, /UK travel advice for .* updated/);
+  assert.doesNotMatch(home, /Quietland/, 'old changes stay out of Latest');
+
+  const country = buildCountries(snapshot).get(inc.location.iso3);
+  const page = countryPage(ctx, country);
+  assert.match(page, /Raised from Level 3<\/strong> 1 hr ago/);
+  assert.match(page, /class="adv-new adv-new-raised">US level raised 1 hr ago/);
+  assert.match(page, /New warning about protests/);
 });
 
 test('empty snapshot still renders', () => {

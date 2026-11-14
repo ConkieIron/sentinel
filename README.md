@@ -54,11 +54,22 @@ and tested on its own.
   the US State Department's advisory feed. Two requests cover every country, re-fetched every
   6 hours and cached in the gatherer's state. Each region page lists the countries in its news,
   plus any the US rates Level 4 "Do not travel", with links to both governments' pages. Code is
-  in `worker/src/sources/travel.js`.
+  in `worker/src/sources/travel.js`. A US level change is spotted by comparing with the previous
+  fetch and remembered for a week. Advice that changed inside the news window is added to Latest
+  as a "Travel advice" row (with its own filter chip) and gets an "Advice changed" badge for 48
+  hours.
+
+Every country with located incidents or official advice in the snapshot gets a briefing page at
+`/country/<name>/`: advice from both governments, a map, and its incidents. `/countries/` lists
+them A–Z with a search box, which also appears on the incident map and country pages. Built by
+`publisher/src/countries.js`.
 
 Public Bluesky search posts that read as satire or jokes ("news at 11", "area man", satire
-accounts) are dropped. The Global terror page lists only reports from news outlets and official
-sources; unverified social posts and anniversaries or trials appear in collapsed sections below.
+accounts) are dropped. One rule decides what counts as suspected terrorism everywhere (headline
+figure, region counts, the Latest filter chip, map diamonds and the Methodology table): reports
+from news outlets and official sources, not anniversaries or trials. The Global terror page lists
+those; unverified social posts and look-backs appear in collapsed sections below. Social posts
+using terrorism language stay in Latest but aren't counted.
 
 Add or remove feeds in `worker/src/config.js`. An outlet with two feeds (BBC, Sky) uses the same
 `name` on both, so a story is counted once per outlet; `label` tells them apart on the sources
