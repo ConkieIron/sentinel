@@ -39,9 +39,22 @@ function threatStrip(snapshot) {
 </div></section>`;
 }
 
+/**
+ * A sidebar panel that folds away. On phones, where the sidebar sits under the main column, it
+ * starts closed; app.js opens `openWide` panels on screens wide enough for a real sidebar.
+ */
+function foldPanel(title, body, { openWide = true, note = '' } = {}) {
+  return `<details class="panel panel-fold"${openWide ? ' data-open-wide' : ''}>
+<summary class="panel-title"><span>${esc(title)}</span>${note ? `<span class="fold-note">${esc(note)}</span>` : ''}</summary>
+${body}
+</details>`;
+}
+
+// The front page's main column already has the threat index and the headlines, so these two
+// sidebar panels only show beside it, not under it.
 function homePanels(ctx, serious) {
   const { snapshot, now } = ctx;
-  return `<section class="panel">
+  return `<section class="panel wide-only">
 <h2 class="panel-title">Regional threat levels</h2>
 <ul class="link-list">${snapshot.regions
     .slice(0, 8)
@@ -49,7 +62,7 @@ function homePanels(ctx, serious) {
     .join('')}</ul>
 <p class="small"><a href="/regions/">All ${snapshot.regions.length} regions →</a></p>
 </section>
-<section class="panel">
+<section class="panel wide-only">
 <h2 class="panel-title">Most serious right now</h2>
 <ol class="ranked">${serious
     .map(
@@ -98,20 +111,21 @@ ${storyFigure(story, { className: 'live-hero-figure' })}
 <section class="section section-first">
 ${sectionHead('Latest updates', { id: 'updates' })}
 <p class="section-dek">Newest first. Every update links to the original report on the publisher's site. SENTINEL groups reports automatically by matching headlines, so a closely related story can occasionally appear.</p>
-<ol class="live-feed" data-live-id="${esc(story.id)}" data-latest="${story.updatedAt}">
+<ol class="live-feed" data-live-id="${esc(story.id)}" data-latest="${story.updatedAt}" data-page-size="20">
 ${story.updates.map((u) => liveUpdate(u, now)).join('')}
 </ol>
 ${story.reportCount > shown ? `<p class="small muted">Showing the newest ${shown} of ${story.reportCount} reports.</p>` : ''}
 </section>
 </div>
 <aside class="sidebar">
-<section class="panel">
-<h2 class="panel-title">Outlets covering this story</h2>
-<ul class="link-list outlet-list">${[...counts]
+${foldPanel(
+  'Outlets covering this story',
+  `<ul class="link-list outlet-list">${[...counts]
     .sort((a, b) => b[1] - a[1])
     .map(([name, n]) => `<li><span>${esc(name)}</span><span class="muted">${n}</span></li>`)
-    .join('')}</ul>
-</section>
+    .join('')}</ul>`,
+  { note: `${counts.size}` },
+)}
 ${
   others.length
     ? `<section class="panel">
@@ -141,23 +155,17 @@ function sidebar(ctx, extra = '') {
   const { snapshot, now } = ctx;
   return `<aside class="sidebar">
 ${extra}
-<section class="panel">
-<h2 class="panel-title">How to read SENTINEL</h2>
-<p>Each region's <strong>threat level</strong> compares its recent incident activity with every other region. <strong>High</strong> marks the most active areas in this edition, not an absolute danger rating.</p>
-<p><a href="/about/">Read the full methodology →</a></p>
-</section>
-<section class="panel">
-<h2 class="panel-title">Evidence labels</h2>
-${evidenceGuide()}
-</section>
-<section class="panel">
-<h2 class="panel-title">Source health</h2>
-${sourceTable(snapshot.sources, now)}
-</section>
-<section class="panel">
-<h2 class="panel-title">Official resources</h2>
-<ul class="link-list">${OFFICIAL_LINKS.map(([n, u]) => `<li><a href="${u}" target="_blank" rel="noopener noreferrer">${esc(n)}</a></li>`).join('')}</ul>
-</section>
+${foldPanel(
+  'How to read SENTINEL',
+  `<p>Each region's <strong>threat level</strong> compares its recent incident activity with every other region. <strong>High</strong> marks the most active areas in this edition, not an absolute danger rating.</p>
+<p><a href="/about/">Read the full methodology →</a></p>`,
+)}
+${foldPanel('Evidence labels', evidenceGuide())}
+${foldPanel('Source health', sourceTable(snapshot.sources, now), {
+  openWide: false,
+  note: `${snapshot.sources.filter((s) => s.ok).length} of ${snapshot.sources.length} online`,
+})}
+${foldPanel('Official resources', `<ul class="link-list">${OFFICIAL_LINKS.map(([n, u]) => `<li><a href="${u}" target="_blank" rel="noopener noreferrer">${esc(n)}</a></li>`).join('')}</ul>`)}
 </aside>`;
 }
 
@@ -215,7 +223,7 @@ ${tiles.map((i) => incidentCard(i, ctx, { variant: 'tile' })).join('')}
 
 <section class="section">
 ${sectionHead('Latest updates', { id: 'latest' })}
-${incidentList(feed, ctx, { filterable: true, pageSize: 20, variant: 'row', advice: adviceChanges(snapshot, now) })}
+${incidentList(feed, ctx, { filterable: true, pageSize: 20, variant: 'row', advice: adviceChanges(snapshot, now), leadId: lead?.id })}
 </section>
 
 <section id="map" class="section">
@@ -226,7 +234,7 @@ ${renderMap(snapshot, { incidents: pins, caption: 'Tap a region for its briefing
 
 <section class="section">
 ${sectionHead('Regional threat index', { more: { href: '/regions/', label: 'All regions' } })}
-<ol class="region-list">${snapshot.regions.map((r, i) => regionRow(r, i + 1)).join('')}</ol>
+<ol class="region-list region-list-short">${snapshot.regions.map((r, i) => regionRow(r, i + 1)).join('')}</ol>
 </section>
 
 <section class="section">
@@ -363,13 +371,13 @@ ${
 }
 <p class="small"><a href="/countries/">All countries →</a></p>
 </section>
-<section class="panel">
-<h2 class="panel-title">Other regions</h2>
-<ul class="link-list">${snapshot.regions
+${foldPanel(
+  'Other regions',
+  `<ul class="link-list">${snapshot.regions
     .filter((r) => r.id !== region.id)
     .map((r) => `<li><a href="/region/${esc(r.id)}/">${esc(r.name)}</a> ${levelBadge(r.level)}</li>`)
-    .join('')}</ul>
-</section>
+    .join('')}</ul>`,
+)}
 </aside>
 </div>
 </div>`;

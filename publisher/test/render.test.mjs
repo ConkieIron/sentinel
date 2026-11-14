@@ -151,6 +151,15 @@ test('hostile content in live stories is escaped', () => {
   assert.ok(!/href="javascript:/i.test(html), 'javascript: link leaked');
 });
 
+test('phones get folded sidebar panels and no duplicate of the lead headline in Latest', () => {
+  const home = homePage(context(fixture));
+  const latest = home.slice(home.indexOf('id="latest"'));
+  assert.equal((latest.match(/class="story story-row is-lead"/g) || []).length, 1);
+  assert.match(home, /<details class="panel panel-fold">\s*<summary class="panel-title"><span>Source health<\/span><span class="fold-note">\d+ of \d+ online<\/span>/);
+  assert.match(home, /<details class="panel panel-fold" data-open-wide>\s*<summary class="panel-title"><span>Evidence labels<\/span>/);
+  assert.match(home, /<section class="panel wide-only">\s*<h2 class="panel-title">Regional threat levels/);
+});
+
 test('the main live story shows its picture, credited and linked to the source', () => {
   const image = { url: 'https://ichef.bbci.co.uk/ace/standard/976/x.jpg', source: 'BBC News', link: 'https://www.bbc.co.uk/news/ground-stop', title: 'US flights resume' };
   const ctx = context(withLiveStory(fixture, { image }));

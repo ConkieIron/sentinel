@@ -28,7 +28,7 @@ function regionLink(inc, ctx) {
   const region = loc.region && ctx.regionNames[loc.region];
   const href = countryPath(ctx, loc.iso3);
   const country = href ? `<a href="${esc(href)}">${esc(loc.country)}</a>` : esc(loc.country);
-  return `${region ? `<a href="/region/${esc(loc.region)}/">${esc(region)}</a> · ` : ''}<span>${loc.place ? `${esc(loc.place)}, ` : ''}${country}</span>`;
+  return `${region ? `<a class="k-region" href="/region/${esc(loc.region)}/">${esc(region)}</a><span class="k-sep" aria-hidden="true">·</span>` : ''}<span>${loc.place ? `<span class="k-place">${esc(loc.place)}, </span>` : ''}${country}</span>`;
 }
 
 function sourceSummary(sources) {
@@ -58,7 +58,7 @@ const DEK = { lead: 320, tile: 150, item: 200, row: 0, compact: 0 };
  * Variants: lead (front-page splash), tile (headline grid), row (latest-updates feed),
  * item (full card for region/terrorism lists), compact (headline only).
  */
-export function incidentCard(inc, ctx, { variant = 'item', anchor = true } = {}) {
+export function incidentCard(inc, ctx, { variant = 'item', anchor = true, className = '' } = {}) {
   const { snapshot, now } = ctx;
   const sources = inc.sources
     .map(
@@ -91,7 +91,7 @@ ${inc.summary && dekLen ? `<p class="dek">${esc(trim(inc.summary, dekLen))}</p>`
 <div class="meta">${meta}</div>
 ${showSources ? `<details class="sources"><summary>${sourceSummary(inc.sources)}</summary><ul>${sources}</ul></details>` : ''}`;
 
-  return `<article class="story story-${variant}"${anchor ? ` id="i-${esc(inc.id)}"` : ''} data-cat="${esc(filterCategory(inc))}" data-ev="${esc(inc.evidence)}">
+  return `<article class="story story-${variant}${className ? ` ${esc(className)}` : ''}"${anchor ? ` id="i-${esc(inc.id)}"` : ''} data-cat="${esc(filterCategory(inc))}" data-ev="${esc(inc.evidence)}">
 ${variant === 'row' ? `<div class="row-time">${timeTag(inc.time, now)}</div><div class="row-body">${body}</div>` : body}
 </article>`;
 }
@@ -198,9 +198,9 @@ export function adviceRow(change, ctx) {
 }
 
 /** Incidents, optionally interleaved with travel advice changes, newest first. */
-export function incidentList(list, ctx, { filterable = false, pageSize = 25, variant = 'item', empty = 'No incidents in this window.', advice = [] } = {}) {
+export function incidentList(list, ctx, { filterable = false, pageSize = 25, variant = 'item', empty = 'No incidents in this window.', advice = [], leadId } = {}) {
   if (!list.length && !advice.length) return `<p class="empty">${esc(empty)}</p>`;
-  const rows = [...list.map((i) => ({ time: i.time, html: () => incidentCard(i, ctx, { variant }) })), ...advice.map((c) => ({ time: c.time, html: () => adviceRow(c, ctx) }))];
+  const rows = [...list.map((i) => ({ time: i.time, html: () => incidentCard(i, ctx, { variant, className: i.id === leadId ? 'is-lead' : '' }) })), ...advice.map((c) => ({ time: c.time, html: () => adviceRow(c, ctx) }))];
   if (advice.length) rows.sort((a, b) => b.time - a.time);
   return `${filterable ? filterChips(ctx.snapshot, list, advice.length) : ''}<div class="story-list" data-page-size="${pageSize}">${rows.map((r) => r.html()).join('')}</div>`;
 }

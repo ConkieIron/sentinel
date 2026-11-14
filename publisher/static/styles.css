@@ -276,6 +276,13 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
 .sidebar { display: flex; flex-direction: column; gap: 22px; }
 .panel { border-top: 3px solid var(--navy); padding-top: 8px; font-size: 0.9rem; }
 .panel-title { font-size: 1.1rem; margin-bottom: 10px; }
+.panel-fold > summary { display: flex; align-items: baseline; gap: 10px; margin: 0; padding: 2px 0 4px; cursor: pointer; list-style: none; font-family: var(--serif); font-weight: 700; color: var(--ink); line-height: 1.25; }
+.panel-fold > summary::-webkit-details-marker { display: none; }
+.panel-fold > summary::after { content: ''; width: 8px; height: 8px; margin-left: auto; flex: none; border-right: 2px solid var(--blue); border-bottom: 2px solid var(--blue); transform: translateY(-2px) rotate(45deg); transition: transform 0.15s; }
+.panel-fold[open] > summary { margin-bottom: 10px; }
+.panel-fold[open] > summary::after { transform: translateY(2px) rotate(-135deg); }
+.fold-note { font: 400 0.8rem var(--sans); color: var(--muted); }
+@media (max-width: 979px) { .wide-only { display: none; } }
 .guide { margin: 0; }
 .guide dt { margin-top: 10px; }
 .guide dd { margin: 4px 0 0; color: var(--muted); font-size: 0.85rem; }
@@ -376,5 +383,51 @@ th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; colo
 .footer { background: var(--grey-bg); border-top: 3px solid var(--navy); font-size: 0.85rem; color: var(--muted); padding: 22px 0 34px; }
 .footer-brand { font-family: var(--serif); color: var(--ink); font-size: 1.05rem; margin-bottom: 8px; }
 .footer-links { display: flex; flex-wrap: wrap; gap: 6px 18px; list-style: none; margin: 12px 0 0; padding: 0; }
+
+/* Phones: less chrome per story, shorter lists. Everything trimmed here is a tap away. */
+@media (max-width: 599px) {
+  .section { margin-bottom: 22px; }
+  .section-head { margin-bottom: 10px; }
+  .story { padding: 11px 0; }
+  .sidebar { gap: 14px; }
+  .story-item .dek, .story-tile .dek { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+  /* Latest updates: the time joins the label line so the headline gets the full width; the
+     country stands in for region and place; severity and evidence badges stay on full cards. */
+  .story-row { display: block; padding: 10px 0; }
+  .story-row .row-time { float: left; border: 0; padding: 0 8px 0 0; line-height: 1.55; font-size: 0.75rem; white-space: nowrap; }
+  .story-row h3 { font-size: 1rem; margin-bottom: 3px; }
+  .story-row .k-region, .story-row .k-sep, .story-row .k-place,
+  .story-tile .k-region, .story-tile .k-sep, .story-tile .k-place,
+  .story-compact .k-region, .story-compact .k-sep, .story-compact .k-place { display: none; }
+  .story-row .sev, .story-row .ev:not(.ev-social), .story-row .sources,
+  .story-compact .sev, .story-compact .ev:not(.ev-social), .story-compact .sources,
+  .story-lead .sources { display: none; }
+
+  /* Front page: the lead story only, since the other headlines open Latest directly below; four
+     terrorism reports. */
+  .headlines > .story-tile { display: none; }
+  .headlines > .story-lead { padding-bottom: 12px; }
+  .story-list > .is-lead { display: none; }
+  .compact-list > .story-compact:nth-child(n+5) { display: none; }
+
+  /* Source health opened on a phone: name and status only. */
+  .panel .sources-table .muted.small, .panel .sources-table th:nth-child(4), .panel .sources-table td:nth-child(4) { display: none; }
+  .panel .sources-table td, .panel .sources-table th { padding-top: 5px; padding-bottom: 5px; }
+
+  /* Regions: two lines each; the front page lists the top eight. */
+  .region-row a { grid-template-areas: 'rank name badge' 'rank stats trend'; gap: 2px 10px; padding: 9px 2px; }
+  .region-row .rbar { display: none; }
+  .region-list-short .region-row:nth-child(n+9) { display: none; }
+
+  /* Live coverage */
+  .live-teaser-main .live-latest li:nth-child(n+2) { display: none; }
+  .live-post { display: block; }
+  .live-time { flex-direction: row; align-items: baseline; gap: 8px; border-right: 0; padding: 12px 0 0; }
+  .live-update { padding-top: 2px; }
+  .live-update .dek { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+  .footer { padding: 16px 0 24px; }
+}
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }

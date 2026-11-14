@@ -158,11 +158,40 @@
     else img.addEventListener('error', hide);
   }
 
+  // Phones get shorter pages of lists, and sidebar panels stay folded under the main column.
+  const narrow = matchMedia('(max-width: 599px)').matches;
+  if (matchMedia('(min-width: 980px)').matches) for (const d of $$('details[data-open-wide]')) d.open = true;
+
+  // Live coverage: the newest updates first, the rest a tap away.
+  for (const feed of $$('.live-feed[data-page-size]')) {
+    const posts = $$('.live-post', feed);
+    const size = narrow ? 12 : Number(feed.dataset.pageSize) || 20;
+    let shown = size;
+    if (posts.length <= size) continue;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'show-more';
+    feed.after(button);
+    const apply = () => {
+      posts.forEach((p, i) => (p.hidden = i >= shown));
+      const remaining = posts.length - shown;
+      button.hidden = remaining <= 0;
+      const next = Math.min(remaining, size);
+      if (remaining > 0) button.textContent = `Show ${next} earlier update${next === 1 ? '' : 's'}${remaining > size ? ` (${remaining} more)` : ''}`;
+    };
+    button.addEventListener('click', () => {
+      shown += size;
+      apply();
+    });
+    apply();
+  }
+
   // Category filter + "show more" for incident lists
   for (const list of $$('.story-list')) {
-    const size = Number(list.dataset.pageSize) || 25;
+    const size = narrow ? Math.min(10, Number(list.dataset.pageSize) || 25) : Number(list.dataset.pageSize) || 25;
     const chips = list.previousElementSibling?.classList.contains('chips') ? list.previousElementSibling : null;
-    const stories = $$('.story', list);
+    // On phones the lead headline sits right above Latest, so its row there is left out.
+    const stories = $$('.story', list).filter((s) => !(narrow && s.classList.contains('is-lead')));
     let filter = 'all';
     let hideSocial = false;
     let limit = size;
@@ -177,7 +206,7 @@
       matching.slice(0, limit).forEach((s) => (s.hidden = false));
       const remaining = matching.length - limit;
       button.hidden = remaining <= 0;
-      if (remaining > 0) button.textContent = `Show ${Math.min(remaining, size)} more of ${remaining}`;
+      if (remaining > 0) button.textContent = remaining > size ? `Show ${size} more of ${remaining}` : `Show ${remaining} more`;
     }
     button.addEventListener('click', () => {
       limit += size;
