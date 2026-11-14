@@ -233,10 +233,16 @@
         links.append(article);
       }
       const summary = document.createElement('a');
-      summary.href = '#i-' + pin.dataset.id;
-      summary.textContent = 'Incident summary ↓';
-      summary.addEventListener('click', () => (popup.hidden = true));
-      links.append(summary);
+      if (document.getElementById('i-' + pin.dataset.id)) {
+        summary.href = '#i-' + pin.dataset.id;
+        summary.textContent = 'Incident summary ↓';
+        summary.addEventListener('click', () => (popup.hidden = true));
+        links.append(summary);
+      } else if (/^[a-z0-9-]+$/.test(pin.dataset.region || '')) {
+        summary.href = `/region/${pin.dataset.region}/#i-${pin.dataset.id}`;
+        summary.textContent = 'Incident summary →';
+        links.append(summary);
+      }
       popup.append(close, title, meta, links);
       popup.hidden = false;
     });

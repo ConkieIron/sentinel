@@ -91,7 +91,7 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
 .nav { background: #fff; border-bottom: 3px solid var(--blue); position: sticky; top: 0; z-index: 20; }
 .nav ul { display: flex; gap: 2px; list-style: none; margin: 0; padding: 0; overflow-x: auto; scrollbar-width: none; }
 .nav ul::-webkit-scrollbar { display: none; }
-.nav a { display: block; padding: 12px 12px 10px; color: var(--ink); font-weight: 600; font-size: 0.9rem; white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -3px; }
+.nav a { display: block; padding: 12px 12px 10px; color: var(--ink); font-weight: 700; font-size: 0.82rem; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -3px; }
 .nav a:hover { color: var(--blue); text-decoration: none; }
 .nav a[aria-current='page'] { color: var(--blue); border-bottom-color: var(--navy); }
 .update-banner { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 30; max-width: calc(100% - 24px); }

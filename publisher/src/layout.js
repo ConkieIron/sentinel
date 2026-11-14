@@ -2,11 +2,10 @@ import { esc, fmtUtc, clockTag } from './util.js';
 
 const NAV = [
   ['/', 'Home', 'home'],
-  ['/#map', 'Threat map', 'map'],
-  ['/regions/', 'Regions', 'regions'],
-  ['/terrorism/', 'Suspected terrorism', 'terrorism'],
   ['/#latest', 'Latest', 'latest'],
-  ['/about/', 'Methodology & sources', 'about'],
+  ['/regions/', 'Incident map', 'regions'],
+  ['/terrorism/', 'Global terror', 'terrorism'],
+  ['/about/', 'Methodology', 'about'],
 ];
 
 const price = new Intl.NumberFormat('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });

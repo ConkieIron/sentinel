@@ -81,7 +81,7 @@ export function renderMap(snapshot, { incidents = [], focusRegion = null, captio
         i.category === 'terrorism'
           ? `<rect x="${(x - r).toFixed(1)}" y="${(y - r).toFixed(1)}" width="${(r * 2).toFixed(1)}" height="${(r * 2).toFixed(1)}" transform="rotate(45 ${x.toFixed(1)} ${y.toFixed(1)})"/>`
           : `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r}"/>`;
-      return `<a href="#i-${esc(i.id)}" class="pin pin-${esc(i.category)} ev-${esc(i.evidence)}${i.location.precision === 'country' ? ' approx' : ''}" data-title="${esc(i.title)}" data-meta="${esc(meta)}" data-id="${esc(i.id)}" data-url="${esc(safeHref(i.url))}"><title>${esc(i.title)}</title>${shape}</a>`;
+      return `<a href="#i-${esc(i.id)}" class="pin pin-${esc(i.category)} ev-${esc(i.evidence)}${i.location.precision === 'country' ? ' approx' : ''}" data-title="${esc(i.title)}" data-meta="${esc(meta)}" data-id="${esc(i.id)}" data-region="${esc(i.location.region || '')}" data-url="${esc(safeHref(i.url))}"><title>${esc(i.title)}</title>${shape}</a>`;
     })
     .join('');
 

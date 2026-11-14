@@ -244,16 +244,17 @@ ${sidebar(ctx, homePanels(ctx, serious))}
 
 export function regionsIndexPage(ctx) {
   const { snapshot } = ctx;
+  const pins = snapshot.incidents.filter((i) => i.location && i.severity >= 2).slice(0, 220);
   const body = `<div class="wrap">
 <section class="hero hero-small">
 <p class="eyebrow">Regional threat index</p>
-<h1>All regions</h1>
-<p class="hero-dek">${snapshot.regions.length} regions ranked by weighted incident activity over the last ${snapshot.windowHours} hours. Levels are relative to one another.</p>
+<h1>Incident map</h1>
+<p class="hero-dek">${pins.length} located incidents and ${snapshot.regions.length} regions ranked by weighted incident activity over the last ${snapshot.windowHours} hours. Levels are relative to one another.</p>
 </section>
-${renderMap(snapshot, { incidents: [] })}
+${renderMap(snapshot, { incidents: pins })}
 <ol class="region-list region-list-full">${snapshot.regions.map((r, i) => regionRow(r, i + 1)).join('')}</ol>
 </div>`;
-  return layout({ title: 'Regions', description: 'Threat level, index and incident counts for every monitored world region.', path: '/regions/', body, ctx, active: 'regions' });
+  return layout({ title: 'Incident map', description: 'Map of located world incidents with the threat level, index and incident counts for every monitored region.', path: '/regions/', body, ctx, active: 'regions' });
 }
 
 export function regionPage(ctx, region) {
@@ -269,7 +270,7 @@ export function regionPage(ctx, region) {
         : `Score ${region.score} against ${leader.score} for the most active region (${esc(leader.name)}), ranking ${rank} of ${snapshot.regions.length}.`;
 
   const body = `<div class="wrap">
-<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/regions/">Regions</a> › <span>${esc(region.name)}</span></nav>
+<nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/regions/">Incident map</a> › <span>${esc(region.name)}</span></nav>
 <section class="hero hero-small region-hero lvl-border-${esc(region.level)}">
 <p class="eyebrow">Regional briefing</p>
 <h1>${esc(region.name)}</h1>
