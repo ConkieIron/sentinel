@@ -17,6 +17,24 @@ export const RSS_FEEDS = [
   { id: 'rfi', name: 'RFI', url: 'https://www.rfi.fr/en/rss', home: 'https://www.rfi.fr/en/' },
   { id: 'africanews', name: 'Africanews', url: 'https://www.africanews.com/feed/rss', home: 'https://www.africanews.com' },
   { id: 'thehindu', name: 'The Hindu', url: 'https://www.thehindu.com/news/international/feeder/default.rss', home: 'https://www.thehindu.com/news/international/' },
+  // Top-story feeds carry major domestic incidents the world feeds leave out. They share the
+  // outlet name so a story is not counted as two outlets; `label` names them on the sources list.
+  { id: 'bbc-top', name: 'BBC News', label: 'BBC News (top stories)', url: 'https://feeds.bbci.co.uk/news/rss.xml', home: 'https://www.bbc.co.uk/news' },
+  { id: 'skynews-top', name: 'Sky News', label: 'Sky News (top stories)', url: 'https://feeds.skynews.com/feeds/rss/home.xml', home: 'https://news.sky.com' },
+  { id: 'independent', name: 'The Independent', url: 'https://www.independent.co.uk/news/world/rss', home: 'https://www.independent.co.uk/news/world' },
+  { id: 'irishtimes', name: 'The Irish Times', url: 'https://www.irishtimes.com/arc/outboundfeeds/feed-world/?outputType=xml', home: 'https://www.irishtimes.com/world/' },
+  { id: 'cbs', name: 'CBS News', url: 'https://www.cbsnews.com/latest/rss/world', home: 'https://www.cbsnews.com/world/' },
+  { id: 'abcus', name: 'ABC News (US)', url: 'https://abcnews.go.com/abcnews/internationalheadlines', home: 'https://abcnews.go.com/International' },
+  { id: 'latimes', name: 'Los Angeles Times', url: 'https://www.latimes.com/world-nation/rss2.0.xml', home: 'https://www.latimes.com/world-nation' },
+  { id: 'kyivindependent', name: 'The Kyiv Independent', url: 'https://kyivindependent.com/news-archive/rss/', home: 'https://kyivindependent.com' },
+  { id: 'timesofisrael', name: 'The Times of Israel', url: 'https://www.timesofisrael.com/feed/', home: 'https://www.timesofisrael.com' },
+  { id: 'mee', name: 'Middle East Eye', url: 'https://www.middleeasteye.net/rss', home: 'https://www.middleeasteye.net' },
+  { id: 'dawn', name: 'Dawn (Pakistan)', url: 'https://www.dawn.com/feeds/home', home: 'https://www.dawn.com' },
+  { id: 'toi', name: 'The Times of India', url: 'https://timesofindia.indiatimes.com/rssfeeds/296589292.cms', home: 'https://timesofindia.indiatimes.com/world' },
+  { id: 'scmp', name: 'South China Morning Post', url: 'https://www.scmp.com/rss/91/feed', home: 'https://www.scmp.com/news/world' },
+  { id: 'japantimes', name: 'The Japan Times', url: 'https://www.japantimes.co.jp/feed/', home: 'https://www.japantimes.co.jp' },
+  { id: 'smh', name: 'The Sydney Morning Herald', url: 'https://www.smh.com.au/rss/world.xml', home: 'https://www.smh.com.au/world' },
+  { id: 'premiumtimes', name: 'Premium Times (Nigeria)', url: 'https://www.premiumtimesng.com/feed', home: 'https://www.premiumtimesng.com' },
 ];
 
 // Official news-organisation accounts on Bluesky. Treated as publisher reports, not social claims.
@@ -25,6 +43,11 @@ export const BLUESKY_PUBLISHERS = [
   { id: 'bsky-cnn', handle: 'cnn.com', name: 'CNN' },
   { id: 'bsky-reuters', handle: 'reuters.com', name: 'Reuters' },
   { id: 'bsky-ap', handle: 'apnews.com', name: 'Associated Press' },
+  { id: 'bsky-afp', handle: 'afp.com', name: 'AFP' },
+  { id: 'bsky-nbc', handle: 'nbcnews.com', name: 'NBC News' },
+  { id: 'bsky-bloomberg', handle: 'bloomberg.com', name: 'Bloomberg' },
+  { id: 'bsky-usatoday', handle: 'usatoday.com', name: 'USA Today' },
+  { id: 'bsky-politico', handle: 'politico.com', name: 'Politico' },
 ];
 
 // Keyword searches across public Bluesky posts. Results are labelled UNVERIFIED and are

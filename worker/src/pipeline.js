@@ -61,7 +61,7 @@ export async function runPipeline(env = {}, { now = Date.now(), history = [] } =
   const opts = { now, windowMs, maxItems: MODEL.maxItemsPerFeed };
 
   const jobs = [
-    ...RSS_FEEDS.map((f) => runSource({ id: f.id, name: f.name, kind: 'rss', home: f.home }, () => fetchRss(f, opts))),
+    ...RSS_FEEDS.map((f) => runSource({ id: f.id, name: f.label || f.name, kind: 'rss', home: f.home }, () => fetchRss(f, opts))),
     ...BLUESKY_PUBLISHERS.map((a) =>
       runSource({ id: a.id, name: `${a.name} (Bluesky)`, kind: 'bluesky-publisher', home: `https://bsky.app/profile/${a.handle}` }, () => fetchPublisherFeed(a, opts)),
     ),
@@ -83,8 +83,11 @@ export async function runPipeline(env = {}, { now = Date.now(), history = [] } =
     for (const item of items) {
       scanned++;
       const key = item.dedupeKey || canonicalUrl(item.url);
-      if (seen.has(key)) continue;
+      // Outlets repost the same headline under new links (and BBC/Sky appear in two feeds each).
+      const titleKey = item.type === 'publisher' ? `${item.sourceName}|${item.title.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()}` : null;
+      if (seen.has(key) || (titleKey && seen.has(titleKey))) continue;
       seen.add(key);
+      if (titleKey) seen.add(titleKey);
       if (item.type === 'publisher') reports.push(item);
       const cls = item.forced
         ? { ...item.forced, casualties: extractCasualties(item.title + '. ' + item.summary), retrospective: false }

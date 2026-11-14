@@ -1,7 +1,7 @@
 // SENTINEL breaking-news watcher (Cloudflare Worker, free plan).
 //
-// Every minute it polls the fastest wire sources (Reuters, AP and CNN on Bluesky, USGS
-// earthquakes). It asks GitHub Actions to run the publish workflow immediately when a new
+// Every minute it polls the fastest sources (the Bluesky accounts of the wire services, a rotating
+// pair of other major outlets, and USGS earthquakes). It asks GitHub Actions to run the publish workflow immediately when a new
 // severity 4–5 incident appears, or when a wire posts an update on a story the site is covering
 // live (topics read from the site's /data/live.json). Every NUDGE_MINUTES it also starts a
 // routine publish, because GitHub's own schedule is frequently delayed.
@@ -17,18 +17,56 @@ import { topicFeatures, topicMatches } from '../../worker/src/analysis/live.js';
 
 // The classifier's casualty patterns cost ~15ms to compile on first use. Doing it at load time
 // moves that into Worker startup, which has its own 1s allowance, instead of the 10ms per run.
-for (const sample of [
+// The samples are varied so the engine has also optimised the less common code paths.
+const WARM_UP = [
   'Gunmen kill at least 12 people in attack on village; dozens injured',
   'Death toll rises to 40 after suicide bombing at market, 25 wounded',
   'Magnitude 6.1 earthquake strikes coast, three people were killed',
-]) classify(sample);
+  'FAA lifts nationwide ground stop after airline computer outage grounds U.S. flights',
+  'Israeli airstrike on Gaza school kills dozens, health officials say',
+  'Russia launches massive drone and missile attack on Kyiv overnight',
+  'Police respond to reports of a shooting at a shopping centre in Manchester',
+  'Protesters clash with riot police in Nairobi as tear gas fired',
+  'Hurricane makes landfall in Florida as millions without power',
+  'Train derails in northern India, injuring more than 100 passengers',
+  'WHO declares outbreak a public health emergency of international concern',
+  'Stock markets rally as central bank holds interest rates steady',
+  'Prime minister announces new cabinet after coalition talks collapse',
+  'Ransomware attack forces hospitals to divert ambulances',
+  'Hostages freed after armed standoff at embassy; suspect detained',
+  'Opinion: Why the election result matters for Europe',
+  // Non-ASCII text makes normalize() load its Unicode tables (~5ms) on first use.
+  '‘Explosion’ reported near café in São Paulo — Côte d’Ivoire envoy among injured',
+];
+for (const sample of WARM_UP) classify(sample);
+const warmTopic = { terms: { faa: 1, ground: 1, stop: 1 }, phrases: ['ground~stop'], minScore: 1 };
+for (const sample of WARM_UP) topicMatches(topicFeatures(sample), warmTopic);
 
 const APPVIEW = 'https://public.api.bsky.app';
+// Each request costs about 1ms of the 10ms CPU allowance, so the wires are polled every minute
+// and the other outlets in rotation, ROTATE_PER_RUN at a time (each every 3–4 minutes).
 const WIRES = [
   { handle: 'reuters.com', name: 'Reuters' },
   { handle: 'apnews.com', name: 'Associated Press' },
   { handle: 'cnn.com', name: 'CNN' },
 ];
+const ROTATING = [
+  { handle: 'afp.com', name: 'AFP' },
+  { handle: 'nbcnews.com', name: 'NBC News' },
+  { handle: 'theguardian.com', name: 'The Guardian' },
+  { handle: 'nytimes.com', name: 'The New York Times' },
+  { handle: 'washingtonpost.com', name: 'The Washington Post' },
+  { handle: 'news.sky.com', name: 'Sky News' },
+  { handle: 'aljazeera.com', name: 'Al Jazeera' },
+];
+const ROTATE_PER_RUN = 2;
+// live.json only changes when the site is published, so it is re-read every few minutes.
+const LIVE_TTL_MS = 3 * 60000;
+
+export function accountsFor(now) {
+  const start = (Math.floor(now / 60000) * ROTATE_PER_RUN) % ROTATING.length;
+  return [...WIRES, ...Array.from({ length: ROTATE_PER_RUN }, (_, i) => ROTATING[(start + i) % ROTATING.length])];
+}
 const USGS_HOUR = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_hour.geojson';
 const WIRE_MAX_AGE_MS = 30 * 60000;
 // USGS publishes quakes several minutes after the event, so their window is longer.
@@ -44,7 +82,9 @@ const stripFlash = (s) =>
     .trim();
 
 async function fetchWire(account) {
-  const url = `${APPVIEW}/xrpc/app.bsky.feed.getAuthorFeed?actor=${encodeURIComponent(account.handle)}&limit=15&filter=posts_no_replies`;
+  // Busy accounts post a few times an hour and this runs every minute, so the latest few posts are
+  // enough; parsing the responses is most of the CPU time.
+  const url = `${APPVIEW}/xrpc/app.bsky.feed.getAuthorFeed?actor=${encodeURIComponent(account.handle)}&limit=5&filter=posts_no_replies`;
   const res = await fetchWithTimeout(url, { timeoutMs: 8000, headers: { Accept: 'application/json' } });
   const data = await res.json();
   const items = [];
@@ -78,15 +118,20 @@ async function fetchQuakes() {
   });
 }
 
-async function fetchLive(siteUrl) {
+let liveCache = { at: 0, stories: [] };
+
+async function fetchLive(siteUrl, now) {
   if (!siteUrl) return [];
+  if (now - liveCache.at < LIVE_TTL_MS) return liveCache.stories;
   const res = await fetchWithTimeout(`${siteUrl.replace(/\/$/, '')}/data/live.json`, { timeoutMs: 8000, headers: { Accept: 'application/json' } });
   const data = await res.json();
-  return (data.stories || []).map((s) => ({ id: s.id, title: s.title, topics: s.topics || [] }));
+  const stories = (data.stories || []).map((s) => ({ id: s.id, title: s.title, topics: s.topics || [] }));
+  liveCache = { at: now, stories };
+  return stories;
 }
 
-export async function fetchSources(env = {}) {
-  const [live, ...results] = await Promise.allSettled([fetchLive(env.SITE_URL), ...WIRES.map((w) => fetchWire(w)), fetchQuakes()]);
+export async function fetchSources(env = {}, now = Date.now()) {
+  const [live, ...results] = await Promise.allSettled([fetchLive(env.SITE_URL, now), ...accountsFor(now).map((w) => fetchWire(w)), fetchQuakes()]);
   const items = [];
   const errors = [];
   for (const r of results) {
@@ -167,7 +212,7 @@ export async function dispatchPublish(env, reason) {
 export async function tick(env, now = Date.now(), deps = { fetchSources, dispatchPublish }) {
   const kv = env.WATCHER_KV;
   const state = (kv && (await kv.get('state', 'json'))) || { seen: [], lastBreakingAt: 0 };
-  const { items, live = [], errors } = await deps.fetchSources(env);
+  const { items, live = [], errors } = await deps.fetchSources(env, now);
   const seen = new Set(state.seen);
   const breaking = kv ? findBreaking(items, { now, seen, minSeverity: Number(env.BREAKING_MIN_SEVERITY || 4) }) : [];
   const liveUpdates = kv ? findLiveUpdates(items, live, { now, seen }) : [];

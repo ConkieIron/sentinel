@@ -4,8 +4,9 @@
 // reports the stricter incident clustering kept apart (the same event told from another country).
 //
 // Matching weights each word by how rare it is across everything gathered, so "FAA" counts for
-// far more than "flights". A report must also share a word pair with the story ("ground stop",
-// "global outage"), which stops unrelated headlines that happen to reuse two common words.
+// far more than "flights". A report must share at least three words with the story, two of them
+// as a pair ("ground stop", "global outage"), which stops unrelated headlines that happen to
+// reuse a stock phrase or a few common words.
 
 import { STOP } from './cluster.js';
 import { truncate, hashId } from '../lib/text.js';
@@ -51,11 +52,17 @@ export function orderedTokens(text) {
   return out;
 }
 
-// Countries, nationalities and cities. A pair made only of these ("Russia ... Ukraine", "Israel
-// ... Gaza") is background to a lot of unrelated news, so it never counts as a phrase.
-const PLACE_TERMS = new Set(['us', 'uk', 'un', 'eu']);
-for (const name of [...COUNTRIES.flatMap((c) => [c.name, ...c.names]), ...[...ALIASES, ...DEMONYMS, ...PLACES].map(([p]) => p)]) {
-  for (const t of orderedTokens(name)) PLACE_TERMS.add(t);
+// Countries, nationalities, cities, seats of government and the most-reported leaders. A pair made
+// only of these ("Russia ... Ukraine", "White House", "Trump ... Putin") is background to a lot of
+// unrelated news, so it never counts as a phrase.
+const BACKGROUND_TERMS = new Set(['us', 'uk', 'un', 'eu', 'nato']);
+for (const name of [
+  ...COUNTRIES.flatMap((c) => [c.name, ...c.names]),
+  ...[...ALIASES, ...DEMONYMS, ...PLACES].map(([p]) => p),
+  'White House', 'Kremlin', 'Downing Street', 'Pentagon', 'Capitol', 'Congress', 'Senate', 'Parliament',
+  'Trump', 'Putin', 'Zelenskiy', 'Zelensky', 'Netanyahu', 'Starmer', 'Macron', 'Modi', 'Erdogan',
+]) {
+  for (const t of orderedTokens(name)) BACKGROUND_TERMS.add(t);
 }
 
 /** Unique terms and nearby word pairs ("ground~stop") of a headline. */
@@ -65,14 +72,19 @@ export function topicFeatures(text) {
   const pairs = new Set();
   for (let i = 0; i < seq.length; i++) {
     for (let j = i + 1; j <= i + PAIR_WINDOW && j < seq.length; j++) {
-      if (seq[i] === seq[j] || (PLACE_TERMS.has(seq[i]) && PLACE_TERMS.has(seq[j]))) continue;
+      if (seq[i] === seq[j] || (BACKGROUND_TERMS.has(seq[i]) && BACKGROUND_TERMS.has(seq[j]))) continue;
       pairs.add(seq[i] < seq[j] ? `${seq[i]}~${seq[j]}` : `${seq[j]}~${seq[i]}`);
     }
   }
   return { terms, pairs };
 }
 
-/** Does a headline's features match a topic ({terms: {term: weight}, phrases: [...], minScore})? */
+/**
+ * Does a headline's features match a topic ({terms: {term: weight}, phrases: [...], core: [...],
+ * minScore})? Two shared words are enough only when they are one of the story's core phrases,
+ * the ones its coverage keeps repeating ("ground stop"); otherwise a stock phrase in the lead
+ * headline ("demand answers", "raises questions") would pull in unrelated reports.
+ */
 export function topicMatches(features, topic) {
   let shared = 0;
   let score = 0;
@@ -82,6 +94,7 @@ export function topicMatches(features, topic) {
     score += topic.terms[t];
   }
   if (shared < 2 || score < topic.minScore) return false;
+  if (shared === 2) return (topic.core || []).some((p) => features.pairs.has(p));
   return topic.phrases.some((p) => features.pairs.has(p));
 }
 
@@ -98,6 +111,7 @@ function buildTopic(seed, weightOf, isPhrase, extraTerms = [], extraPairs = []) 
   return {
     terms: Object.fromEntries(terms.map(([t, w]) => [t, Math.round(w * 100) / 100])),
     phrases,
+    core: phrases.filter((p) => extraPairs.includes(p)),
     minScore: Math.round(strongest * LIVE.matchShare * 100) / 100,
   };
 }

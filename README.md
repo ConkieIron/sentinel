@@ -34,15 +34,21 @@ and tested on its own.
 
 ## Sources
 
-- **RSS:** BBC News, Al Jazeera, Sky News, The Guardian, France 24, Deutsche Welle, Euronews,
-  The New York Times, NPR, The Washington Post, ABC News (Australia), CNA, RFI, Africanews,
-  The Hindu.
-- **Bluesky:** CNN, Reuters, AP and BNO News official accounts. CNN has no public RSS for world
-  news any more, so its Bluesky account is used instead. There is also a filtered public search,
+- **RSS:** BBC News (world and top stories), Al Jazeera, Sky News (world and top stories),
+  The Guardian, France 24, Deutsche Welle, Euronews, The New York Times, NPR, The Washington Post,
+  ABC News (Australia), CNA, RFI, Africanews, The Hindu, The Independent, The Irish Times,
+  CBS News, ABC News (US), Los Angeles Times, The Kyiv Independent, The Times of Israel,
+  Middle East Eye, Dawn (Pakistan), The Times of India, South China Morning Post, The Japan Times,
+  The Sydney Morning Herald and Premium Times (Nigeria).
+- **Bluesky:** official accounts of CNN, Reuters, AP, AFP, NBC News, Bloomberg, USA Today and
+  Politico. These outlets have no usable public RSS feed for world news, so their accounts are
+  used instead. There is also a filtered public search,
   which is treated as unverified and weighted at a quarter.
 - **Official:** USGS earthquakes (M5+ or PAGER alert) and GDACS Orange/Red disaster alerts.
 
-Add or remove feeds in `worker/src/config.js`.
+Add or remove feeds in `worker/src/config.js`. An outlet with two feeds (BBC, Sky) uses the same
+`name` on both, so a story is counted once per outlet; `label` tells them apart on the sources
+list. Repeat headlines from the same outlet are dropped.
 
 ## How the threat index works
 
@@ -75,13 +81,16 @@ Reports are matched by vocabulary, not by the incident classifier, so follow-ups
 clear backlog" are included:
 - Words are weighted by how rare they are across everything gathered, so "FAA" counts for far more
   than "flights".
-- A report must also share a word pair with the story ("ground stop", "global outage").
-- Pairs made only of place names ("Russia … Ukraine") never count, because they appear in a lot of
-  unrelated news.
+- A report must also share a word pair with the story ("ground stop", "global outage"), plus a
+  third word unless the pair is one the story's coverage keeps repeating. That stops a stock
+  phrase in the lead headline ("demand answers") from pulling in unrelated reports.
+- Pairs made only of place names, seats of government or the most-reported leaders
+  ("Russia … Ukraine", "White House", "Trump … Putin") never count, because they appear in a lot
+  of unrelated news.
 - Stories that pick up the same reports are merged.
 
 Every new report on a live story counts as a new edition, so it publishes on the next run. The
-watcher (below) also starts a run as soon as Reuters, AP or CNN posts a matching update. Open live
+watcher (below) also starts a run as soon as one of the outlets it follows posts a matching update. Open live
 pages check for a new edition every minute and show a "3 new updates · Refresh" button.
 Thresholds are in `LIVE` in `worker/src/analysis/live.js`.
 
@@ -209,7 +218,10 @@ run `npm run pages:deploy` locally after `npm run build`.
 
 GitHub's 5-minute schedule is a minimum and is often late. `watcher/` is a separate Worker that
 runs every minute on the Workers Free plan. It reads the latest Reuters, AP and CNN posts on Bluesky
-plus USGS earthquakes from the last hour, and puts any new headline through the shared classifier.
+every minute, plus two of AFP, NBC News, The Guardian, The New York Times, The Washington Post,
+Sky News and Al Jazeera in rotation (each every 3–4 minutes, which keeps a run within the free
+plan's 10ms CPU limit), and USGS earthquakes from the last hour. Any new headline goes through the
+shared classifier.
 When something rates severity 4 or above (`BREAKING_MIN_SEVERITY`), it starts the publish workflow
 straight away through GitHub's `workflow_dispatch` API, so major news is live in about 2 minutes.
 It does the same when a new wire post matches a story the site is covering live. It reads those

@@ -94,6 +94,21 @@ test('common pairs like "Russia ... Ukraine" do not pull unrelated reports into 
   assert.deepEqual(findLiveStories(incidents, reports, NOW), [], 'two outlets is not enough, and general Ukraine news must not count');
 });
 
+test('"White House" and leader names do not pull unrelated reports into a story', () => {
+  const incidents = [incident('Feds add D.C. terrorism charge for White House Correspondents’ Dinner gunman', 3, { category: 'terrorism' })];
+  const reports = [
+    ...BACKGROUND,
+    report('NBC News', 'Feds add D.C. terrorism charge for White House Correspondents’ Dinner gunman', 3),
+    report('CBS News', 'Trump, Putin, Xi Jinping to meet in first trilateral of its kind, White House says', 2),
+    report('Sky News', 'Trump, Xi and Putin to hold unprecedented meeting, White House says', 2),
+    report('Euronews', 'Trump, Xi and Putin to meet in China, White House says', 1),
+    report('BBC News', 'Trump, Putin and Xi plan historic joint meeting in China next week, White House says', 1),
+    report('The Japan Times', 'White House demanding Japan triple host-nation support for U.S. troops', 1),
+    report('The Independent', 'Knives come out at the White House over Nvidia scandal', 0.5),
+  ];
+  assert.deepEqual(findLiveStories(incidents, reports, NOW), []);
+});
+
 test('a story with no recent reports is no longer live', () => {
   const old = FAA.map((r) => ({ ...r, time: r.time - 6 * H }));
   const incidents = [incident('U.S. flights resume after hours-long outage as FAA lifts nationwide ground stop', 17)];
