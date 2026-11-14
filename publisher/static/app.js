@@ -3,6 +3,41 @@
   'use strict';
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
+  // Content moves between editions, so the browser's restored scroll position on refresh lands
+  // mid-page. Fresh visits and refreshes start at the top; only back/forward restores position.
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+    const key = 'sentinel-scroll:' + location.pathname;
+    const nav = performance.getEntriesByType ? performance.getEntriesByType('navigation')[0] : null;
+    addEventListener('pagehide', () => {
+      try {
+        sessionStorage.setItem(key, String(Math.round(scrollY)));
+      } catch {}
+    });
+    let saved = null;
+    if (nav?.type === 'back_forward') {
+      try {
+        saved = sessionStorage.getItem(key);
+      } catch {}
+    }
+    if (saved !== null) {
+      addEventListener('load', () => scrollTo(0, Number(saved) || 0), { once: true });
+    } else if (location.hash) {
+      addEventListener(
+        'load',
+        () => {
+          const el = document.getElementById(decodeURIComponent(location.hash.slice(1)));
+          if (!el) return;
+          const offset = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0;
+          scrollTo(0, el.getBoundingClientRect().top + scrollY - offset);
+        },
+        { once: true },
+      );
+    } else {
+      scrollTo(0, 0);
+    }
+  }
+
   // Relative + local times
   const rtf = 'Intl' in window && Intl.RelativeTimeFormat ? new Intl.RelativeTimeFormat(undefined, { numeric: 'auto', style: 'short' }) : null;
   const local = new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
