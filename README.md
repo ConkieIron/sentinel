@@ -27,6 +27,7 @@ and tested on its own.
 | `worker/` | Cloudflare Worker. Cron gathers feeds, scores regions, stores the snapshot in KV, triggers a Pages rebuild. |
 | `publisher/` | Dependency-free Node build that turns a snapshot into static HTML in `publisher/dist`. |
 | `publisher/fixtures/sample-snapshot.json` | A real snapshot for offline builds and tests. |
+| `watcher/` | Tiny Cloudflare Worker that starts the GitHub publish workflow within a minute of major breaking news. |
 | `tools/build-geodata.mjs` | One-off generator for the country gazetteer and SVG basemap (Natural Earth, public domain). |
 | `.github/workflows/publish-pages.yml` | Optional scheduled build + Direct Upload deploy. |
 | `data/` | Local gather output (git-ignored). |
@@ -182,9 +183,39 @@ This works with both Direct Upload and Git-connected Pages projects. If your pro
 Git-connected, turn off its automatic builds so they don't compete with the Action. You can also
 run `npm run pages:deploy` locally after `npm run build`.
 
+### 4. Breaking-news watcher (optional, free)
+
+GitHub's 5-minute schedule is a minimum and is often late. `watcher/` is a separate Worker that
+runs every minute on the Workers Free plan. It reads the latest Reuters, AP and CNN posts on Bluesky
+plus USGS earthquakes from the last hour, and puts any new headline through the shared classifier.
+When something rates severity 4 or above (`BREAKING_MIN_SEVERITY`), it starts the publish workflow
+straight away through GitHub's `workflow_dispatch` API, so major news is live in about 2 minutes.
+Every `NUDGE_MINUTES` (5) it also starts a routine run, which keeps the cadence steady when GitHub's
+schedule slips. The workflow still deploys only when the edition changed.
+
+Breaking publishes are at least 90 seconds apart. KV remembers which stories already triggered one,
+and is written only when that happens, well inside the free 1,000 writes a day. Each run classifies
+at most 20 new headlines, so it stays within the 10ms CPU limit.
+
+To set it up, run these in `watcher/`:
+
+1. Create a fine-grained GitHub token (Settings → Developer settings → Fine-grained tokens) for
+   this repository only, with the permission **Actions: Read and write** and nothing else.
+2. Run `npx wrangler@4 login`.
+3. Run `npx wrangler@4 kv namespace create WATCHER_KV --binding WATCHER_KV --update-config`.
+4. Run `npx wrangler@4 secret put GITHUB_TOKEN` and paste the token.
+5. Run `npx wrangler@4 deploy`.
+
+To check it, open the worker's `workers.dev` URL, which shows its status. Runs it starts appear in
+the Actions tab named `Breaking (Reuters): …` or `Routine check`. `npm run tail` streams its logs.
+
+For local testing, copy `.dev.vars.example` to `.dev.vars` (`DRY_RUN=true` logs instead of calling
+GitHub). Then run `npm run dev`, and in another terminal `npm run trigger`. `npm test` covers the
+detection, de-duplication, spacing and nudge logic.
+
 ## Secrets
 
-Never commit secrets. `worker/.dev.vars` is git-ignored.
+Never commit secrets. `worker/.dev.vars` and `watcher/.dev.vars` are git-ignored.
 
 | Name | Where | Purpose |
 | --- | --- | --- |
@@ -192,6 +223,7 @@ Never commit secrets. `worker/.dev.vars` is git-ignored.
 | `PAGES_DEPLOY_HOOK` | Worker secret | Triggers a Pages rebuild. |
 | `BSKY_HANDLE`, `BSKY_APP_PASSWORD` | Worker secret (optional) | Only needed if Bluesky public search starts requiring auth. Use an app password, not your main password. |
 | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | GitHub secrets | Only for the GitHub Action. |
+| `GITHUB_TOKEN` | Watcher secret | Fine-grained token, "Actions: Read and write" on this repo only. Starts the publish workflow. |
 
 ## Regenerating map data
 

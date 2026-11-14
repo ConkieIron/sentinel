@@ -1,0 +1,24 @@
+name = "sentinel-watcher"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+
+# Poll wire sources every minute. Routine publishes are requested every NUDGE_MINUTES.
+[triggers]
+crons = ["* * * * *"]
+
+[vars]
+GITHUB_REPO = "ConkieIron/sentinel"
+GITHUB_WORKFLOW = "publish-pages.yml"
+GITHUB_REF = "main"
+NUDGE_MINUTES = "5"
+BREAKING_MIN_SEVERITY = "4"
+
+# Secret (set with `npx wrangler secret put GITHUB_TOKEN`; for local dev use .dev.vars):
+#   GITHUB_TOKEN   fine-grained token for the repo above with "Actions: Read and write" only
+#
+# KV namespace for remembering which stories already triggered a publish. Create and add it with:
+#   npx wrangler kv namespace create WATCHER_KV --binding WATCHER_KV --update-config
+
+[observability]
+enabled = true

@@ -1,0 +1,17 @@
+{
+  "name": "sentinel-watcher",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SENTINEL breaking-news watcher: a Cloudflare Worker that triggers the GitHub publish workflow within a minute of major breaking news.",
+  "type": "module",
+  "scripts": {
+    "dev": "npx wrangler@4 dev --test-scheduled --port 8789",
+    "trigger": "curl -s \"http://localhost:8789/__scheduled?cron=*+*+*+*+*\"",
+    "deploy": "npx wrangler@4 deploy",
+    "tail": "npx wrangler@4 tail",
+    "test": "node --test \"test/**/*.test.mjs\""
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

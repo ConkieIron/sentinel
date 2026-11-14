@@ -10,11 +10,13 @@
     "build:sample": "npm --prefix publisher run build:sample",
     "serve": "npm --prefix publisher run serve",
     "local": "npm run gather && npm run build && npm run serve",
-    "test": "npm --prefix worker test && npm --prefix publisher test",
+    "test": "npm --prefix worker test && npm --prefix publisher test && npm --prefix watcher test",
     "worker:dev": "npm --prefix worker run dev",
     "worker:trigger": "npm --prefix worker run trigger",
     "worker:deploy": "npm --prefix worker run deploy",
     "pages:deploy": "npm --prefix publisher run deploy",
+    "watcher:dev": "npm --prefix watcher run dev",
+    "watcher:deploy": "npm --prefix watcher run deploy",
     "geodata": "node tools/build-geodata.mjs"
   },
   "engines": {

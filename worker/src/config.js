@@ -25,7 +25,6 @@ export const BLUESKY_PUBLISHERS = [
   { id: 'bsky-cnn', handle: 'cnn.com', name: 'CNN' },
   { id: 'bsky-reuters', handle: 'reuters.com', name: 'Reuters' },
   { id: 'bsky-ap', handle: 'apnews.com', name: 'Associated Press' },
-  { id: 'bsky-bno', handle: 'bnonews.com', name: 'BNO News' },
 ];
 
 // Keyword searches across public Bluesky posts. Results are labelled UNVERIFIED and are

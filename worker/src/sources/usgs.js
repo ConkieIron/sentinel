@@ -1,7 +1,7 @@
 import { fetchWithTimeout } from '../lib/http.js';
 import { safeUrl } from '../lib/text.js';
 
-function quakeSeverity(mag, alert, tsunami) {
+export function quakeSeverity(mag, alert, tsunami) {
   let s = mag >= 7.5 ? 5 : mag >= 7 ? 4 : mag >= 6.3 ? 3 : mag >= 5.5 ? 2 : 1;
   if (alert === 'yellow') s = Math.max(s, 3);
   if (alert === 'orange') s = Math.max(s, 4);

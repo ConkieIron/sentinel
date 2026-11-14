@@ -1,7 +1,8 @@
 # Free publishing route: gather feeds, build the static site and upload it to Cloudflare Pages
 # (Direct Upload, which does not count towards the Pages build limit).
 #
-# Runs every 5 minutes (GitHub's minimum; busy periods can delay runs) and on every push to main.
+# Runs every 5 minutes (GitHub's minimum; busy periods can delay runs), on every push to main,
+# and on demand from the breaking-news watcher in watcher/ (within a minute of major news).
 # A new edition is only uploaded when the site design or something a reader would notice
 # changed, or once an hour as a heartbeat.
 # Use a public repository: Actions minutes are free and unlimited there.
@@ -16,6 +17,7 @@
 #   HEARTBEAT_MINUTES       republish an unchanged edition after this long (default 60)
 
 name: Publish static site
+run-name: ${{ inputs.reason || github.event_name }}
 
 on:
   schedule:
@@ -28,6 +30,10 @@ on:
         description: Deploy even if nothing changed
         type: boolean
         default: false
+      reason:
+        description: Why this run was requested (set by the breaking-news watcher)
+        type: string
+        default: Manual run
 
 concurrency:
   group: publish-pages

@@ -1,0 +1,4 @@
+# Copy to .dev.vars for `npm run dev`. Never commit .dev.vars.
+# DRY_RUN logs what would be dispatched instead of calling GitHub.
+DRY_RUN=true
+# GITHUB_TOKEN=github_pat_xxxxxxxx

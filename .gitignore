@@ -10,6 +10,8 @@ publisher/dist/
 # Wrangler local state and secrets
 worker/.wrangler/
 worker/.dev.vars
+watcher/.wrangler/
+watcher/.dev.vars
 .wrangler/
 
 # Natural Earth download cache
