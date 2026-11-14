@@ -161,6 +161,53 @@ test('the masthead ticker shows each index, the first visible without JavaScript
   assert.doesNotMatch(homePage(context(snapshot)), /data-ticker/, 'no market data, no ticker');
 });
 
+test('Global terror lists outlet reports; social posts and anniversaries sit apart underneath', () => {
+  const snapshot = structuredClone(fixture);
+  const at = Date.parse(snapshot.generatedAt);
+  const base = { category: 'terrorism', severity: 3, casualties: { killed: 0, injured: 0 }, location: null, sources: [], sourceCount: 1, reportCount: 1, weight: 1, time: at, firstSeen: at };
+  snapshot.incidents = [
+    { ...base, id: 't1', title: 'Gunmen kill 12 in attack on village market', summary: '', url: 'https://www.bbc.co.uk/1', evidence: 'publisher', retrospective: false },
+    { ...base, id: 't2', title: 'Americans unable to determine whether terror attack caused outage', summary: '', url: 'https://bsky.app/profile/x/post/1', evidence: 'social', retrospective: false },
+    { ...base, id: 't3', title: 'France marks 11th anniversary of Paris attacks', summary: '', url: 'https://www.france24.com/3', evidence: 'publisher', retrospective: true, severity: 1 },
+  ];
+  const html = terrorismPage(context(snapshot));
+  const details = html.indexOf('<details');
+  assert.ok(details > 0);
+  assert.ok(html.indexOf('Gunmen kill 12') < details, 'outlet report in the main list');
+  assert.ok(html.indexOf('Americans unable') > details, 'social post kept below');
+  assert.ok(html.indexOf('France marks 11th anniversary') > details, 'anniversary kept below');
+  assert.match(html, /1 unverified social post mentioning terrorism/);
+  const home = homePage(context(snapshot));
+  const panel = home.slice(home.indexOf('<h2>Suspected terrorism</h2>'));
+  assert.match(panel, /Gunmen kill 12/);
+  assert.doesNotMatch(panel.slice(0, panel.indexOf('</section>')), /Americans unable|France marks/);
+});
+
+test('region pages show official travel advice for countries in the news', () => {
+  const snapshot = structuredClone(fixture);
+  const region = snapshot.regions[0];
+  const inc = snapshot.incidents.find((i) => i.location?.region === region.id);
+  const iso3 = inc?.location?.iso3 || 'XXX';
+  snapshot.travel = {
+    [iso3]: {
+      name: 'Testland',
+      region: region.id,
+      fcdo: { url: 'https://www.gov.uk/foreign-travel-advice/testland', updated: Date.parse('2026-10-02T08:30:00Z'), change: 'Updated safety advice' },
+      us: { level: 4, label: 'Do Not Travel', url: 'https://travel.state.gov/destination.tst.html', updated: null },
+    },
+    ZZZ: { name: 'Elsewhere', region: 'not-this-region', us: { level: 4, label: 'Do Not Travel', url: 'https://travel.state.gov/z.html' } },
+  };
+  const html = regionPage(context(snapshot), region);
+  assert.match(html, /Official travel advice/);
+  assert.match(html, /<strong>Testland<\/strong>/);
+  assert.match(html, /class="adv adv-4">US Level 4: Do Not Travel/);
+  assert.match(html, /href="https:\/\/www\.gov\.uk\/foreign-travel-advice\/testland" target="_blank" rel="noopener noreferrer" title="Updated safety advice">UK FCDO/);
+  assert.match(html, /UK advice updated 2 Oct 2026/);
+  assert.doesNotMatch(html, /Elsewhere/);
+  delete snapshot.travel;
+  assert.doesNotMatch(regionPage(context(snapshot), region), /Official travel advice/);
+});
+
 test('empty snapshot still renders', () => {
   const snapshot = structuredClone(fixture);
   snapshot.incidents = [];

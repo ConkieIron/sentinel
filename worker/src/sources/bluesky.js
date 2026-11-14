@@ -90,9 +90,14 @@ const OPINION =
 const NOISE =
   /\b(?:game|movie|film|novel|episode|trailer|album|song|fiction|fanfic|podcast|giveaway|sale|discount|subscribe|crypto|nft|director|documentary|doco|book|author|pope|vibe check)\b/i;
 
-export function isUsableSocialPost(text, record) {
+const SATIRE =
+  /\b(?:(?:news|film|more) at 11|in what may have been|unable to determine whether|area (?:man|woman)|local (?:man|woman) who|sources confirm nobody|satire|parody)\b|(?:^|\s)\/s(?:\s|$)/i;
+const SATIRE_HANDLES = /(?:onion|babylonbee|dailymash|newsthump|reductress|beaverton|clickhole|waterfordwhispers|duffelblog|thehardtimes|borowitz)/i;
+
+export function isUsableSocialPost(text, record, handle = '') {
   if (!text || text.length < 60) return false;
   if (record.reply) return false;
+  if (SATIRE_HANDLES.test(handle) || SATIRE.test(text)) return false;
   if (OPINION.test(text) || NOISE.test(text)) return false;
   if ((text.match(/#/g) || []).length > 4) return false;
   if ((text.match(/\?/g) || []).length > 1) return false;
@@ -124,7 +129,7 @@ export async function fetchSocialSearch(queries, env, { now, windowMs, excludeHa
       if (!time || now - time > windowMs) continue;
       if ((post.labels || []).length || (post.author?.labels || []).length) continue;
       const text = cleanPostText(record.text);
-      if (!isUsableSocialPost(text, record)) continue;
+      if (!isUsableSocialPost(text, record, post.author?.handle)) continue;
       const body = text.replace(/^(?:breaking|urgent|just in|developing)\s*[:!\-–—]*\s*/i, '');
       const firstSentence = body.match(/^.{30,170}?[.!](?=\s|$)/)?.[0] || body;
       items.push({

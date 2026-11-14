@@ -71,7 +71,32 @@ test('a developing story collects every outlet, including headlines without its 
   assert.ok(story.updates.some((u) => u.title.startsWith('What we know about the ground stop')));
   assert.ok(story.updates.some((u) => u.title.startsWith('All flights in the United States are grounded')));
   assert.equal(story.updates[0].title, 'What to know about flights after the US nationwide ground stop', 'newest first');
+  assert.equal(story.title, 'U.S. flights resume after hours-long outage as FAA lifts nationwide ground stop', 'explainers never become the title');
   for (const u of story.updates) assert.ok(!/Storm Charles|Airline profits|salt mine/.test(u.title), u.title);
+});
+
+test('the story is titled with the newest straight headline, preferring major outlets', () => {
+  const incidents = [incident('Why did a Brooklyn building collapse suddenly, killing eight?', 3)];
+  const reports = [
+    report('The Times of India', 'Why did a Brooklyn building collapse suddenly, killing eight?', 3),
+    report('USA Today', 'Hazards and cracks preceded deadly Brooklyn building collapse, records show', 2.5),
+    report('Dawn (Pakistan)', 'Brooklyn building collapse death toll rises to eight as search ends', 1.2),
+    report('Associated Press', 'Brooklyn building collapse cause under criminal investigation, police say', 1.5),
+    report('Associated Press', 'Brooklyn building collapse raises questions about city oversight', 1),
+    report('CNN', 'What we know about the Brooklyn building collapse', 0.5),
+    ...BACKGROUND,
+  ];
+  const [story] = findLiveStories(incidents, reports, NOW);
+  assert.ok(story, 'story found');
+  assert.equal(story.title, 'Brooklyn building collapse cause under criminal investigation, police say');
+});
+
+test('straight headlines exclude explainers, questions and live blogs', async () => {
+  const { isStraightHeadline } = await import('../src/analysis/live.js');
+  assert.ok(isStraightHeadline('FAA lifts nationwide ground stop on all US flights'));
+  assert.ok(isStraightHeadline('U.S. flights resume after hours-long outage as FAA lifts ground stop'));
+  for (const t of ['Why did a Brooklyn building collapse suddenly?', "What we know about the ground stop and what to do if you're affected", 'Live: flights resume across the US after outage', 'Analysis: the ground stop exposes ageing systems', 'Ground stop: how the outage unfolded, explained', 'A Brooklyn building fell in seconds. Grief reached around the world', 'Doorbell video captures harrowing moment building collapsed in NYC'])
+    assert.ok(!isStraightHeadline(t), t);
 });
 
 test('two incidents describing the same story merge into one live story', () => {

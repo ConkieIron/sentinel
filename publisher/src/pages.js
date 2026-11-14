@@ -179,7 +179,7 @@ export function homePage(ctx) {
     .slice(0, ctx.site.homeIncidents);
   const listedIds = new Set([...headlineIds, ...feed.map((i) => i.id)]);
   const serious = snapshot.incidents.filter((i) => i.evidence !== 'social' && !i.retrospective).slice(0, 5);
-  const terror = snapshot.incidents.filter((i) => i.category === 'terrorism').sort(newestFirst);
+  const terror = snapshot.incidents.filter((i) => i.category === 'terrorism' && isReportedTerror(i)).sort(newestFirst);
   const pins = snapshot.incidents.filter((i) => i.location && (listedIds.has(i.id) || i.severity >= 3)).slice(0, 220);
   const pinnedNotListed = pins.filter((i) => !listedIds.has(i.id));
 
@@ -257,6 +257,37 @@ ${renderMap(snapshot, { incidents: pins })}
   return layout({ title: 'Incident map', description: 'Map of located world incidents with the threat level, index and incident counts for every monitored region.', path: '/regions/', body, ctx, active: 'regions' });
 }
 
+const US_LEVEL_CLASS = { 1: 'adv-1', 2: 'adv-2', 3: 'adv-3', 4: 'adv-4' };
+const shortDate = (t) => new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+
+/** Official advice for countries in this region's news, then any others the US says not to visit. */
+function travelPanel(snapshot, region, list) {
+  const counts = {};
+  for (const i of list) if (i.location?.iso3) counts[i.location.iso3] = (counts[i.location.iso3] || 0) + 1;
+  const rows = Object.entries(snapshot.travel || {})
+    .filter(([iso3, a]) => a.region === region.id && (counts[iso3] || a.us?.level === 4))
+    .sort(([a, x], [b, y]) => (counts[b] || 0) - (counts[a] || 0) || (y.us?.level || 0) - (x.us?.level || 0) || x.name.localeCompare(y.name));
+  if (!rows.length) return '';
+  const row = ([iso3, a]) => {
+    const links = [
+      a.fcdo && `<a href="${esc(safeHref(a.fcdo.url))}" target="_blank" rel="noopener noreferrer"${a.fcdo.change ? ` title="${esc(a.fcdo.change)}"` : ''}>UK FCDO</a>`,
+      a.us && `<a href="${esc(safeHref(a.us.url))}" target="_blank" rel="noopener noreferrer">US State Dept</a>`,
+    ].filter(Boolean);
+    const updated = a.fcdo?.updated ? `UK advice updated ${shortDate(a.fcdo.updated)}` : '';
+    return `<li class="adv-row"><div class="adv-head"><strong>${esc(a.name)}</strong>${counts[iso3] ? `<span class="muted small">${counts[iso3]} in the news</span>` : ''}</div>${
+      a.us ? `<span class="adv ${US_LEVEL_CLASS[a.us.level] || ''}">US Level ${a.us.level}: ${esc(a.us.label)}</span>` : ''
+    }<div class="adv-links small">${links.join(' · ')}${updated ? `<span class="muted"> · ${updated}</span>` : ''}</div></li>`;
+  };
+  const first = rows.slice(0, 8);
+  const rest = rows.slice(8);
+  return `<section class="panel">
+<h2 class="panel-title">Official travel advice</h2>
+<ul class="adv-list">${first.map(row).join('')}</ul>
+${rest.length ? `<details class="adv-more"><summary>${rest.length} more countr${rest.length === 1 ? 'y' : 'ies'}</summary><ul class="adv-list">${rest.map(row).join('')}</ul></details>` : ''}
+<p class="small muted">From the UK Foreign Office and the US State Department. Always check the full advice before you travel.</p>
+</section>`;
+}
+
 export function regionPage(ctx, region) {
   const { snapshot, now } = ctx;
   const list = snapshot.incidents.filter((i) => i.location?.region === region.id).sort((a, b) => b.time - a.time);
@@ -293,6 +324,7 @@ ${incidentList(list, ctx, { filterable: list.length > 6, pageSize: 25, empty: 'N
 </section>
 </div>
 <aside class="sidebar">
+${travelPanel(snapshot, region, list)}
 <section class="panel">
 <h2 class="panel-title">Seven-day trend</h2>
 ${sparkline(snapshot.history || [], region.id)}
@@ -321,29 +353,46 @@ ${region.hotspots.length ? `<ol class="hotspots">${region.hotspots.map((h) => `<
   });
 }
 
+const isReportedTerror = (i) => i.evidence !== 'social' && !i.retrospective;
+
 export function terrorismPage(ctx) {
   const { snapshot } = ctx;
-  const list = snapshot.incidents.filter((i) => i.category === 'terrorism').sort((a, b) => b.time - a.time);
-  const byRegion = snapshot.regions.filter((r) => r.terrorism > 0);
+  const all = snapshot.incidents.filter((i) => i.category === 'terrorism').sort((a, b) => b.time - a.time);
+  const list = all.filter(isReportedTerror);
+  const background = all.filter((i) => i.retrospective);
+  const social = all.filter((i) => !i.retrospective && i.evidence === 'social');
+  const regionCounts = {};
+  for (const i of list) if (i.location?.region) regionCounts[i.location.region] = (regionCounts[i.location.region] || 0) + 1;
+  const byRegion = snapshot.regions.filter((r) => regionCounts[r.id]);
   const body = `<div class="wrap">
 <section class="hero hero-small">
-<p class="eyebrow">Suspected terrorism</p>
+<p class="eyebrow">Global terror</p>
 <h1>Attacks and plots reported as terrorism</h1>
-<p class="hero-dek">${list.length} report${list.length === 1 ? '' : 's'} in the last ${snapshot.windowHours} hours. “Suspected” means the reporting uses terrorism language, names a proscribed jihadist group, or describes a non-state armed attack. It is not a legal or official designation.</p>
-${byRegion.length ? `<ul class="facts">${byRegion.map((r) => `<li><a href="/region/${esc(r.id)}/"><strong>${r.terrorism}</strong> ${esc(r.name)}</a></li>`).join('')}</ul>` : ''}
+<p class="hero-dek">${list.length} report${list.length === 1 ? '' : 's'} from news outlets and official sources in the last ${snapshot.windowHours} hours. “Suspected” means the reporting uses terrorism language, names a proscribed jihadist group, or describes a non-state armed attack. It is not a legal or official designation.</p>
+${byRegion.length ? `<ul class="facts">${byRegion.map((r) => `<li><a href="/region/${esc(r.id)}/"><strong>${regionCounts[r.id]}</strong> ${esc(r.name)}</a></li>`).join('')}</ul>` : ''}
 </section>
 <div class="layout">
 <div class="main-col">
 ${renderMap(snapshot, { incidents: list })}
 <section class="section">
-${sectionHead('All suspected terrorism reports')}
-${incidentList(list, ctx, { pageSize: 30, empty: 'No reports flagged as suspected terrorism in this window.' })}
+${sectionHead('Suspected terrorism reports')}
+${incidentList(list, ctx, { pageSize: 30, empty: 'No news outlet has reported suspected terrorism in this window.' })}
+${
+  social.length
+    ? `<details class="more-pins"><summary>${social.length} unverified social post${social.length === 1 ? '' : 's'} mentioning terrorism</summary><p class="muted small">Public Bluesky posts that no news outlet has matched yet. They can include jokes, opinion and rumour, so they are kept off the list above.</p>${social.map((i) => incidentCard(i, ctx, { variant: 'compact' })).join('')}</details>`
+    : ''
+}
+${
+  background.length
+    ? `<details class="more-pins"><summary>${background.length} anniversar${background.length === 1 ? 'y' : 'ies'}, trial${background.length === 1 ? '' : 's'} and background report${background.length === 1 ? '' : 's'}</summary><p class="muted small">Coverage of past attacks, such as memorials, court cases and sentencing.</p>${background.map((i) => incidentCard(i, ctx, { variant: 'compact' })).join('')}</details>`
+    : ''
+}
 </section>
 </div>
 ${sidebar(ctx)}
 </div>
 </div>`;
-  return layout({ title: 'Suspected terrorism', description: `Suspected terrorism incidents reported worldwide in the last ${snapshot.windowHours} hours.`, path: '/terrorism/', body, ctx, active: 'terrorism' });
+  return layout({ title: 'Global terror', description: `Suspected terrorism incidents reported worldwide in the last ${snapshot.windowHours} hours.`, path: '/terrorism/', body, ctx, active: 'terrorism' });
 }
 
 export function aboutPage(ctx) {
@@ -364,7 +413,7 @@ export function aboutPage(ctx) {
 <p>Every 15 minutes the gatherer reads public RSS feeds from international publishers (BBC, Al Jazeera, Sky News, The Guardian, France 24, DW, Euronews and others), official publisher accounts on Bluesky (including CNN, Reuters and AP), public Bluesky posts matching incident keywords, USGS earthquake data and GDACS multi-hazard alerts. Only items from the last ${snapshot.windowHours} hours are used.</p>
 
 <h2>2. Classification</h2>
-<p>Each headline and standfirst is matched against an explainable rule set that assigns a category, extracts reported casualty figures and sets a <strong>severity from 1 to 5</strong>. Retrospective items (anniversaries, trials, sentencing) are capped at severity 1. Commentary, sport and business stories are excluded.</p>
+<p>Each headline and standfirst is matched against an explainable rule set that assigns a category, extracts reported casualty figures and sets a <strong>severity from 1 to 5</strong>. Retrospective items (anniversaries, trials, sentencing) are capped at severity 1. Commentary, sport and business stories are excluded. The Global terror list only shows reports from news outlets and official sources; unverified social posts and anniversaries are listed separately underneath it.</p>
 <div class="table-wrap"><table><thead><tr><th>Category</th><th class="num">Weight</th><th class="num">This edition</th></tr></thead><tbody>${catRows}</tbody></table></div>
 
 <h2>3. Location</h2>

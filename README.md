@@ -50,6 +50,16 @@ and tested on its own.
   market is open the site republishes at least every 15 minutes; if the request fails the ticker
   is simply left out. Indices are listed in `worker/src/sources/markets.js`.
 
+- **Official travel advice (region pages):** the UK FCDO index from the GOV.UK content API and
+  the US State Department's advisory feed. Two requests cover every country, re-fetched every
+  6 hours and cached in the gatherer's state. Each region page lists the countries in its news,
+  plus any the US rates Level 4 "Do not travel", with links to both governments' pages. Code is
+  in `worker/src/sources/travel.js`.
+
+Public Bluesky search posts that read as satire or jokes ("news at 11", "area man", satire
+accounts) are dropped. The Global terror page lists only reports from news outlets and official
+sources; unverified social posts and anniversaries or trials appear in collapsed sections below.
+
 Add or remove feeds in `worker/src/config.js`. An outlet with two feeds (BBC, Sky) uses the same
 `name` on both, so a story is counted once per outlet; `label` tells them apart on the sources
 list. Repeat headlines from the same outlet are dropped.
@@ -81,6 +91,12 @@ report is under 3 hours old. Each story gets a BBC-style page at `/live/<id>/` w
 report, newest first, each linking to the original article. The front page shows these stories at
 the top, above the headlines. The leading one is tagged "Breaking" and the others "Live"; there is
 no separate breaking-news banner.
+
+A story's title is the newest straight news headline from the last two hours, preferring major
+outlets (BBC, Reuters, AP, Sky, Guardian, CNN and others). So it follows events ("flights resume")
+rather than the first report. Explainers, questions, "what we know", live-blog and video teasers,
+and two-sentence feature headlines never become the title. The standfirst comes from an outlet's
+website, because Bluesky link cards often describe a different article.
 
 Reports are matched by vocabulary, not by the incident classifier, so follow-ups like "airlines
 clear backlog" are included:
@@ -247,7 +263,23 @@ To set it up, run these in `watcher/`:
 4. Run `npx wrangler@4 secret put GITHUB_TOKEN` and paste the token.
 5. Run `npx wrangler@4 deploy`.
 
-To check it, open the worker's `workers.dev` URL, which shows its status. Runs it starts appear in
+**Site health alerts.** Every `HEALTH_MINUTES` (5) the watcher reads the live
+`SITE_URL/data/meta.json`. If the edition is older than `STALE_MINUTES` (90, longer than the
+60-minute heartbeat), or the site can't be reached for 10 minutes, it starts the workflow with
+`force` (at most every 30 minutes) and sends an alert. It also alerts when GitHub refuses its
+publish requests, which usually means `GITHUB_TOKEN` has expired. Repeat alerts are at most every
+3 hours, and an all-clear is sent when things recover. Alerts go through [ntfy](https://ntfy.sh),
+which is free and needs no account:
+
+1. Install the ntfy app (iOS or Android) and subscribe to a private, hard-to-guess topic name.
+2. In `watcher/`, run `npx wrangler@4 secret put NTFY_TOPIC` and enter that topic name.
+3. Optional: run `npx wrangler@4 secret put ALERT_EMAIL` to also get each alert by email.
+
+The watcher can't report its own outage. If it stops, GitHub's schedule keeps publishing, just
+less promptly.
+
+To check it, open the worker's `workers.dev` URL. It shows its status, the live edition's age and
+any current problem. Runs it starts appear in
 the Actions tab named `Breaking (Reuters): …` or `Routine check`. `npm run tail` streams its logs.
 
 For local testing, copy `.dev.vars.example` to `.dev.vars` (`DRY_RUN=true` logs instead of calling
@@ -265,6 +297,8 @@ Never commit secrets. `worker/.dev.vars` and `watcher/.dev.vars` are git-ignored
 | `BSKY_HANDLE`, `BSKY_APP_PASSWORD` | Worker secret (optional) | Only needed if Bluesky public search starts requiring auth. Use an app password, not your main password. |
 | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | GitHub secrets | Only for the GitHub Action. |
 | `GITHUB_TOKEN` | Watcher secret | Fine-grained token, "Actions: Read and write" on this repo only. Starts the publish workflow. |
+| `NTFY_TOPIC` | Watcher secret | Private ntfy.sh topic for site health alerts. Anyone who knows it can read the alerts, so keep it unguessable. |
+| `ALERT_EMAIL` | Watcher secret (optional) | Also sends each alert to this address by email. |
 
 ## Regenerating map data
 

@@ -2,3 +2,5 @@
 # DRY_RUN logs what would be dispatched instead of calling GitHub.
 DRY_RUN=true
 # GITHUB_TOKEN=github_pat_xxxxxxxx
+# NTFY_TOPIC=sentinel-alerts-some-private-name
+# ALERT_EMAIL=you@example.com

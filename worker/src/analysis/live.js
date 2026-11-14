@@ -116,6 +116,41 @@ function buildTopic(seed, weightOf, isPhrase, extraTerms = [], extraPairs = []) 
   };
 }
 
+const HEADLINE_OUTLETS = new Set([
+  'BBC News', 'Reuters', 'Associated Press', 'AFP', 'Sky News', 'The Guardian', 'CNN', 'Al Jazeera', 'NBC News',
+  'CBS News', 'ABC News (US)', 'The New York Times', 'The Washington Post', 'The Independent', 'France 24',
+  'Deutsche Welle', 'Euronews', 'NPR', 'Bloomberg', 'USA Today', 'Politico',
+]);
+const NOT_HEADLINE_START =
+  /^(?:why|how|what|who|when|where|which|is|are|was|were|can|could|should|would|will|does|do|did|inside|analysis|opinion|comment|explainer|explained|watch|listen|video|live|in pictures|timeline|the latest|here'?s|here is|everything|a look|[0-9]+ things|follow)\b/i;
+const NOT_HEADLINE =
+  /\?|\b(?:what we know|what to know|what you need|live updates?|live blog|explained|in pictures|key takeaways|timeline|podcast|newsletter|opinion|analysis|explainer|as it happened|the latest|raises questions|demands? answers|follow (?:our|live)|(?:video|footage|photos?|images?) (?:shows?|captures?)|captures? (?:the )?(?:\w+ )?moments?|moment (?:a|an|the)|in their own words)\b/i;
+
+/** A straight news headline: a statement of what happened, not an explainer, question or blog. */
+export function isStraightHeadline(title) {
+  const t = (title || '').trim();
+  // "A building fell in seconds. Grief reached around the world": two sentences mark a feature
+  // or a social post, while "U.S." and "D.C." don't trip this.
+  return t.length >= 25 && t.length <= 120 && !NOT_HEADLINE_START.test(t) && !NOT_HEADLINE.test(t) && !/[a-z]{2}\.\s+[A-Z]/.test(t);
+}
+
+/**
+ * The newest straight headline from a major outlet in the last couple of hours, else from anyone,
+ * so the story title follows events ("flights resume") rather than an early or analytical take.
+ */
+function leadHeadline(all, fallback) {
+  const recent = all.filter((r) => all[0].time - r.time <= 2 * 3600000 && isStraightHeadline(r.title));
+  return recent.find((r) => HEADLINE_OUTLETS.has(r.sourceName)) || recent[0] || (isStraightHeadline(fallback.title) ? fallback : null) || all.find((r) => isStraightHeadline(r.title)) || fallback;
+}
+
+// Bluesky link cards often describe a different article from the post, so the standfirst comes
+// from the newest website report with one.
+function leadSummary(all, lead, inc) {
+  const good = (r) => r && !r.via && r.summary && r.summary.length >= 40 && !r.summary.startsWith(r.title);
+  const pick = good(lead) ? lead : all.find(good);
+  return pick ? truncate(pick.summary, 300) : inc.summary;
+}
+
 /**
  * @param incidents  scored incidents, most important first
  * @param reports    every publisher report gathered this run ({title, summary, url, sourceName, via, time})
@@ -182,11 +217,12 @@ export function findLiveStories(incidents, reports, now) {
     .map(({ inc, topics, reports: byUrl }) => {
       const all = [...byUrl.values()].sort((a, b) => b.time - a.time);
       const outlets = [...new Set(all.map((r) => r.sourceName))];
+      const lead = leadHeadline(all, inc);
       return {
         // Keyed on the earliest report, so the page address survives a change of lead headline.
         id: hashId(all[all.length - 1].url),
-        title: inc.title,
-        summary: inc.summary,
+        title: lead.title,
+        summary: leadSummary(all, lead, inc),
         category: inc.category,
         severity: inc.severity,
         location: inc.location,

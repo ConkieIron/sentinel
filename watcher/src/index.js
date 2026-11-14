@@ -4,7 +4,9 @@
 // pair of other major outlets, and USGS earthquakes). It asks GitHub Actions to run the publish workflow immediately when a new
 // severity 4–5 incident appears, or when a wire posts an update on a story the site is covering
 // live (topics read from the site's /data/live.json). Every NUDGE_MINUTES it also starts a
-// routine publish, because GitHub's own schedule is frequently delayed.
+// routine publish, because GitHub's own schedule is frequently delayed. Every HEALTH_MINUTES it
+// checks the live edition's age and, if the site has stopped updating, forces a rebuild and sends
+// an alert (see health.js).
 //
 // The work per run is deliberately tiny (only new, recent headlines go through the shared
 // classifier) so it fits the Workers Free 10ms CPU limit; time spent waiting on the network
@@ -14,6 +16,7 @@ import { classify } from '../../worker/src/analysis/classify.js';
 import { quakeSeverity } from '../../worker/src/sources/usgs.js';
 import { fetchWithTimeout } from '../../worker/src/lib/http.js';
 import { topicFeatures, topicMatches } from '../../worker/src/analysis/live.js';
+import { checkSite, noteDispatchFailure, noteDispatchSuccess, notify, siteAge } from './health.js';
 
 // The classifier's casualty patterns cost ~15ms to compile on first use. Doing it at load time
 // moves that into Worker startup, which has its own 1s allowance, instead of the 10ms per run.
@@ -190,7 +193,7 @@ export function findBreaking(items, { now, seen, minSeverity = 4, maxClassify = 
   return out.sort((a, b) => b.severity - a.severity || b.time - a.time);
 }
 
-export async function dispatchPublish(env, reason) {
+export async function dispatchPublish(env, reason, { force = false } = {}) {
   if (env.DRY_RUN === 'true' || !env.GITHUB_TOKEN) return { dryRun: true };
   const repo = env.GITHUB_REPO;
   const workflow = env.GITHUB_WORKFLOW || 'publish-pages.yml';
@@ -203,43 +206,76 @@ export async function dispatchPublish(env, reason) {
       'Content-Type': 'application/json',
       'User-Agent': 'sentinel-watcher',
     },
-    body: JSON.stringify({ ref: env.GITHUB_REF || 'main', inputs: { reason: reason.slice(0, 200) } }),
+    body: JSON.stringify({ ref: env.GITHUB_REF || 'main', inputs: { reason: reason.slice(0, 200), ...(force && { force: 'true' }) } }),
   });
   if (res.status !== 204) throw new Error(`GitHub dispatch failed: HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
   return { dryRun: false };
 }
 
-export async function tick(env, now = Date.now(), deps = { fetchSources, dispatchPublish }) {
-  const kv = env.WATCHER_KV;
-  const state = (kv && (await kv.get('state', 'json'))) || { seen: [], lastBreakingAt: 0 };
-  const { items, live = [], errors } = await deps.fetchSources(env, now);
-  const seen = new Set(state.seen);
-  const breaking = kv ? findBreaking(items, { now, seen, minSeverity: Number(env.BREAKING_MIN_SEVERITY || 4) }) : [];
-  const liveUpdates = kv ? findLiveUpdates(items, live, { now, seen }) : [];
-  const nudgeEvery = Number(env.NUDGE_MINUTES || 5);
-  const result = { at: new Date(now).toISOString(), checked: items.length, live: live.length, errors, action: 'none' };
+const DEPS = { fetchSources, dispatchPublish, siteAge, notify };
 
-  // Items are only marked as seen once a publish has been requested, so a story that arrives
-  // during the cool-down is picked up on the next minute instead of being dropped.
-  const fast = breaking.length || liveUpdates.length;
-  if (fast && now - state.lastBreakingAt >= MIN_GAP_MS) {
-    const lead = breaking[0] || liveUpdates[0];
-    const reason = breaking.length ? `Breaking (${lead.source}): ${lead.title}` : `Live update (${lead.source}): ${lead.title}`;
-    const sent = await deps.dispatchPublish(env, reason);
-    state.seen = [...breaking.map((b) => b.key), ...liveUpdates.map((u) => u.key), ...state.seen].slice(0, SEEN_LIMIT);
-    state.lastBreakingAt = now;
-    await kv.put('state', JSON.stringify(state));
-    Object.assign(result, {
-      action: breaking.length ? 'breaking' : 'live-update',
-      dryRun: sent.dryRun,
-      headlines: [...breaking, ...liveUpdates].map((b) => `${b.source}: ${b.title}`),
-    });
-  } else if (nudgeEvery > 0 && Math.floor(now / 60000) % nudgeEvery === 0) {
-    const sent = await deps.dispatchPublish(env, 'Routine check');
-    Object.assign(result, { action: 'nudge', dryRun: sent.dryRun });
+export async function tick(env, now = Date.now(), overrides = {}) {
+  const deps = { ...DEPS, ...overrides };
+  const kv = env.WATCHER_KV;
+  const minute = Math.floor(now / 60000);
+
+  // Health lives in the same KV record as the seen list, which is read every run anyway; the
+  // record is written back only if either part changed.
+  const state = (kv && (await kv.get('state', 'json'))) || { seen: [], lastBreakingAt: 0 };
+  let health = state.health || {};
+  const healthJson = JSON.stringify(health);
+  let stateChanged = false;
+  const dispatch = async (reason) => {
+    try {
+      const sent = await deps.dispatchPublish(env, reason);
+      health = await noteDispatchSuccess(env, health, deps);
+      return sent;
+    } catch (err) {
+      health = await noteDispatchFailure(env, now, health, err, deps);
+      throw err;
+    }
+  };
+
+  try {
+    const { items, live = [], errors } = await deps.fetchSources(env, now);
+    const seen = new Set(state.seen);
+    const breaking = kv ? findBreaking(items, { now, seen, minSeverity: Number(env.BREAKING_MIN_SEVERITY || 4) }) : [];
+    const liveUpdates = kv ? findLiveUpdates(items, live, { now, seen }) : [];
+    const nudgeEvery = Number(env.NUDGE_MINUTES || 5);
+    const healthEvery = Number(env.HEALTH_MINUTES || 5);
+    const result = { at: new Date(now).toISOString(), checked: items.length, live: live.length, errors, action: 'none' };
+
+    // Items are only marked as seen once a publish has been requested, so a story that arrives
+    // during the cool-down is picked up on the next minute instead of being dropped.
+    const fast = breaking.length || liveUpdates.length;
+    if (fast && now - state.lastBreakingAt >= MIN_GAP_MS) {
+      const lead = breaking[0] || liveUpdates[0];
+      const reason = breaking.length ? `Breaking (${lead.source}): ${lead.title}` : `Live update (${lead.source}): ${lead.title}`;
+      const sent = await dispatch(reason);
+      state.seen = [...breaking.map((b) => b.key), ...liveUpdates.map((u) => u.key), ...state.seen].slice(0, SEEN_LIMIT);
+      state.lastBreakingAt = now;
+      stateChanged = true;
+      Object.assign(result, {
+        action: breaking.length ? 'breaking' : 'live-update',
+        dryRun: sent.dryRun,
+        headlines: [...breaking, ...liveUpdates].map((b) => `${b.source}: ${b.title}`),
+      });
+    } else if (nudgeEvery > 0 && minute % nudgeEvery === 0) {
+      const sent = await dispatch('Routine check');
+      Object.assign(result, { action: 'nudge', dryRun: sent.dryRun });
+    }
+
+    // Offset from the nudge minute so the two never share one run's CPU allowance.
+    if (env.SITE_URL && healthEvery > 0 && minute % healthEvery === 2 % healthEvery) {
+      const check = await checkSite(env, now, health, deps);
+      health = check.health;
+      result.site = { editionAt: check.siteAt ? new Date(check.siteAt).toISOString() : null, actions: check.actions };
+    }
+    if (!kv) result.warning = 'WATCHER_KV is not bound; breaking detection is off';
+    return result;
+  } finally {
+    if (kv && (stateChanged || JSON.stringify(health) !== healthJson)) await kv.put('state', JSON.stringify({ ...state, health }));
   }
-  if (!kv) result.warning = 'WATCHER_KV is not bound; breaking detection is off';
-  return result;
 }
 
 export default {
@@ -254,14 +290,33 @@ export default {
 
   async fetch(request, env) {
     if (new URL(request.url).pathname !== '/') return new Response('Not found', { status: 404 });
-    const state = env.WATCHER_KV ? await env.WATCHER_KV.get('state', 'json') : null;
+    const now = Date.now();
+    const iso = (t) => (t ? new Date(t).toISOString() : null);
+    const [state, editionAt] = await Promise.all([
+      env.WATCHER_KV ? env.WATCHER_KV.get('state', 'json') : null,
+      env.SITE_URL ? siteAge(env, now).catch(() => null) : null,
+    ]);
+    const health = state?.health;
     const body = {
       service: 'sentinel-watcher',
       repo: env.GITHUB_REPO,
       breakingDetection: Boolean(env.WATCHER_KV),
       dispatchConfigured: Boolean(env.GITHUB_TOKEN) && env.DRY_RUN !== 'true',
-      lastBreakingAt: state?.lastBreakingAt ? new Date(state.lastBreakingAt).toISOString() : null,
+      alerts: env.NTFY_TOPIC ? (env.ALERT_EMAIL ? 'ntfy push and email' : 'ntfy push') : 'not configured (set the NTFY_TOPIC secret)',
+      lastBreakingAt: iso(state?.lastBreakingAt),
       storiesSeen: state?.seen?.length || 0,
+      site: {
+        lastEditionAt: iso(editionAt),
+        minutesSinceLastEdition: editionAt ? Math.round((now - editionAt) / 60000) : null,
+        staleAfterMinutes: Number(env.STALE_MINUTES || 90),
+        status: !editionAt ? 'unreachable' : now - editionAt > Number(env.STALE_MINUTES || 90) * 60000 ? 'stale' : 'ok',
+      },
+      problems: {
+        staleSince: iso(health?.staleSince),
+        lastForcedRebuildAt: iso(health?.lastForceAt),
+        publishRequestsFailingSince: iso(health?.dispatchFailingSince),
+        lastError: health?.lastError || null,
+      },
     };
     return new Response(JSON.stringify(body, null, 2), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
   },

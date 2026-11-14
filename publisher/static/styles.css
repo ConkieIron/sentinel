@@ -281,6 +281,15 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
 .guide dd { margin: 4px 0 0; color: var(--muted); font-size: 0.85rem; }
 .link-list { list-style: none; margin: 0; padding: 0; }
 .link-list li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 7px 0; border-bottom: 1px solid var(--rule-soft); }
+.adv-list { list-style: none; margin: 0; padding: 0; }
+.adv-row { padding: 9px 0; border-bottom: 1px solid var(--rule-soft); }
+.adv-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.adv { display: inline-block; margin: 4px 0 2px; padding: 1px 7px; border-radius: 3px; font-size: 0.78rem; font-weight: 700; color: var(--ink); background: var(--grey-bg); }
+.adv-2 { background: #fdf3d8; color: #6b4a00; }
+.adv-3 { background: #fde3c8; color: #8a3b00; }
+.adv-4 { background: var(--high); color: #fff; }
+.adv-links { margin-top: 2px; }
+.adv-more > summary { cursor: pointer; font-weight: 700; color: var(--blue); padding: 8px 0; }
 .hotspots { margin: 0; padding-left: 20px; }
 .hotspots li { padding: 4px 0; }
 .hotspots li span { display: inline-block; min-width: 70%; }

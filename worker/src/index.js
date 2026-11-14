@@ -6,8 +6,9 @@
 //  POST /run           → manual run (requires `Authorization: Bearer <RUN_TOKEN>`)
 
 import { runPipeline, appendHistory } from './pipeline.js';
+import { refreshTravelAdvice, travelForSnapshot } from './sources/travel.js';
 
-const KEYS = { snapshot: 'snapshot:latest', history: 'history:hourly', meta: 'meta:run' };
+const KEYS = { snapshot: 'snapshot:latest', history: 'history:hourly', meta: 'meta:run', travel: 'travel:advice' };
 
 async function readJson(env, key, fallback) {
   try {
@@ -32,12 +33,15 @@ async function maybeTriggerPublish(env, snapshot, previousMeta, now) {
 export async function gather(env, now = Date.now()) {
   const history = await readJson(env, KEYS.history, []);
   const previousMeta = await readJson(env, KEYS.meta, {});
-  const snapshot = await runPipeline(env, { now, history });
+  const cachedTravel = await readJson(env, KEYS.travel, null);
+  const [snapshot, travel] = await Promise.all([runPipeline(env, { now, history }), refreshTravelAdvice(cachedTravel, now).catch(() => cachedTravel)]);
   const nextHistory = appendHistory(history, snapshot, now);
   snapshot.history = nextHistory;
+  snapshot.travel = travelForSnapshot(travel, snapshot.incidents);
 
   await env.SENTINEL_KV.put(KEYS.snapshot, JSON.stringify(snapshot));
   await env.SENTINEL_KV.put(KEYS.history, JSON.stringify(nextHistory));
+  if (travel && travel !== cachedTravel) await env.SENTINEL_KV.put(KEYS.travel, JSON.stringify(travel));
 
   let publish;
   try {

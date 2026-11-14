@@ -15,9 +15,15 @@ GITHUB_REF = "main"
 SITE_URL = "https://sentinelglobalnews.pages.dev"
 NUDGE_MINUTES = "5"
 BREAKING_MIN_SEVERITY = "4"
+# Every HEALTH_MINUTES the live edition's age is checked. Past STALE_MINUTES (longer than the
+# publish workflow's 60-minute heartbeat) a rebuild is forced and an alert sent.
+HEALTH_MINUTES = "5"
+STALE_MINUTES = "90"
 
-# Secret (set with `npx wrangler secret put GITHUB_TOKEN`; for local dev use .dev.vars):
+# Secrets (set with `npx wrangler secret put <NAME>`; for local dev use .dev.vars):
 #   GITHUB_TOKEN   fine-grained token for the repo above with "Actions: Read and write" only
+#   NTFY_TOPIC     private ntfy.sh topic that receives alerts (subscribe to it in the ntfy app)
+#   ALERT_EMAIL    optional: also email alerts to this address (sent by ntfy.sh)
 #
 # Remembers which stories already triggered a publish. Created with:
 #   npx wrangler kv namespace create WATCHER_KV
