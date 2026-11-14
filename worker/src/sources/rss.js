@@ -2,7 +2,7 @@
 // so a tolerant regex extractor is faster and dependency-free.
 
 import { fetchWithTimeout } from '../lib/http.js';
-import { stripHtml, safeUrl, parseTime, truncate } from '../lib/text.js';
+import { stripHtml, safeUrl, parseTime, truncate, decodeEntities } from '../lib/text.js';
 
 function tag(block, name) {
   const re = new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)</${name}>`, 'i');
@@ -26,6 +26,30 @@ function atomLink(block) {
   return '';
 }
 
+/**
+ * The item's picture from media:content, media:thumbnail or an image enclosure: the widest one,
+ * https only. BBC thumbnails are 240px wide, so the larger rendition of the same image is used.
+ */
+export function feedImage(block) {
+  let best = null;
+  for (const el of block.match(/<(?:media:content|media:thumbnail|enclosure)\b[^>]*>/gi) || []) {
+    const get = (a) => el.match(new RegExp(`\\b${a}=["']([^"']*)["']`, 'i'))?.[1] || '';
+    const type = get('type');
+    const medium = get('medium');
+    if ((type && !/^image\//i.test(type)) || (medium && medium !== 'image')) continue;
+    let url = safeUrl(decodeEntities(get('url')));
+    if (!url || !url.startsWith('https://')) continue;
+    if (!type && !medium && !/^<media:thumbnail/i.test(el) && !/\.(?:jpe?g|png|webp)(?:[?#]|$)/i.test(url) && !/[?&]format=|auto=format/i.test(url)) continue;
+    let width = Number(get('width')) || 0;
+    if (/^https:\/\/ichef\.bbci\.co\.uk\/ace\/standard\/\d+\//.test(url)) {
+      url = url.replace(/\/ace\/standard\/\d+\//, '/ace/standard/976/');
+      width = 976;
+    }
+    if (!best || width > best.width) best = { url, width };
+  }
+  return best;
+}
+
 export function parseFeed(xml) {
   const blocks = xml.match(/<item\b[\s\S]*?<\/item>/gi) || xml.match(/<entry\b[\s\S]*?<\/entry>/gi) || [];
   return blocks.map((b) => {
@@ -39,6 +63,7 @@ export function parseFeed(xml) {
       summary: truncate(stripHtml(tag(b, 'description') || tag(b, 'summary') || tag(b, 'content')), 400),
       time: parseTime(stripHtml(tag(b, 'pubDate') || tag(b, 'published') || tag(b, 'updated') || tag(b, 'dc:date'))),
       coords: Number.isFinite(lat) && Number.isFinite(lon) && (lat || lon) ? [lat, lon] : null,
+      image: feedImage(b),
       extra: {
         alertLevel: stripHtml(tag(b, 'gdacs:alertlevel')),
         eventType: stripHtml(tag(b, 'gdacs:eventtype')),
@@ -68,6 +93,7 @@ export async function fetchRss(feed, { now, windowMs, maxItems }) {
       summary: p.summary,
       url: p.url,
       time,
+      image: p.image || undefined,
     });
     if (items.length >= maxItems) break;
   }

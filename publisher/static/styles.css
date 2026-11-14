@@ -244,7 +244,7 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
 
 /* Threat strip under the nav */
 .threat-strip { background: var(--grey-bg); border-bottom: 1px solid var(--rule); font-size: 0.82rem; }
-.threat-strip .wrap { display: flex; align-items: center; gap: 12px; padding-top: 7px; padding-bottom: 7px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
+.threat-strip .wrap { position: relative; display: flex; align-items: center; gap: 12px; padding-top: 7px; padding-bottom: 7px; overflow-x: auto; white-space: nowrap; scrollbar-width: none; }
 .threat-strip .wrap::-webkit-scrollbar { display: none; }
 .ts-label { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--navy); }
 .threat-strip ul { display: flex; gap: 14px; list-style: none; margin: 0; padding: 0; }
@@ -341,6 +341,18 @@ th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; colo
 .live-latest .src { font-weight: 700; color: var(--body); }
 .live-latest a { flex: 1 1 100%; color: var(--ink); font-family: var(--serif); font-weight: 700; line-height: 1.3; }
 .live-more { font-weight: 700; font-size: 0.9rem; }
+.story-figure { margin: 0; }
+.story-figure img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; background: var(--rule-soft); }
+.story-figure figcaption { font-size: 0.72rem; color: var(--muted); padding-top: 3px; }
+.story-figure figcaption a { color: var(--muted); }
+.live-teaser-figure { margin: -12px -14px 10px; }
+.live-teaser-figure figcaption { padding: 3px 14px 0; }
+@media (min-width: 720px) {
+  .live-teaser-main.has-figure { display: grid; grid-template-columns: minmax(0, 46%) minmax(0, 1fr); gap: 0 16px; align-items: start; }
+  .live-teaser-figure { margin: 0; }
+  .live-teaser-figure figcaption { padding: 3px 0 0; }
+}
+.live-hero-figure { max-width: 640px; margin: 16px 0 14px; }
 .live-link { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
 .live-hero { border-bottom: 3px solid var(--breaking); }
 .live-hero .eyebrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { findLiveStories, topicFeatures, topicMatches } from '../src/analysis/live.js';
+import { findLiveStories, topicFeatures, topicMatches, storyImage } from '../src/analysis/live.js';
 
 const NOW = Date.parse('2026-11-14T14:00:00Z');
 const H = 3600000;
@@ -148,4 +148,20 @@ test('published topics match new wire headlines on the story and nothing else', 
   assert.ok(matches('FAA chief says ageing systems caused nationwide ground stop'));
   assert.ok(!matches('Storm Charles causes flight cancellations across southern Europe'));
   assert.ok(!matches('Airline profits soar on record summer travel demand'));
+});
+
+test('a story picture comes from its lead report, else a major outlet, never from a Bluesky card', () => {
+  const img = (url, width) => ({ url, width });
+  const lead = { ...report('The Hindu', 'U.S. flights resume after FAA lifts nationwide ground stop', 1), image: img('https://img.example/small.jpg', 300) };
+  const all = [
+    lead,
+    { ...report('Sky News', 'FAA lifts nationwide ground stop on all US flights', 1.5), via: 'Bluesky', image: img('https://img.example/card.jpg', 1200) },
+    { ...report('Africanews', 'United States nationwide ground stop lifted after long shutdown', 2), image: img('https://img.example/africa.jpg', 1200) },
+    { ...report('BBC News', 'All US flights grounded by air traffic control outage', 3), image: img('https://img.example/bbc.jpg', 976) },
+  ];
+  assert.deepEqual(storyImage(all, lead), { url: 'https://img.example/bbc.jpg', source: 'BBC News', link: all[3].url, title: all[3].title });
+  assert.equal(storyImage(all, { ...lead, image: img('https://img.example/big.jpg', 1024) }).url, 'https://img.example/big.jpg');
+  assert.equal(storyImage([lead], lead).url, 'https://img.example/small.jpg', 'a small picture beats none');
+  const plain = report('CNN', 'All flights in the United States are grounded', 1);
+  assert.equal(storyImage([plain], plain), undefined);
 });

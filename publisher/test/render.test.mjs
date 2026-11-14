@@ -34,7 +34,7 @@ function allPages(ctx) {
   ];
 }
 
-function withLiveStory(snapshot, { title = 'US flights resume after nationwide ground stop', url = 'https://www.bbc.co.uk/news/ground-stop' } = {}) {
+function withLiveStory(snapshot, { title = 'US flights resume after nationwide ground stop', url = 'https://www.bbc.co.uk/news/ground-stop', image } = {}) {
   const now = Date.parse(snapshot.generatedAt);
   const copy = structuredClone(snapshot);
   copy.live = [
@@ -42,6 +42,7 @@ function withLiveStory(snapshot, { title = 'US flights resume after nationwide g
       id: 'abc123',
       title,
       summary: 'Flights resumed after an hours-long halt.',
+      image,
       category: 'infrastructure',
       severity: 3,
       location: null,
@@ -148,6 +149,25 @@ test('hostile content in live stories is escaped', () => {
   const html = allPages(ctx).join('\n');
   assert.ok(!html.includes('<script>alert('), 'raw script tag leaked');
   assert.ok(!/href="javascript:/i.test(html), 'javascript: link leaked');
+});
+
+test('the main live story shows its picture, credited and linked to the source', () => {
+  const image = { url: 'https://ichef.bbci.co.uk/ace/standard/976/x.jpg', source: 'BBC News', link: 'https://www.bbc.co.uk/news/ground-stop', title: 'US flights resume' };
+  const ctx = context(withLiveStory(fixture, { image }));
+  const home = homePage(ctx);
+  assert.match(home, /live-teaser-main has-figure/);
+  assert.match(home, /<a href="\/live\/abc123\/" tabindex="-1" aria-hidden="true"><img src="https:\/\/ichef\.bbci\.co\.uk\/ace\/standard\/976\/x\.jpg" alt="" [^>]*referrerpolicy="no-referrer">/);
+  assert.match(home, /Picture: <a href="https:\/\/www\.bbc\.co\.uk\/news\/ground-stop" target="_blank" rel="noopener noreferrer">BBC News/);
+  assert.match(livePage(ctx, ctx.snapshot.live[0]), /class="story-figure live-hero-figure"/);
+  assert.doesNotMatch(homePage(context(withLiveStory(fixture))), /story-figure|has-figure/, 'no picture, no figure');
+
+  const hostile = context(withLiveStory(fixture, { image: { url: 'javascript:alert(1)', source: EVIL, link: 'javascript:alert(2)' } }));
+  assert.doesNotMatch(homePage(hostile), /story-figure/);
+  const insecure = context(withLiveStory(fixture, { image: { url: 'http://img.example/x.jpg', source: EVIL, link: 'javascript:alert(2)' } }));
+  assert.doesNotMatch(homePage(insecure), /story-figure/);
+  const badLink = homePage(context(withLiveStory(fixture, { image: { ...image, source: EVIL, link: 'javascript:alert(2)' } })));
+  assert.ok(!badLink.includes('<script>alert('));
+  assert.ok(!/href="javascript:/i.test(badLink));
 });
 
 test('the masthead ticker shows each index, the first visible without JavaScript', () => {

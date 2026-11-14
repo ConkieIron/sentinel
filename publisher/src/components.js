@@ -106,13 +106,32 @@ function liveHeadline(u) {
   return `<a href="${esc(safeHref(u.url))}" target="_blank" rel="noopener noreferrer">${esc(u.title)}<span class="vh"> (opens ${esc(u.source)} in a new tab)</span></a>`;
 }
 
+/**
+ * A live story's picture, shown from the publisher's own servers and credited to it. The image
+ * links to `href` (the live page from the front page, else the article it came from); the
+ * figure hides itself if the image fails to load.
+ */
+export function storyFigure(story, { href, className = '' } = {}) {
+  const img = story.image;
+  const src = img && safeHref(img.url);
+  if (!src || !src.startsWith('https://')) return '';
+  const external = !href;
+  const link = href || safeHref(img.link);
+  return `<figure class="story-figure ${esc(className)}" data-hide-on-error>
+<a href="${esc(link)}"${external ? ' target="_blank" rel="noopener noreferrer"' : ''} tabindex="-1" aria-hidden="true"><img src="${esc(src)}" alt="" width="976" height="549" decoding="async" referrerpolicy="no-referrer"></a>
+<figcaption>Picture: <a href="${esc(safeHref(img.link))}" target="_blank" rel="noopener noreferrer">${esc(img.source)}<span class="vh"> (opens the article in a new tab)</span></a></figcaption>
+</figure>`;
+}
+
 /** Front-page teaser for a live story: the newest updates, then a link to the full coverage. */
 export function liveTeaser(story, ctx, { main = false } = {}) {
   const kicker = `<p class="live-kicker">${livePill(story, ctx)}<span>${story.outlets.length} outlets · updated ${timeTag(story.updatedAt, ctx.now)}</span></p>`;
   if (!main) {
     return `<article class="live-teaser live-teaser-more">${kicker}<h3 class="live-title"><a href="/live/${esc(story.id)}/">${esc(story.title)}</a></h3></article>`;
   }
-  return `<article class="live-teaser live-teaser-main">
+  const figure = storyFigure(story, { href: `/live/${story.id}/`, className: 'live-teaser-figure' });
+  return `<article class="live-teaser live-teaser-main${figure ? ' has-figure' : ''}">
+${figure}<div class="live-teaser-body">
 ${kicker}
 <h3 class="live-title"><a href="/live/${esc(story.id)}/">${esc(story.title)}</a></h3>
 <ul class="live-latest">${story.updates
@@ -120,6 +139,7 @@ ${kicker}
     .map((u) => `<li>${clockTag(u.time)}<span class="src">${esc(u.source)}</span>${liveHeadline(u)}</li>`)
     .join('')}</ul>
 <a class="live-more" href="/live/${esc(story.id)}/">Follow live coverage: ${story.reportCount} update${story.reportCount === 1 ? '' : 's'} →</a>
+</div>
 </article>`;
 }
 

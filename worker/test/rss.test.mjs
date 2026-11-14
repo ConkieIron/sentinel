@@ -33,3 +33,18 @@ test('rejects non-http links', () => {
   const [item] = parseFeed('<rss><item><title>x</title><link>javascript:alert(1)</link></item></rss>');
   assert.equal(item.url, null);
 });
+
+test('feed items carry their widest https picture', () => {
+  const xml = `<rss><channel>
+<item><title>BBC story</title><link>https://www.bbc.co.uk/news/1</link><pubDate>Sat, 14 Nov 2026 12:00:00 GMT</pubDate>
+<media:thumbnail width="240" height="135" url="https://ichef.bbci.co.uk/ace/standard/240/cpsprodpb/a/live/b.jpg"/></item>
+<item><title>Guardian story</title><link>https://www.theguardian.com/world/2</link><pubDate>Sat, 14 Nov 2026 12:00:00 GMT</pubDate>
+<media:content width="140" url="https://i.guim.co.uk/img/x.jpg?width=140&amp;s=1"/><media:content width="460" url="https://i.guim.co.uk/img/x.jpg?width=460&amp;s=2"/></item>
+<item><title>Video and insecure picture</title><link>https://news.example/3</link><pubDate>Sat, 14 Nov 2026 12:00:00 GMT</pubDate>
+<enclosure url="https://news.example/clip.mp4" type="video/mp4"/><media:content medium="image" url="http://news.example/p.jpg"/><media:content url="javascript:alert(1)"/></item>
+</channel></rss>`;
+  const [bbc, guardian, other] = parseFeed(xml);
+  assert.deepEqual(bbc.image, { url: 'https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/a/live/b.jpg', width: 976 });
+  assert.deepEqual(guardian.image, { url: 'https://i.guim.co.uk/img/x.jpg?width=460&s=2', width: 460 });
+  assert.equal(other.image, null);
+});

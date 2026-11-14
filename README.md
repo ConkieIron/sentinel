@@ -109,6 +109,13 @@ rather than the first report. Explainers, questions, "what we know", live-blog a
 and two-sentence feature headlines never become the title. The standfirst comes from an outlet's
 website, because Bluesky link cards often describe a different article.
 
+The main live story on the front page, and each live page, shows a picture taken from the story's
+own feed items (`media:content`, `media:thumbnail` or an image enclosure). It prefers the lead
+report's picture, then a major outlet's, and needs one at least 600px wide when available. The
+image is loaded from the publisher's server with no referrer and credited to the outlet ("Picture:
+BBC News"), linking to the article. If it fails to load, the box falls back to text only.
+Feeds without pictures (Al Jazeera, CBS, NPR) simply never supply one.
+
 Reports are matched by vocabulary, not by the incident classifier, so follow-ups like "airlines
 clear backlog" are included:
 - Words are weighted by how rare they are across everything gathered, so "FAA" counts for far more

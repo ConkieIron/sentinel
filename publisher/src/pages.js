@@ -13,6 +13,7 @@ import {
   liveTeaser,
   liveUpdate,
   livePill,
+  storyFigure,
 } from './components.js';
 import { esc, safeHref, timeTag, fmtUtc, ago, LEVEL_LABEL, isReportedTerror, filterCategory, inLatest } from './util.js';
 import { countriesOf, countryPath, adviceChangedAt, adviceChanges } from './countries.js';
@@ -84,6 +85,7 @@ export function livePage(ctx, story) {
   }</p>
 <h1>${esc(story.title)}</h1>
 ${story.summary ? `<p class="hero-dek">${esc(story.summary)}</p>` : ''}
+${storyFigure(story, { className: 'live-hero-figure' })}
 <ul class="facts">
 <li><strong>${story.reportCount}</strong> report${story.reportCount === 1 ? '' : 's'}</li>
 <li><strong>${story.outlets.length}</strong> outlets</li>

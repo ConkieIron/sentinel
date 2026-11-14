@@ -146,6 +146,18 @@
     }
   }
 
+  // Publisher pictures can be withdrawn or blocked; drop the whole figure rather than show a broken image.
+  for (const fig of $$('[data-hide-on-error]')) {
+    const img = $('img', fig);
+    if (!img) continue;
+    const hide = () => {
+      fig.hidden = true;
+      fig.parentElement.classList.remove('has-figure');
+    };
+    if (img.complete && !img.naturalWidth) hide();
+    else img.addEventListener('error', hide);
+  }
+
   // Category filter + "show more" for incident lists
   for (const list of $$('.story-list')) {
     const size = Number(list.dataset.pageSize) || 25;
