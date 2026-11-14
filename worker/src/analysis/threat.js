@@ -88,10 +88,18 @@ export function scoreRegions(incidents, now, model, history = []) {
   }).sort((x, y) => y.score - x.score);
 }
 
+// Breaking is the newest major story: severity 4–5, first reported within BREAKING_HOURS. Age is
+// measured from the first report, so a late follow-up does not make an old story "breaking".
+const BREAKING_HOURS = 3;
+
 export function pickBreaking(incidents, now) {
   const eligible = incidents.filter(
-    (i) => i.evidence !== 'social' && !i.retrospective && i.severity >= 4 && now - i.time <= 12 * 3600000,
+    (i) =>
+      i.evidence !== 'social' &&
+      !i.retrospective &&
+      i.severity >= 4 &&
+      now - (i.firstSeen ?? i.time) <= BREAKING_HOURS * 3600000,
   );
-  eligible.sort((a, b) => b.severity * 10 + b.sourceCount - (a.severity * 10 + a.sourceCount) || b.time - a.time);
+  eligible.sort((a, b) => (b.firstSeen ?? b.time) - (a.firstSeen ?? a.time) || b.severity - a.severity);
   return eligible[0]?.id || null;
 }

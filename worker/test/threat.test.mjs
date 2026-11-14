@@ -69,9 +69,17 @@ test('breaking excludes social, retrospective, minor and old incidents', () => {
     incident('social', 'oceania', { severity: 5, evidence: 'social' }),
     incident('retro', 'oceania', { severity: 5, retrospective: true }),
     incident('minor', 'oceania', { severity: 3 }),
-    incident('old', 'oceania', { severity: 5, ageH: 13 }),
+    incident('old', 'oceania', { severity: 5, ageH: 4 }),
   ];
   assert.equal(pickBreaking(list, NOW), null);
   list.push(incident('real', 'oceania', { severity: 4 }));
   assert.equal(pickBreaking(list, NOW), 'real');
+});
+
+test('breaking is the newest major story, not the most severe or a late follow-up', () => {
+  const severeEarlier = { ...incident('severe', 'oceania', { severity: 5 }), firstSeen: NOW - 2 * H };
+  const newer = { ...incident('newer', 'oceania', { severity: 4 }), firstSeen: NOW - 20 * 60000 };
+  const followUp = { ...incident('followup', 'oceania', { severity: 5 }), firstSeen: NOW - 30 * H, time: NOW - 5 * 60000 };
+  assert.equal(pickBreaking([severeEarlier, newer, followUp], NOW), 'newer');
+  assert.equal(pickBreaking([followUp], NOW), null);
 });

@@ -12,6 +12,7 @@ import {
   trendTag,
   liveTeaser,
   liveUpdate,
+  primarySource,
 } from './components.js';
 import { esc, safeHref, timeTag, fmtUtc, LEVEL_LABEL } from './util.js';
 
@@ -30,7 +31,7 @@ function breakingStrip(ctx) {
   return `<section class="breaking" aria-label="Breaking"><div class="wrap">
 <span class="breaking-label">Breaking</span>
 <a href="${esc(safeHref(inc.url))}" class="breaking-title" target="_blank" rel="noopener noreferrer">${esc(inc.title)}</a>
-<span class="breaking-meta">${esc(inc.sources[0]?.name || '')} · ${timeTag(inc.time, ctx.now)}</span>
+<span class="breaking-meta">${esc(primarySource(inc)?.name || '')} · first reported ${timeTag(inc.firstSeen ?? inc.time, ctx.now)}</span>
 </div></section>`;
 }
 
