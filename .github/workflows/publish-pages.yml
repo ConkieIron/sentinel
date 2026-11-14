@@ -1,8 +1,9 @@
 # Free publishing route: gather feeds, build the static site and upload it to Cloudflare Pages
 # (Direct Upload, which does not count towards the Pages build limit).
 #
-# Runs every 5 minutes (GitHub's minimum; busy periods can delay runs). A new edition is only
-# uploaded when something a reader would notice changed, or once an hour as a heartbeat.
+# Runs every 5 minutes (GitHub's minimum; busy periods can delay runs) and on every push to main.
+# A new edition is only uploaded when the site design or something a reader would notice
+# changed, or once an hour as a heartbeat.
 # Use a public repository: Actions minutes are free and unlimited there.
 #
 # Repository secrets:
@@ -19,6 +20,8 @@ name: Publish static site
 on:
   schedule:
     - cron: '*/5 * * * *'
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       force:

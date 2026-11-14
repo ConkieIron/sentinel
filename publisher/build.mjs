@@ -11,7 +11,7 @@
 // serving the previous successful deployment instead of publishing an empty site.
 
 import { createHash } from 'node:crypto';
-import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage } from './src/pages.js';
@@ -50,10 +50,24 @@ async function loadSnapshot() {
   return { snapshot, source };
 }
 
-// Identifies what a reader would notice: the breaking story, region levels and the
-// significant incidents. Minor churn (new sev-1/2 reports, extra sources) does not change it.
-function editionFingerprint(snapshot) {
+// Hash of the templates, styles and scripts, so a design change counts as a new edition.
+async function codeVersion() {
+  const hash = createHash('sha256');
+  for (const dir of ['src', 'static']) {
+    const files = (await readdir(join(here, dir), { recursive: true, withFileTypes: true }))
+      .filter((f) => f.isFile())
+      .map((f) => join(f.parentPath ?? f.path, f.name))
+      .sort();
+    for (const file of files) hash.update(file.slice(here.length)).update(await readFile(file));
+  }
+  return hash.digest('hex').slice(0, 12);
+}
+
+// Identifies what a reader would notice: the site design, the breaking story, region levels and
+// the significant incidents. Minor churn (new sev-1/2 reports, extra sources) does not change it.
+function editionFingerprint(snapshot, version) {
   const material = {
+    version,
     breaking: snapshot.breakingId || null,
     regions: snapshot.regions.map((r) => [r.id, r.level]),
     incidents: snapshot.incidents
@@ -114,7 +128,7 @@ for (const [path, html] of pages) await writePage(path, html);
 await writePage('data/snapshot.json', JSON.stringify(snapshot));
 await writePage(
   'data/meta.json',
-  JSON.stringify({ generatedAt: snapshot.generatedAt, incidents: snapshot.incidents.length, fingerprint: editionFingerprint(snapshot) }),
+  JSON.stringify({ generatedAt: snapshot.generatedAt, incidents: snapshot.incidents.length, fingerprint: editionFingerprint(snapshot, await codeVersion()) }),
 );
 
 const urls = ['/', '/regions/', '/terrorism/', '/about/', ...snapshot.regions.map((r) => `/region/${r.id}/`)];
