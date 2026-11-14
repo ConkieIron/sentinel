@@ -43,7 +43,7 @@ export function layout({ title, description, path, body, ctx, active = '' }) {
 <a class="skip" href="#content">Skip to content</a>
 <div class="utility"><div class="wrap">
 <span>${esc(fmtUtc(generated, { withYear: true }))}</span>
-<span class="utility-right">Static edition · checked for news every ~${esc(String(site.publishMinutes))} min · <a href="/about/#sources">${snapshot.stats.sourcesOnline}/${snapshot.stats.sourcesTotal} sources online</a></span>
+<span class="utility-right"><span class="u-long">Static edition · checked for news every ~${esc(String(site.publishMinutes))} min · </span><a href="/about/#sources">${snapshot.stats.sourcesOnline}/${snapshot.stats.sourcesTotal} sources online</a></span>
 </div></div>
 <header class="masthead"><div class="wrap">
 <a class="brand" href="/" aria-label="SENTINEL home">

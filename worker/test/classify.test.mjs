@@ -6,6 +6,7 @@ test('non-incident news is not classified', () => {
   assert.equal(classify('Central bank holds interest rates steady'), null);
   assert.equal(classify('SpaceX rockets launch another batch of satellites'), null);
   assert.equal(classify('A flood of memes followed the final'), null);
+  assert.equal(classify('Polymarket and Kalshi now host bets on measles and other US health crises'), null);
 });
 
 test('suspected terrorism needs terror language or a non-state actor', () => {

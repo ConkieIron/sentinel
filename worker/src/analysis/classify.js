@@ -38,7 +38,7 @@ const TRANSPORT =
   /\b(?:plane crash|air crash|crash landing|aircraft crash|helicopter crash|derail(?:ed|ment)|train (?:crash|collision)|ferry (?:sank|sinks|capsiz\w*)|boat capsiz\w*|capsized|shipwreck|bus crash|bridge collapse|building collapse|stampede|crowd crush|mine collapse|fire kills|blaze kills)\b/i;
 
 const NOT_INCIDENT =
-  /\b(?:trade war|price war|culture war|war of words|tariffs?|box office|football|cricket|tennis|rugby|olympics?|world cup|premier league|grand prix|championship|election results?|stock market|recipe|fashion|celebrity|oscars?|grammys?)\b/i;
+  /\b(?:trade war|price war|culture war|war of words|tariffs?|box office|football|cricket|tennis|rugby|olympics?|world cup|premier league|grand prix|championship|election results?|stock market|recipe|fashion|celebrity|oscars?|grammys?|bets?|betting|prediction markets?|polymarket|kalshi)\b/i;
 const RETROSPECTIVE =
   /\b(?:anniversary|years? (?:after|since|ago|on)|decades? (?:after|since|ago)|memorial|commemorat\w+|sentenced|convicted|verdict|jailed|inquest|on trial|trial of|lawsuit|obituary|dies aged|documentary|exhibition|quiz|remembering|looking back)\b/i;
 const SOFT = /\b(?:opinion|analysis|explainer|interview|podcast|in pictures|photos|newsletter|live updates|what to know)\b/i;

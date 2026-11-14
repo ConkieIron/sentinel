@@ -32,9 +32,43 @@ function breakingStrip(ctx) {
 </div></section>`;
 }
 
-function sidebar(ctx) {
+function threatStrip(snapshot) {
+  const raised = snapshot.regions.filter((r) => r.level !== 'low');
+  const items = raised.length
+    ? raised.map((r) => `<li><a href="/region/${esc(r.id)}/"><span class="dot lvl-${esc(r.level)}" aria-hidden="true"></span>${esc(r.name)}<span class="vh"> (${esc(LEVEL_LABEL[r.level])})</span></a></li>`).join('')
+    : '<li>No region above Low</li>';
+  return `<section class="threat-strip" aria-label="Regional threat levels"><div class="wrap">
+<span class="ts-label">Threat levels</span>
+<ul>${items}</ul>
+<a class="ts-map" href="#map">Map ↓</a>
+</div></section>`;
+}
+
+function homePanels(ctx, serious) {
+  const { snapshot, now } = ctx;
+  return `<section class="panel">
+<h2 class="panel-title">Regional threat levels</h2>
+<ul class="link-list">${snapshot.regions
+    .slice(0, 8)
+    .map((r) => `<li><a href="/region/${esc(r.id)}/">${esc(r.name)}</a> ${levelBadge(r.level)}</li>`)
+    .join('')}</ul>
+<p class="small"><a href="/regions/">All ${snapshot.regions.length} regions →</a></p>
+</section>
+<section class="panel">
+<h2 class="panel-title">Most serious right now</h2>
+<ol class="ranked">${serious
+    .map(
+      (i) =>
+        `<li><a href="${esc(safeHref(i.url))}" target="_blank" rel="noopener noreferrer">${esc(i.title)}</a><span class="muted small">${esc(i.location?.country || 'Location unclear')} · ${timeTag(i.time, now)}</span></li>`,
+    )
+    .join('')}</ol>
+</section>`;
+}
+
+function sidebar(ctx, extra = '') {
   const { snapshot, now } = ctx;
   return `<aside class="sidebar">
+${extra}
 <section class="panel">
 <h2 class="panel-title">How to read SENTINEL</h2>
 <p>Each region's <strong>threat level</strong> compares its recent incident activity with every other region. <strong>High</strong> marks the most active areas in this edition, not an absolute danger rating.</p>
@@ -58,16 +92,25 @@ ${sourceTable(snapshot.sources, now)}
 export function homePage(ctx) {
   const { snapshot, now } = ctx;
   const s = snapshot.stats;
-  const located = snapshot.incidents.filter((i) => i.location);
-  const listed = snapshot.incidents
-    .filter((i) => i.severity >= 2)
-    .sort((a, b) => b.time - a.time)
+  const newestFirst = (a, b) => b.time - a.time;
+
+  // Headlines: the newest verified reports. The most severe of that fresh batch leads.
+  const fresh = snapshot.incidents
+    .filter((i) => i.evidence !== 'social' && !i.retrospective && i.severity >= 2)
+    .sort(newestFirst)
+    .slice(0, 7);
+  const lead = [...fresh].sort((a, b) => b.severity - a.severity || b.time - a.time)[0];
+  const tiles = fresh.filter((i) => i !== lead);
+  const headlineIds = new Set(fresh.map((i) => i.id));
+
+  const feed = snapshot.incidents
+    .filter((i) => i.severity >= 2 && !headlineIds.has(i.id))
+    .sort(newestFirst)
     .slice(0, ctx.site.homeIncidents);
-  const listedIds = new Set(listed.map((i) => i.id));
-  const top = snapshot.incidents.filter((i) => i.evidence !== 'social' && !i.retrospective).slice(0, 5);
-  for (const t of top) listedIds.add(t.id);
-  const terror = snapshot.incidents.filter((i) => i.category === 'terrorism').sort((a, b) => b.time - a.time);
-  const pins = located.filter((i) => listedIds.has(i.id) || i.severity >= 3).slice(0, 220);
+  const listedIds = new Set([...headlineIds, ...feed.map((i) => i.id)]);
+  const serious = snapshot.incidents.filter((i) => i.evidence !== 'social' && !i.retrospective).slice(0, 5);
+  const terror = snapshot.incidents.filter((i) => i.category === 'terrorism').sort(newestFirst);
+  const pins = snapshot.incidents.filter((i) => i.location && (listedIds.has(i.id) || i.severity >= 3)).slice(0, 220);
   const pinnedNotListed = pins.filter((i) => !listedIds.has(i.id));
 
   const highest = snapshot.regions.filter((r) => r.level === 'high').map((r) => r.name);
@@ -76,23 +119,31 @@ export function homePage(ctx) {
     : 'No region currently meets the High threshold.';
 
   const body = `${breakingStrip(ctx)}
+${threatStrip(snapshot)}
 <div class="wrap">
-<section class="hero">
-<p class="eyebrow">World threat picture · last ${snapshot.windowHours} hours</p>
-<h1>Global incidents and suspected terrorism, mapped by region</h1>
-<p class="hero-dek">${esc(dek)} ${s.incidents} incidents from ${s.sourcesOnline} live sources, including ${s.terrorism} suspected terrorism report${s.terrorism === 1 ? '' : 's'}.</p>
-<ul class="level-summary">
-<li class="lvl-high"><strong>${s.levels.high}</strong> High</li>
-<li class="lvl-medium"><strong>${s.levels.medium}</strong> Medium</li>
-<li class="lvl-low"><strong>${s.levels.low}</strong> Low</li>
-<li class="plain"><strong>${s.severe}</strong> severe incidents</li>
-</ul>
-</section>
-
+<h1 class="vh">SENTINEL: latest world incidents and suspected terrorism</h1>
 <div class="layout">
 <div class="main-col">
+<section class="section section-first">
+${sectionHead('Latest headlines', { more: { href: '#latest', label: 'All updates' } })}
+${
+  lead
+    ? `<div class="headlines">
+${incidentCard(lead, ctx, { variant: 'lead' })}
+${tiles.map((i) => incidentCard(i, ctx, { variant: 'tile' })).join('')}
+</div>`
+    : '<p class="empty">No verified incident reports in this window yet.</p>'
+}
+</section>
+
+<section class="section">
+${sectionHead('Latest updates', { id: 'latest' })}
+${incidentList(feed, ctx, { filterable: true, pageSize: 20, variant: 'row' })}
+</section>
+
 <section id="map" class="section">
-${sectionHead('Regional threat map')}
+${sectionHead('Regional threat map', { more: { href: '/regions/', label: 'All regions' } })}
+<p class="section-dek">${esc(dek)} ${s.incidents} incidents in the last ${snapshot.windowHours} hours from ${s.sourcesOnline} live sources, including ${s.terrorism} suspected terrorism report${s.terrorism === 1 ? '' : 's'}.</p>
 ${renderMap(snapshot, { incidents: pins, caption: 'Tap a region for its briefing or a marker for the incident. Markers on country centres are approximate; USGS and GDACS markers are exact.' })}
 </section>
 
@@ -102,28 +153,12 @@ ${sectionHead('Regional threat index', { more: { href: '/regions/', label: 'All 
 </section>
 
 <section class="section">
-${sectionHead('Top stories')}
-<div class="top-stories">
-${top.map((inc, i) => incidentCard(inc, ctx, { variant: i === 0 ? 'lead' : 'item' })).join('')}
-</div>
-</section>
-
-<section class="section">
 ${sectionHead('Suspected terrorism', { more: { href: '/terrorism/', label: `All ${terror.length} reports` } })}
 ${terror.length ? `<div class="compact-list">${terror.slice(0, 6).map((i) => incidentCard(i, ctx, { variant: 'compact', anchor: false })).join('')}</div>` : '<p class="empty">No reports flagged as suspected terrorism in this window.</p>'}
-</section>
-
-<section class="section">
-${sectionHead('Latest incidents', { id: 'latest' })}
-${incidentList(
-  listed.filter((i) => !top.includes(i)),
-  ctx,
-  { filterable: true, pageSize: 20 },
-)}
 ${pinnedNotListed.length ? `<details class="more-pins"><summary>${pinnedNotListed.length} more mapped incidents</summary>${pinnedNotListed.map((i) => incidentCard(i, ctx, { variant: 'compact' })).join('')}</details>` : ''}
 </section>
 </div>
-${sidebar(ctx)}
+${sidebar(ctx, homePanels(ctx, serious))}
 </div>
 </div>`;
 

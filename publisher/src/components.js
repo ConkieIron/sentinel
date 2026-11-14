@@ -38,6 +38,24 @@ function sourceSummary(sources) {
   return `${plural(other, 'source')} + ${plural(social, 'social post')}`;
 }
 
+export function primarySource(inc) {
+  return inc.sources.find((s) => s.url === inc.url) || inc.sources[0];
+}
+
+// The headline link covers the whole card (see .headline a::after), so a tap anywhere on the
+// card opens the original article.
+function headline(inc, tag) {
+  const via = primarySource(inc)?.name || 'the original article';
+  return `<${tag} class="headline"><a href="${esc(safeHref(inc.url))}" target="_blank" rel="noopener noreferrer">${esc(inc.title)}<span class="vh"> (opens ${esc(via)} in a new tab)</span></a></${tag}>`;
+}
+
+// Dek length per variant; 0 hides the summary.
+const DEK = { lead: 320, tile: 150, item: 200, row: 0, compact: 0 };
+
+/**
+ * Variants: lead (front-page splash), tile (headline grid), row (latest-updates feed),
+ * item (full card for region/terrorism lists), compact (headline only).
+ */
 export function incidentCard(inc, ctx, { variant = 'item', anchor = true } = {}) {
   const { snapshot, now, regionNames } = ctx;
   const sources = inc.sources
@@ -47,13 +65,30 @@ export function incidentCard(inc, ctx, { variant = 'item', anchor = true } = {})
     )
     .join('');
   const evidenceLabel = inc.evidence === 'multi' ? `${EVIDENCE.multi} (${inc.sourceCount})` : EVIDENCE[inc.evidence];
-  const tag = variant === 'lead' ? 'h2' : 'h3';
+  const brief = variant === 'tile' || variant === 'row';
+  const showSev = !brief || inc.severity >= (variant === 'tile' ? 4 : 3);
+  const showEv = !brief || inc.evidence !== 'publisher';
+  const showSources = variant !== 'tile' && inc.sources.length > 1;
+  const src = primarySource(inc);
+  const dekLen = DEK[variant] ?? 200;
+
+  const meta = [
+    variant === 'row' ? '' : timeTag(inc.time, now),
+    src ? `<span class="src">${esc(src.name)}</span>` : '',
+    showSev ? `<span class="sev sev-${inc.severity}" title="Severity ${inc.severity} of 5">Severity ${inc.severity}/5</span>` : '',
+    showEv ? `<span class="ev ev-${esc(inc.evidence)}">${esc(evidenceLabel)}</span>` : '',
+    casualtyText(inc.casualties, inc.evidence),
+    inc.retrospective ? '<span class="muted">Background / retrospective</span>' : '',
+  ].join('');
+
+  const body = `<div class="kicker"><span class="cat cat-${esc(inc.category)}">${esc(snapshot.categories[inc.category])}</span>${regionLink(inc, regionNames)}</div>
+${headline(inc, 'h3')}
+${inc.summary && dekLen ? `<p class="dek">${esc(trim(inc.summary, dekLen))}</p>` : ''}
+<div class="meta">${meta}</div>
+${showSources ? `<details class="sources"><summary>${sourceSummary(inc.sources)}</summary><ul>${sources}</ul></details>` : ''}`;
+
   return `<article class="story story-${variant}"${anchor ? ` id="i-${esc(inc.id)}"` : ''} data-cat="${esc(inc.category)}" data-ev="${esc(inc.evidence)}">
-<div class="kicker"><span class="cat cat-${esc(inc.category)}">${esc(snapshot.categories[inc.category])}</span>${regionLink(inc, regionNames)}</div>
-<${tag}><a href="${esc(safeHref(inc.url))}" target="_blank" rel="noopener noreferrer">${esc(inc.title)}</a></${tag}>
-${inc.summary && variant !== 'compact' ? `<p class="dek">${esc(trim(inc.summary, variant === 'lead' ? 320 : 200))}</p>` : ''}
-<div class="meta"><span class="sev sev-${inc.severity}" title="Severity ${inc.severity} of 5">Severity ${inc.severity}/5</span><span class="ev ev-${esc(inc.evidence)}">${esc(evidenceLabel)}</span>${casualtyText(inc.casualties, inc.evidence)}${timeTag(inc.time, now)}${inc.retrospective ? '<span class="muted">Background / retrospective</span>' : ''}</div>
-${inc.sources.length > 1 || variant !== 'compact' ? `<details class="sources"><summary>${sourceSummary(inc.sources)}</summary><ul>${sources}</ul></details>` : ''}
+${variant === 'row' ? `<div class="row-time">${timeTag(inc.time, now)}</div><div class="row-body">${body}</div>` : body}
 </article>`;
 }
 
@@ -84,9 +119,9 @@ export function filterChips(snapshot, incidents) {
   return `<div class="chips" role="toolbar" aria-label="Filter incidents by category" hidden><button type="button" class="chip" data-filter="all" aria-pressed="true">All <span>${incidents.length}</span></button>${chips}<button type="button" class="chip chip-alt" data-filter="verified" aria-pressed="false">Hide unverified social</button></div>`;
 }
 
-export function incidentList(list, ctx, { filterable = false, pageSize = 25, empty = 'No incidents in this window.' } = {}) {
+export function incidentList(list, ctx, { filterable = false, pageSize = 25, variant = 'item', empty = 'No incidents in this window.' } = {}) {
   if (!list.length) return `<p class="empty">${esc(empty)}</p>`;
-  return `${filterable ? filterChips(ctx.snapshot, list) : ''}<div class="story-list" data-page-size="${pageSize}">${list.map((i) => incidentCard(i, ctx)).join('')}</div>`;
+  return `${filterable ? filterChips(ctx.snapshot, list) : ''}<div class="story-list" data-page-size="${pageSize}">${list.map((i) => incidentCard(i, ctx, { variant })).join('')}</div>`;
 }
 
 export function sourceTable(sources, now) {

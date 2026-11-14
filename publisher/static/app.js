@@ -4,7 +4,7 @@
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
   // Relative + local times
-  const rtf = 'Intl' in window && Intl.RelativeTimeFormat ? new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' }) : null;
+  const rtf = 'Intl' in window && Intl.RelativeTimeFormat ? new Intl.RelativeTimeFormat(undefined, { numeric: 'auto', style: 'short' }) : null;
   const local = new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
   function relative(ts) {
     const mins = Math.round((ts - Date.now()) / 60000);
