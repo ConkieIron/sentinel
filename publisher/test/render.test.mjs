@@ -131,6 +131,8 @@ test('live stories get a front-page teaser and a page listing every update, newe
   const home = homePage(ctx);
   assert.match(home, /class="live-box"/);
   assert.match(home, /href="\/live\/abc123\/"/);
+  assert.match(home, /<span class="live-pill">Breaking<\/span>/);
+  assert.doesNotMatch(home, /class="breaking"/);
   const page = livePage(ctx, ctx.snapshot.live[0]);
   const order = ['www.bbc.co.uk/news/ground-stop', 'www.reuters.com/x', 'edition.cnn.com/y'].map((u) => page.indexOf(u));
   assert.ok(order.every((i) => i > 0) && order[0] < order[1] && order[1] < order[2], 'updates newest first');
@@ -143,6 +145,20 @@ test('hostile content in live stories is escaped', () => {
   const html = allPages(ctx).join('\n');
   assert.ok(!html.includes('<script>alert('), 'raw script tag leaked');
   assert.ok(!/href="javascript:/i.test(html), 'javascript: link leaked');
+});
+
+test('the masthead ticker shows each index, the first visible without JavaScript', () => {
+  const snapshot = structuredClone(fixture);
+  const at = Date.parse(snapshot.generatedAt);
+  snapshot.markets = [
+    { id: 'ftse', name: 'FTSE 100', price: 10902.56, changePct: 0.36, time: at, open: true },
+    { id: 'dow', name: 'Dow Jones', price: 52347.55, changePct: -0.4, time: at - 86400000, open: false },
+  ];
+  const home = homePage(context(snapshot));
+  assert.match(home, /data-ticker-item><span class="wc-city">FTSE 100<\/span><span class="wc-time">10,902\.56<\/span><span class="wc-meta"><span class="tk-up">▲ 0\.36%<\/span><span class="tk-status"> · <time/);
+  assert.match(home, /data-ticker-item hidden><span class="wc-city">Dow Jones<\/span>.*▼ 0\.40%<\/span><span class="tk-status"> · Closed/);
+  delete snapshot.markets;
+  assert.doesNotMatch(homePage(context(snapshot)), /data-ticker/, 'no market data, no ticker');
 });
 
 test('empty snapshot still renders', () => {

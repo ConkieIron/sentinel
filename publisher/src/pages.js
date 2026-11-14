@@ -12,7 +12,7 @@ import {
   trendTag,
   liveTeaser,
   liveUpdate,
-  primarySource,
+  livePill,
 } from './components.js';
 import { esc, safeHref, timeTag, fmtUtc, LEVEL_LABEL } from './util.js';
 
@@ -24,16 +24,6 @@ const OFFICIAL_LINKS = [
   ['GDACS disaster alerts', 'https://www.gdacs.org/'],
   ['Cloudflare Radar outages', 'https://radar.cloudflare.com/outage-center'],
 ];
-
-function breakingStrip(ctx) {
-  const inc = ctx.byId.get(ctx.snapshot.breakingId);
-  if (!inc) return '';
-  return `<section class="breaking" aria-label="Breaking"><div class="wrap">
-<span class="breaking-label">Breaking</span>
-<a href="${esc(safeHref(inc.url))}" class="breaking-title" target="_blank" rel="noopener noreferrer">${esc(inc.title)}</a>
-<span class="breaking-meta">${esc(primarySource(inc)?.name || '')} · first reported ${timeTag(inc.firstSeen ?? inc.time, ctx.now)}</span>
-</div></section>`;
-}
 
 function threatStrip(snapshot) {
   const raised = snapshot.regions.filter((r) => r.level !== 'low');
@@ -88,7 +78,7 @@ export function livePage(ctx, story) {
   const body = `<div class="wrap">
 <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <span>Live coverage</span></nav>
 <section class="hero hero-small live-hero">
-<p class="eyebrow"><span class="live-pill">Live</span> <span class="cat cat-${esc(story.category)}">${esc(snapshot.categories[story.category] || '')}</span>${
+<p class="eyebrow">${livePill(story, ctx)} <span class="cat cat-${esc(story.category)}">${esc(snapshot.categories[story.category] || '')}</span>${
     region ? ` · <a href="/region/${esc(loc.region)}/">${esc(region)}</a>` : ''
   }</p>
 <h1>${esc(story.title)}</h1>
@@ -129,14 +119,14 @@ ${
 }
 <section class="panel">
 <h2 class="panel-title">About live coverage</h2>
-<p>A story gets live coverage when at least three outlets are reporting it and it is still developing. Updates from Reuters, AP and CNN can publish within about two minutes; others appear within about five.</p>
+<p>A story gets live coverage when at least three outlets are reporting it and it is still developing. The leading one is marked Breaking. Updates from major wire services and outlets on Bluesky can publish within a few minutes; others appear within about five.</p>
 <p><a href="/">Back to the latest briefing →</a></p>
 </section>
 </aside>
 </div>
 </div>`;
   return layout({
-    title: `Live: ${story.title}`,
+    title: `${snapshot.live?.[0]?.id === story.id ? 'Breaking' : 'Live'}: ${story.title}`,
     description: `Live coverage from ${story.outlets.length} outlets: ${story.title}`,
     path: `/live/${story.id}/`,
     body,
@@ -198,8 +188,7 @@ export function homePage(ctx) {
     ? `Highest relative activity: ${highest.join(', ')}.`
     : 'No region currently meets the High threshold.';
 
-  const body = `${breakingStrip(ctx)}
-${threatStrip(snapshot)}
+  const body = `${threatStrip(snapshot)}
 <div class="wrap">
 <h1 class="vh">SENTINEL: latest world incidents and suspected terrorism</h1>
 <div class="layout">

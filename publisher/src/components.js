@@ -74,7 +74,7 @@ export function incidentCard(inc, ctx, { variant = 'item', anchor = true } = {})
   const live = ctx.liveFor?.(inc);
 
   const meta = [
-    live ? `<a class="live-link" href="/live/${esc(live.id)}/"><span class="live-pill">Live</span> Follow coverage</a>` : '',
+    live ? `<a class="live-link" href="/live/${esc(live.id)}/">${livePill(live, ctx)} Follow coverage</a>` : '',
     variant === 'row' ? '' : timeTag(inc.time, now),
     src ? `<span class="src">${esc(src.name)}</span>` : '',
     showSev ? `<span class="sev sev-${inc.severity}" title="Severity ${inc.severity} of 5">Severity ${inc.severity}/5</span>` : '',
@@ -94,13 +94,19 @@ ${variant === 'row' ? `<div class="row-time">${timeTag(inc.time, now)}</div><div
 </article>`;
 }
 
+/** The leading developing story is tagged Breaking; the others are Live. */
+export function livePill(story, ctx) {
+  const label = ctx.snapshot.live?.[0]?.id === story.id ? 'Breaking' : 'Live';
+  return `<span class="live-pill">${label}</span>`;
+}
+
 function liveHeadline(u) {
   return `<a href="${esc(safeHref(u.url))}" target="_blank" rel="noopener noreferrer">${esc(u.title)}<span class="vh"> (opens ${esc(u.source)} in a new tab)</span></a>`;
 }
 
 /** Front-page teaser for a live story: the newest updates, then a link to the full coverage. */
 export function liveTeaser(story, ctx, { main = false } = {}) {
-  const kicker = `<p class="live-kicker"><span class="live-pill">Live</span><span>${story.outlets.length} outlets · updated ${timeTag(story.updatedAt, ctx.now)}</span></p>`;
+  const kicker = `<p class="live-kicker">${livePill(story, ctx)}<span>${story.outlets.length} outlets · updated ${timeTag(story.updatedAt, ctx.now)}</span></p>`;
   if (!main) {
     return `<article class="live-teaser live-teaser-more">${kicker}<h3 class="live-title"><a href="/live/${esc(story.id)}/">${esc(story.title)}</a></h3></article>`;
   }
@@ -178,6 +184,6 @@ export function evidenceGuide() {
 <dt><span class="ev ev-official">Official record</span></dt><dd>Published by an authority such as USGS or GDACS. Confirms the measured hazard, not every reported impact.</dd>
 <dt><span class="ev ev-multi">Multiple outlets</span></dt><dd>Two or more independent publishers describe a matching event. They may share upstream sources.</dd>
 <dt><span class="ev ev-publisher">Single outlet</span></dt><dd>One established publisher reports it. Not independently verified by SENTINEL.</dd>
-<dt><span class="ev ev-social">Unverified social</span></dt><dd>Public Bluesky posts. Heavily down-weighted; can never trigger the breaking banner or a High rating alone.</dd>
+<dt><span class="ev ev-social">Unverified social</span></dt><dd>Public Bluesky posts. Heavily down-weighted; can never lead the headlines or cause a High rating alone.</dd>
 </dl>`;
 }

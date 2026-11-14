@@ -1,4 +1,4 @@
-import { esc, fmtUtc } from './util.js';
+import { esc, fmtUtc, clockTag } from './util.js';
 
 const NAV = [
   ['/', 'Home', 'home'],
@@ -8,6 +8,20 @@ const NAV = [
   ['/#latest', 'Latest', 'latest'],
   ['/about/', 'Methodology & sources', 'about'],
 ];
+
+const price = new Intl.NumberFormat('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/** Masthead ticker: one index at a time, rotated by app.js. Hidden when there is no market data. */
+function marketTicker(markets = []) {
+  if (!markets.length) return '';
+  const items = markets.map((m, i) => {
+    const dir = m.changePct > 0 ? 'up' : m.changePct < 0 ? 'down' : 'flat';
+    const change = m.changePct === null ? '' : `<span class="tk-${dir}">${dir === 'up' ? '▲' : dir === 'down' ? '▼' : '■'} ${Math.abs(m.changePct).toFixed(2)}%</span>`;
+    const status = `<span class="tk-status">${change ? ' · ' : ''}${m.open ? clockTag(m.time) : 'Closed'}</span>`;
+    return `<span class="wc-face" data-ticker-item${i ? ' hidden' : ''}><span class="wc-city">${esc(m.name)}</span><span class="wc-time">${price.format(m.price)}</span><span class="wc-meta">${change}${status}</span></span>`;
+  });
+  return `<button type="button" class="ticker rotator" data-ticker aria-label="Stock markets, show the next index">${items.join('')}</button>`;
+}
 
 export function layout({ title, description, path, body, ctx, active = '' }) {
   const { snapshot, site, assets } = ctx;
@@ -46,7 +60,10 @@ export function layout({ title, description, path, body, ctx, active = '' }) {
 <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="4"/><circle cx="16" cy="16" r="9"/><circle cx="16" cy="16" r="3.5"/><path d="M16 3v6M16 23v6M3 16h6M23 16h6"/></svg>
 <span class="brand-text"><strong>SENTINEL</strong><small>Global Incident &amp; Threat Monitor</small></span>
 </a>
-<button type="button" class="world-clock" data-world-clock hidden aria-label="World clock, show the next city"><span class="wc-face"><span class="wc-city"></span><span class="wc-time"></span><span class="wc-meta"></span></span></button>
+<div class="masthead-tools">
+${marketTicker(snapshot.markets)}
+<button type="button" class="world-clock rotator" data-world-clock hidden aria-label="World clock, show the next city"><span class="wc-face"><span class="wc-city"></span><span class="wc-time"></span><span class="wc-meta"></span></span></button>
+</div>
 </div></header>
 <nav class="nav" aria-label="Sections"><div class="wrap"><ul>${nav}</ul></div></nav>
 <div class="update-banner" role="status" hidden><a href="" data-reload><span data-banner-text>New updates published</span> · Refresh</a></div>

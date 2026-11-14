@@ -63,13 +63,18 @@ async function codeVersion() {
   return hash.digest('hex').slice(0, 12);
 }
 
-// Identifies what a reader would notice: the site design, the breaking story, region levels, the
-// significant incidents and every report on a live story. Other minor churn (new sev-1/2
-// reports, extra sources) does not change it.
+// Identifies what a reader would notice: the site design, region levels, the significant
+// incidents and every report on a live story. Other minor churn (new sev-1/2 reports, extra
+// sources) does not change it. Market prices count once per 15 minutes while a market is open,
+// and once more for the closing prices, so they don't force a deploy on every run.
+const MARKET_REFRESH_MS = 15 * 60000;
 function editionFingerprint(snapshot, version) {
+  const markets = snapshot.markets || [];
   const material = {
     version,
-    breaking: snapshot.breakingId || null,
+    markets: markets.some((m) => m.open)
+      ? Math.floor(Date.parse(snapshot.generatedAt) / MARKET_REFRESH_MS)
+      : markets.map((m) => `${m.id}:${m.price}`),
     regions: snapshot.regions.map((r) => [r.id, r.level]),
     incidents: snapshot.incidents
       .filter((i) => i.severity >= 3)

@@ -47,7 +47,6 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
   .brand-mark { width: 34px; height: 34px; }
   .brand-text strong { font-size: 1.45rem; }
   .brand-text small { font-size: 0.62rem; }
-  .world-clock .wc-time { font-size: 1.2rem; }
   .story-lead .dek { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 }
 .masthead { border-bottom: 1px solid var(--rule); }
@@ -60,13 +59,35 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
 .brand-mark circle:last-of-type { fill: #4f8fe6; stroke: none; }
 .brand-text strong { display: block; font-family: var(--serif); font-size: 1.75rem; letter-spacing: 0.08em; line-height: 1; }
 .brand-text small { display: block; color: var(--muted); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 4px; }
-.world-clock { margin-left: auto; padding: 4px 0 4px 12px; border: 0; border-left: 1px solid var(--rule); background: none; font: inherit; color: inherit; text-align: right; cursor: pointer; min-width: 92px; }
+.masthead-tools { display: flex; align-items: center; margin-left: auto; }
+.rotator { padding: 4px 0 4px 12px; margin-left: 12px; border: 0; border-left: 1px solid var(--rule); background: none; font: inherit; color: inherit; text-align: right; cursor: pointer; min-width: 92px; }
+.ticker { min-width: 112px; }
 .wc-face { display: block; transition: opacity 0.25s ease; }
-.world-clock.is-switching .wc-face { opacity: 0; }
+.rotator.is-switching .wc-face { opacity: 0; }
+.tk-up { color: #13804a; font-weight: 700; }
+.tk-down { color: var(--high); font-weight: 700; }
+.tk-flat { font-weight: 700; }
 .wc-city { display: block; color: var(--blue); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
 .wc-time { display: block; color: var(--navy); font-family: var(--serif); font-size: 1.5rem; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .wc-meta { display: block; color: var(--muted); font-size: 0.68rem; white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) { .wc-face { transition: none; } }
+/* Ticker and clock don't fit beside the brand on a phone: they share a slim row beneath it. */
+@media (max-width: 599px) {
+  .masthead .wrap { flex-wrap: wrap; }
+  .masthead-tools { flex: 1 1 100%; justify-content: space-between; margin: 8px 0 0; padding-top: 6px; border-top: 1px solid var(--rule-soft); }
+  .rotator { min-width: 0; margin: 0; padding: 0; border: 0; }
+  .ticker { text-align: left; }
+  .rotator .wc-face { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
+  .rotator .wc-city { font-size: 0.66rem; }
+  .rotator .wc-time { font-size: 1rem; }
+  .rotator .wc-meta { font-size: 0.72rem; }
+  .world-clock .wc-meta, .tk-status { display: none; }
+}
+@media (max-width: 359px) {
+  .rotator .wc-face { gap: 4px; }
+  .rotator .wc-city { letter-spacing: 0.02em; }
+  .rotator .wc-time { font-size: 0.9rem; }
+}
 .nav { background: #fff; border-bottom: 3px solid var(--blue); position: sticky; top: 0; z-index: 20; }
 .nav ul { display: flex; gap: 2px; list-style: none; margin: 0; padding: 0; overflow-x: auto; scrollbar-width: none; }
 .nav ul::-webkit-scrollbar { display: none; }
@@ -76,13 +97,6 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
 .update-banner { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 30; max-width: calc(100% - 24px); }
 .update-banner a { display: block; background: var(--navy); color: #fff; font-weight: 700; font-size: 0.9rem; padding: 10px 18px; border-radius: 999px; box-shadow: 0 4px 14px rgba(11, 37, 69, 0.3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .update-banner a:hover { text-decoration: none; background: var(--blue-dark); }
-
-/* Breaking */
-.breaking { background: #fff5f5; border-bottom: 1px solid #f1caca; }
-.breaking .wrap { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; padding-top: 10px; padding-bottom: 10px; }
-.breaking-label { background: var(--breaking); color: #fff; font-weight: 800; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; border-radius: 2px; }
-.breaking-title { color: var(--ink); font-family: var(--serif); font-weight: 700; font-size: 1.05rem; flex: 1 1 260px; }
-.breaking-meta { color: var(--muted); font-size: 0.8rem; }
 
 /* Hero */
 .hero { padding: 22px 0 18px; border-bottom: 1px solid var(--rule); margin-bottom: 18px; }

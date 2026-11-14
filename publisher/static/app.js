@@ -64,8 +64,43 @@
     if (Number.isFinite(ts)) t.textContent = clock.format(ts);
   }
 
-  // World clock in the masthead: cycles through major cities. Tap for the next one; hovering or
-  // focusing it pauses the rotation.
+  // Masthead rotators (stock markets, world clock): fade to the next item every 5 seconds. Tap for
+  // the next one. Taps on touch screens leave focus and a synthetic hover behind, so only a real
+  // mouse or keyboard focus pauses them.
+  function rotator(el, next, delay = 0) {
+    let paused = false;
+    const advance = () => {
+      el.classList.add('is-switching');
+      setTimeout(() => {
+        next();
+        el.classList.remove('is-switching');
+      }, 250);
+    };
+    setTimeout(() => setInterval(() => !paused && !document.hidden && advance(), 5000), delay);
+    el.addEventListener('click', advance);
+    el.addEventListener('pointerenter', (e) => (paused = e.pointerType === 'mouse'));
+    el.addEventListener('pointerleave', () => (paused = false));
+    el.addEventListener('focus', () => (paused = el.matches(':focus-visible')));
+    el.addEventListener('blur', () => (paused = false));
+  }
+
+  const ticker = document.querySelector('[data-ticker]');
+  const tickerItems = ticker ? $$('[data-ticker-item]', ticker) : [];
+  if (tickerItems.length > 1) {
+    let shown = 0;
+    // Offset from the clock so the two never change at the same moment.
+    rotator(
+      ticker,
+      () => {
+        tickerItems[shown].hidden = true;
+        shown = (shown + 1) % tickerItems.length;
+        tickerItems[shown].hidden = false;
+      },
+      2500,
+    );
+  }
+
+  // World clock: cycles through major cities.
   const worldClock = document.querySelector('[data-world-clock]');
   if (worldClock) {
     const ZONES = [
@@ -91,7 +126,6 @@
     });
     const [cityEl, timeEl, metaEl] = ['.wc-city', '.wc-time', '.wc-meta'].map((s) => worldClock.querySelector(s));
     let index = 0;
-    let paused = false;
     function render() {
       const now = new Date();
       const f = formats[index];
@@ -100,26 +134,14 @@
       timeEl.textContent = f.time.format(now);
       metaEl.textContent = `${f.day.format(now)} · ${offset === 'UTC' ? 'UTC+0' : offset}`;
     }
-    function advance() {
-      worldClock.classList.add('is-switching');
-      setTimeout(() => {
-        index = (index + 1) % formats.length;
-        render();
-        worldClock.classList.remove('is-switching');
-      }, 250);
-    }
     if (formats.length) {
       render();
       worldClock.hidden = false;
       setInterval(render, 1000);
-      setInterval(() => !paused && !document.hidden && advance(), 5000);
-      worldClock.addEventListener('click', advance);
-      // Taps on touch screens leave focus and a synthetic hover behind, so only a real mouse or
-      // keyboard focus pauses it.
-      worldClock.addEventListener('pointerenter', (e) => (paused = e.pointerType === 'mouse'));
-      worldClock.addEventListener('pointerleave', () => (paused = false));
-      worldClock.addEventListener('focus', () => (paused = worldClock.matches(':focus-visible')));
-      worldClock.addEventListener('blur', () => (paused = false));
+      rotator(worldClock, () => {
+        index = (index + 1) % formats.length;
+        render();
+      });
     }
   }
 

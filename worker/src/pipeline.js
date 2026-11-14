@@ -4,6 +4,7 @@ import { RSS_FEEDS, BLUESKY_PUBLISHERS, BLUESKY_SEARCHES, USGS_FEED, GDACS_FEED,
 import { fetchRss, fetchGdacs } from './sources/rss.js';
 import { fetchUsgs } from './sources/usgs.js';
 import { fetchPublisherFeed, fetchSocialSearch } from './sources/bluesky.js';
+import { fetchMarkets } from './sources/markets.js';
 import { classify, extractCasualties, CATEGORIES } from './analysis/classify.js';
 import { locate, nearestCountry, COUNTRY_BY_ISO } from './analysis/geo.js';
 import { clusterItems } from './analysis/cluster.js';
@@ -71,7 +72,8 @@ export async function runPipeline(env = {}, { now = Date.now(), history = [] } =
       fetchSocialSearch(BLUESKY_SEARCHES, env, { ...opts, excludeHandles: new Set(BLUESKY_PUBLISHERS.map((a) => a.handle)) }),
     ),
   ];
-  const results = await Promise.all(jobs);
+  // Market data is a masthead extra, not a news source: a failure just hides the ticker.
+  const [results, markets] = await Promise.all([Promise.all(jobs), fetchMarkets(now).catch(() => [])]);
 
   const seen = new Set();
   const enriched = [];
@@ -141,6 +143,7 @@ export async function runPipeline(env = {}, { now = Date.now(), history = [] } =
     },
     breakingId: pickBreaking(incidents, now),
     live: findLiveStories(incidents, reports, now),
+    markets,
     regions,
     incidents,
     sources,

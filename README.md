@@ -45,6 +45,10 @@ and tested on its own.
   used instead. There is also a filtered public search,
   which is treated as unverified and weighted at a quarter.
 - **Official:** USGS earthquakes (M5+ or PAGER alert) and GDACS Orange/Red disaster alerts.
+- **Markets (masthead ticker):** FTSE 100, Dow Jones and S&P 500 from Yahoo Finance's public
+  chart data (no key, one request per gather, quotes delayed up to 15 minutes at source). While a
+  market is open the site republishes at least every 15 minutes; if the request fails the ticker
+  is simply left out. Indices are listed in `worker/src/sources/markets.js`.
 
 Add or remove feeds in `worker/src/config.js`. An outlet with two feeds (BBC, Sky) uses the same
 `name` on both, so a story is counted once per outlet; `label` tells them apart on the sources
@@ -74,8 +78,9 @@ Methodology page explains the model to readers.
 `worker/src/analysis/live.js` picks up to three major developing stories, such as a nationwide
 flight ground stop. A story qualifies when at least 3 outlets have reported it and the newest
 report is under 3 hours old. Each story gets a BBC-style page at `/live/<id>/` with every outlet's
-report, newest first, each linking to the original article. The front page shows a live box above
-the headlines.
+report, newest first, each linking to the original article. The front page shows these stories at
+the top, above the headlines. The leading one is tagged "Breaking" and the others "Live"; there is
+no separate breaking-news banner.
 
 Reports are matched by vocabulary, not by the incident classifier, so follow-ups like "airlines
 clear backlog" are included:
@@ -190,8 +195,8 @@ fails. Pages then keeps serving the last good deployment.
 
 `.github/workflows/publish-pages.yml` runs every 5 minutes. That is GitHub's minimum, and runs can
 be delayed when GitHub is busy. Each run gathers and builds, then
-`publisher/scripts/should-deploy.mjs` compares the new edition's fingerprint (breaking story,
-region levels, severity-3+ incidents) with the live `/data/meta.json`. It uploads only when that
+`publisher/scripts/should-deploy.mjs` compares the new edition's fingerprint (region levels,
+severity-3+ incidents, reports on live stories) with the live `/data/meta.json`. It uploads only when that
 changed, or when the live edition is older than `HEARTBEAT_MINUTES` (default 60). Uploads made with
 Wrangler don't count toward the Pages build limit. A build where fewer than half the sources
 answered is refused, so a network blip can't publish an empty site.
@@ -272,4 +277,4 @@ change region definitions or map detail.
 The classifier reads headlines with keyword rules. It is transparent and cheap, but it will
 sometimes misread a story. "Suspected terrorism" means the coverage uses terrorism language or
 describes a non-state armed group. It is not an official designation. Unverified social posts
-never trigger the breaking banner.
+never lead the headlines.
