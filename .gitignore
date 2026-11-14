@@ -1,0 +1,16 @@
+node_modules/
+.DS_Store
+
+# Local gather output and file-backed KV
+/data/
+
+# Build output
+publisher/dist/
+
+# Wrangler local state and secrets
+worker/.wrangler/
+worker/.dev.vars
+.wrangler/
+
+# Natural Earth download cache
+tools/.cache/

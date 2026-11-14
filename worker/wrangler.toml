@@ -1,0 +1,31 @@
+name = "sentinel-gatherer"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+
+# Gather every 15 minutes. Publishing to Pages is throttled separately (PUBLISH_INTERVAL_MINUTES).
+[triggers]
+crons = ["*/15 * * * *"]
+
+# Create with:  npx wrangler kv namespace create SENTINEL_KV
+# then paste the returned id below. Local `wrangler dev` uses a simulated namespace.
+[[kv_namespaces]]
+binding = "SENTINEL_KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+[vars]
+SITE_URL = "https://sentinelglobalnews.pages.dev"
+BSKY_APPVIEW = "https://api.bsky.app"
+# Minimum minutes between Pages rebuilds. Pages Free allows 500 builds/month (~every 90 min).
+PUBLISH_INTERVAL_MINUTES = "120"
+# A new severity-4/5 breaking incident may publish early, but not more often than this.
+BREAKING_PUBLISH_MINUTES = "20"
+
+# Secrets (set with `npx wrangler secret put <NAME>`; for local dev put them in .dev.vars):
+#   PAGES_DEPLOY_HOOK   Pages → Settings → Builds → Deploy hooks URL (triggers a static rebuild)
+#   RUN_TOKEN           Bearer token protecting POST /run
+#   BSKY_HANDLE         Optional: Bluesky handle, only needed if public search starts requiring auth
+#   BSKY_APP_PASSWORD   Optional: Bluesky app password (Settings → App passwords)
+
+[observability]
+enabled = true

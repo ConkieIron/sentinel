@@ -1,0 +1,3919 @@
+{
+ "schema": 1,
+ "generatedAt": "2026-11-14T12:41:36.172Z",
+ "windowHours": 72,
+ "model": {
+  "highRelative": 0.75,
+  "mediumRelative": 0.4,
+  "highFloor": 14,
+  "mediumFloor": 4,
+  "recencyHalfLifeHours": 24,
+  "diminishingReturns": 0.88,
+  "severityWeight": [
+   0,
+   1,
+   2,
+   4,
+   7,
+   11
+  ],
+  "categoryWeight": {
+   "terrorism": 1.6,
+   "conflict": 1.4,
+   "attack": 1.3,
+   "unrest": 1,
+   "disaster": 0.9,
+   "infrastructure": 0.8,
+   "health": 0.8,
+   "transport": 0.6
+  },
+  "evidenceWeight": {
+   "official": 1,
+   "multi": 1.25,
+   "publisher": 1,
+   "social": 0.25
+  }
+ },
+ "categories": {
+  "terrorism": "Suspected terrorism",
+  "attack": "Violent attack",
+  "conflict": "Armed conflict",
+  "unrest": "Civil unrest",
+  "disaster": "Natural disaster",
+  "infrastructure": "Cyber & infrastructure",
+  "health": "Health emergency",
+  "transport": "Major accident"
+ },
+ "stats": {
+  "reportsScanned": 572,
+  "incidentReports": 120,
+  "incidents": 74,
+  "located": 67,
+  "terrorism": 14,
+  "severe": 4,
+  "sourcesOnline": 22,
+  "sourcesTotal": 22,
+  "levels": {
+   "high": 4,
+   "medium": 4,
+   "low": 8
+  },
+  "categoryCounts": {
+   "terrorism": 14,
+   "attack": 10,
+   "conflict": 14,
+   "unrest": 8,
+   "disaster": 12,
+   "infrastructure": 9,
+   "health": 7,
+   "transport": 0
+  }
+ },
+ "breakingId": "bfhk3j",
+ "regions": [
+  {
+   "id": "central-southern-africa",
+   "name": "Central & Southern Africa",
+   "level": "high",
+   "index": 100,
+   "score": 19.5,
+   "trend": "new",
+   "incidents": 4,
+   "terrorism": 2,
+   "severe": 1,
+   "reportedDeaths": 44,
+   "countries": [
+    "AGO",
+    "BWA",
+    "CAF",
+    "CMR",
+    "COD",
+    "COG",
+    "GAB",
+    "GNQ",
+    "LSO",
+    "NAM",
+    "STP",
+    "SWZ",
+    "TCD",
+    "ZAF"
+   ],
+   "hotspots": [
+    {
+     "iso3": "COD",
+     "name": "DR Congo",
+     "count": 4
+    }
+   ],
+   "topIncidentIds": [
+    "bfhk3j",
+    "1aq6vln",
+    "195xnhe",
+    "2hxde9"
+   ]
+  },
+  {
+   "id": "middle-east",
+   "name": "Middle East & Caucasus",
+   "level": "high",
+   "index": 94,
+   "score": 17.2,
+   "trend": "new",
+   "incidents": 9,
+   "terrorism": 0,
+   "severe": 1,
+   "reportedDeaths": 13,
+   "countries": [
+    "ARE",
+    "ARM",
+    "AZE",
+    "BHR",
+    "GEO",
+    "IRN",
+    "IRQ",
+    "ISR",
+    "JOR",
+    "KWT",
+    "LBN",
+    "OMN",
+    "PSE",
+    "QAT",
+    "SAU",
+    "SYR",
+    "TUR",
+    "YEM"
+   ],
+   "hotspots": [
+    {
+     "iso3": "PSE",
+     "name": "Palestinian Territories",
+     "count": 2
+    },
+    {
+     "iso3": "IRN",
+     "name": "Iran",
+     "count": 2
+    },
+    {
+     "iso3": "YEM",
+     "name": "Yemen",
+     "count": 2
+    },
+    {
+     "iso3": "ISR",
+     "name": "Israel",
+     "count": 1
+    },
+    {
+     "iso3": "IRQ",
+     "name": "Iraq",
+     "count": 1
+    }
+   ],
+   "topIncidentIds": [
+    "vqkkmr",
+    "1a9rzjl",
+    "1c847tl",
+    "1fgarbr",
+    "1jwxr4m"
+   ]
+  },
+  {
+   "id": "north-america",
+   "name": "North America",
+   "level": "high",
+   "index": 86,
+   "score": 14.4,
+   "trend": "new",
+   "incidents": 15,
+   "terrorism": 2,
+   "severe": 0,
+   "reportedDeaths": 1,
+   "countries": [
+    "BMU",
+    "CAN",
+    "GRL",
+    "SPM",
+    "USA"
+   ],
+   "hotspots": [
+    {
+     "iso3": "USA",
+     "name": "United States",
+     "count": 15
+    }
+   ],
+   "topIncidentIds": [
+    "mmq44i",
+    "1mhm01a",
+    "9qhfd2",
+    "10ewybf",
+    "19iwaza"
+   ]
+  },
+  {
+   "id": "eastern-europe",
+   "name": "Eastern Europe & Russia",
+   "level": "high",
+   "index": 85,
+   "score": 14.1,
+   "trend": "new",
+   "incidents": 12,
+   "terrorism": 7,
+   "severe": 0,
+   "reportedDeaths": 3,
+   "countries": [
+    "BGR",
+    "BLR",
+    "CZE",
+    "HUN",
+    "MDA",
+    "POL",
+    "ROU",
+    "RUS",
+    "SVK",
+    "UKR"
+   ],
+   "hotspots": [
+    {
+     "iso3": "RUS",
+     "name": "Russia",
+     "count": 6
+    },
+    {
+     "iso3": "UKR",
+     "name": "Ukraine",
+     "count": 5
+    },
+    {
+     "iso3": "POL",
+     "name": "Poland",
+     "count": 1
+    }
+   ],
+   "topIncidentIds": [
+    "a94093",
+    "12iaaif",
+    "12vtd68",
+    "19gdppp",
+    "1gefp9j"
+   ]
+  },
+  {
+   "id": "west-africa",
+   "name": "West Africa & Sahel",
+   "level": "medium",
+   "index": 66,
+   "score": 8.6,
+   "trend": "new",
+   "incidents": 2,
+   "terrorism": 0,
+   "severe": 1,
+   "reportedDeaths": 2000,
+   "countries": [
+    "BEN",
+    "BFA",
+    "CIV",
+    "CPV",
+    "GHA",
+    "GIN",
+    "GMB",
+    "GNB",
+    "LBR",
+    "MLI",
+    "MRT",
+    "NER",
+    "NGA",
+    "SEN",
+    "SHN",
+    "SLE",
+    "TGO"
+   ],
+   "hotspots": [
+    {
+     "iso3": "NER",
+     "name": "Niger",
+     "count": 1
+    },
+    {
+     "iso3": "NGA",
+     "name": "Nigeria",
+     "count": 1
+    }
+   ],
+   "topIncidentIds": [
+    "przzvh",
+    "1yxxqf3"
+   ]
+  },
+  {
+   "id": "western-europe",
+   "name": "Western & Northern Europe",
+   "level": "medium",
+   "index": 65,
+   "score": 8.3,
+   "trend": "new",
+   "incidents": 10,
+   "terrorism": 2,
+   "severe": 0,
+   "reportedDeaths": 130,
+   "countries": [
+    "ALA",
+    "AUT",
+    "BEL",
+    "CHE",
+    "DEU",
+    "DNK",
+    "EST",
+    "FIN",
+    "FRA",
+    "FRO",
+    "GBR",
+    "GGY",
+    "IMN",
+    "IRL",
+    "ISL",
+    "JEY",
+    "LIE",
+    "LTU",
+    "LUX",
+    "LVA",
+    "MCO",
+    "NLD",
+    "NOR",
+    "SWE"
+   ],
+   "hotspots": [
+    {
+     "iso3": "FRA",
+     "name": "France",
+     "count": 6
+    },
+    {
+     "iso3": "GBR",
+     "name": "United Kingdom",
+     "count": 2
+    },
+    {
+     "iso3": "DEU",
+     "name": "Germany",
+     "count": 1
+    },
+    {
+     "iso3": "CHE",
+     "name": "Switzerland",
+     "count": 1
+    }
+   ],
+   "topIncidentIds": [
+    "34305g",
+    "192pnr8",
+    "x4lhfi",
+    "1i71var",
+    "1nojfqa"
+   ]
+  },
+  {
+   "id": "south-asia",
+   "name": "South Asia",
+   "level": "medium",
+   "index": 59,
+   "score": 6.7,
+   "trend": "new",
+   "incidents": 3,
+   "terrorism": 0,
+   "severe": 1,
+   "reportedDeaths": 74,
+   "countries": [
+    "AFG",
+    "BGD",
+    "BTN",
+    "IND",
+    "LKA",
+    "MDV",
+    "NPL",
+    "PAK"
+   ],
+   "hotspots": [
+    {
+     "iso3": "PAK",
+     "name": "Pakistan",
+     "count": 2
+    },
+    {
+     "iso3": "IND",
+     "name": "India",
+     "count": 1
+    }
+   ],
+   "topIncidentIds": [
+    "1xvc1bj",
+    "1tzjgns",
+    "1erqm6l"
+   ]
+  },
+  {
+   "id": "east-africa",
+   "name": "East Africa & Horn",
+   "level": "medium",
+   "index": 50,
+   "score": 4.8,
+   "trend": "new",
+   "incidents": 3,
+   "terrorism": 0,
+   "severe": 0,
+   "reportedDeaths": 0,
+   "countries": [
+    "BDI",
+    "COM",
+    "DJI",
+    "ERI",
+    "ETH",
+    "KEN",
+    "MDG",
+    "MOZ",
+    "MUS",
+    "MWI",
+    "RWA",
+    "SOM",
+    "SSD",
+    "SYC",
+    "TZA",
+    "UGA",
+    "ZMB",
+    "ZWE"
+   ],
+   "hotspots": [
+    {
+     "iso3": "ETH",
+     "name": "Ethiopia",
+     "count": 1
+    },
+    {
+     "iso3": "SSD",
+     "name": "South Sudan",
+     "count": 1
+    },
+    {
+     "iso3": "KEN",
+     "name": "Kenya",
+     "count": 1
+    }
+   ],
+   "topIncidentIds": [
+    "1uln38e",
+    "1tlbl6s",
+    "1830c8c"
+   ]
+  },
+  {
+   "id": "oceania",
+   "name": "Oceania & Pacific",
+   "level": "low",
+   "index": 30,
+   "score": 1.8,
+   "trend": "new",
+   "incidents": 3,
+   "terrorism": 0,
+   "severe": 0,
+   "reportedDeaths": 0,
+   "countries": [
+    "ASM",
+    "AUS",
+    "COK",
+    "FJI",
+    "FSM",
+    "GUM",
+    "KIR",
+    "MHL",
+    "MNP",
+    "NCL",
+    "NFK",
+    "NIU",
+    "NRU",
+    "NZL",
+    "PCN",
+    "PLW",
+    "PNG",
+    "PYF",
+    "SLB",
+    "TON",
+    "TUV",
+    "VUT",
+    "WLF",
+    "WSM"
+   ],
+   "hotspots": [
+    {
+     "iso3": "FSM",
+     "name": "Federated States of Micronesia",
+     "count": 1
+    },
+    {
+     "iso3": "AUS",
+     "name": "Australia",
+     "count": 1
+    },
+    {
+     "iso3": "PNG",
+     "name": "Papua New Guinea",
+     "count": 1
+    }
+   ],
+   "topIncidentIds": [
+    "ow1sc8",
+    "2i5dr6",
+    "8crn2g"
+   ]
+  },
+  {
+   "id": "south-america",
+   "name": "South America",
+   "level": "low",
+   "index": 27,
+   "score": 1.4,
+   "trend": "new",
+   "incidents": 2,
+   "terrorism": 0,
+   "severe": 0,
+   "reportedDeaths": 0,
+   "countries": [
+    "ARG",
+    "BOL",
+    "BRA",
+    "CHL",
+    "COL",
+    "ECU",
+    "FLK",
+    "GUY",
+    "PER",
+    "PRY",
+    "SUR",
+    "URY",
+    "VEN"
+   ],
+   "hotspots": [
+    {
+     "iso3": "PER",
+     "name": "Peru",
+     "count": 1
+    },
+    {
+     "iso3": "CHL",
+     "name": "Chile",
+     "count": 1
+    }
+   ],
+   "topIncidentIds": [
+    "178doye",
+    "1mhss9a"
+   ]
+  },
+  {
+   "id": "north-africa",
+   "name": "North Africa",
+   "level": "low",
+   "index": 27,
+   "score": 1.4,
+   "trend": "new",
+   "incidents": 1,
+   "terrorism": 1,
+   "severe": 0,
+   "reportedDeaths": 0,
+   "countries": [
+    "DZA",
+    "EGY",
+    "ESH",
+    "LBY",
+    "MAR",
+    "SDN",
+    "TUN"
+   ],
+   "hotspots": [
+    {
+     "iso3": "SDN",
+     "name": "Sudan",
+     "count": 1
+    }
+   ],
+   "topIncidentIds": [
+    "mix2ct"
+   ]
+  },
+  {
+   "id": "southern-europe",
+   "name": "Southern Europe & Balkans",
+   "level": "low",
+   "index": 20,
+   "score": 0.8,
+   "trend": "new",
+   "incidents": 1,
+   "terrorism": 0,
+   "severe": 0,
+   "reportedDeaths": 0,
+   "countries": [
+    "ALB",
+    "AND",
+    "BIH",
+    "CYP",
+    "ESP",
+    "GRC",
+    "HRV",
+    "ITA",
+    "MKD",
+    "MLT",
+    "MNE",
+    "PRT",
+    "SMR",
+    "SRB",
+    "SVN",
+    "VAT",
+    "XKX"
+   ],
+   "hotspots": [
+    {
+     "iso3": "PRT",
+     "name": "Portugal",
+     "count": 1
+    }
+   ],
+   "topIncidentIds": [
+    "3r2xqy"
+   ]
+  },
+  {
+   "id": "southeast-asia",
+   "name": "Southeast Asia",
+   "level": "low",
+   "index": 19,
+   "score": 0.7,
+   "trend": "new",
+   "incidents": 1,
+   "terrorism": 0,
+   "severe": 0,
+   "reportedDeaths": 0,
+   "countries": [
+    "BRN",
+    "IDN",
+    "KHM",
+    "LAO",
+    "MMR",
+    "MYS",
+    "PHL",
+    "SGP",
+    "THA",
+    "TLS",
+    "VNM"
+   ],
+   "hotspots": [
+    {
+     "iso3": "IDN",
+     "name": "Indonesia",
+     "count": 1
+    }
+   ],
+   "topIncidentIds": [
+    "1ty54m1"
+   ]
+  },
+  {
+   "id": "east-asia",
+   "name": "East Asia",
+   "level": "low",
+   "index": 16,
+   "score": 0.5,
+   "trend": "new",
+   "incidents": 1,
+   "terrorism": 0,
+   "severe": 0,
+   "reportedDeaths": 0,
+   "countries": [
+    "CHN",
+    "HKG",
+    "JPN",
+    "KOR",
+    "MAC",
+    "MNG",
+    "PRK",
+    "TWN"
+   ],
+   "hotspots": [
+    {
+     "iso3": "CHN",
+     "name": "People's Republic of China",
+     "count": 1
+    }
+   ],
+   "topIncidentIds": [
+    "1myvz72"
+   ]
+  },
+  {
+   "id": "central-america",
+   "name": "Central America & Caribbean",
+   "level": "low",
+   "index": 0,
+   "score": 0,
+   "trend": "new",
+   "incidents": 0,
+   "terrorism": 0,
+   "severe": 0,
+   "reportedDeaths": 0,
+   "countries": [
+    "ABW",
+    "AIA",
+    "ATG",
+    "BHS",
+    "BLM",
+    "BLZ",
+    "BRB",
+    "CRI",
+    "CUB",
+    "CUW",
+    "CYM",
+    "DMA",
+    "DOM",
+    "GRD",
+    "GTM",
+    "HND",
+    "HTI",
+    "JAM",
+    "KNA",
+    "LCA",
+    "MAF",
+    "MEX",
+    "MSR",
+    "NIC",
+    "PAN",
+    "PRI",
+    "SLV",
+    "SXM",
+    "TCA",
+    "TTO",
+    "VCT",
+    "VGB",
+    "VIR"
+   ],
+   "hotspots": [],
+   "topIncidentIds": []
+  },
+  {
+   "id": "central-asia",
+   "name": "Central Asia",
+   "level": "low",
+   "index": 0,
+   "score": 0,
+   "trend": "new",
+   "incidents": 0,
+   "terrorism": 0,
+   "severe": 0,
+   "reportedDeaths": 0,
+   "countries": [
+    "KAZ",
+    "KGZ",
+    "TJK",
+    "TKM",
+    "UZB"
+   ],
+   "hotspots": [],
+   "topIncidentIds": []
+  }
+ ],
+ "incidents": [
+  {
+   "id": "bfhk3j",
+   "title": "DR Congo: At least 44 dead in attack by Islamic State-linked gunmen",
+   "summary": "The latest raids by the Allied Democratic Forces come just days after the notoriously brutal group killed 66 people in North Kivu.",
+   "url": "http://www.africanews.com/2026/11/14/dr-congo-at-least-44-dead-in-attack-by-islamic-state-linked-gunmen/",
+   "category": "terrorism",
+   "severity": 5,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 44,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794645912000,
+   "firstSeen": 1794645912000,
+   "location": {
+    "iso3": "COD",
+    "country": "DR Congo",
+    "region": "central-southern-africa",
+    "lat": -0.8,
+    "lon": 29,
+    "precision": "city",
+    "place": "North Kivu"
+   },
+   "sources": [
+    {
+     "name": "Africanews",
+     "url": "http://www.africanews.com/2026/11/14/dr-congo-at-least-44-dead-in-attack-by-islamic-state-linked-gunmen/",
+     "type": "publisher",
+     "time": 1794645912000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 15.71
+  },
+  {
+   "id": "vqkkmr",
+   "title": "Gaza: Devastation inside Nasser Hospital after deadly Israeli strike",
+   "summary": "An Israeli airstrike hit Nasser Medical Complex in Khan Younis, southern Gaza, early on Thursday 12 November, killing six people, including a doctor, and injuring at least 27 others, according to the World Health Organization (WHO).",
+   "url": "http://www.africanews.com/2026/11/12/gaza-devastation-inside-nasser-hospital-after-deadly-israeli-strike/",
+   "category": "conflict",
+   "severity": 4,
+   "evidence": "multi",
+   "casualties": {
+    "killed": 6,
+    "injured": 27
+   },
+   "retrospective": false,
+   "time": 1794637924960,
+   "firstSeen": 1794483120000,
+   "location": {
+    "iso3": "PSE",
+    "country": "Palestinian Territories",
+    "region": "middle-east",
+    "lat": 31.5,
+    "lon": 34.47,
+    "precision": "city",
+    "place": "Gaza"
+   },
+   "sources": [
+    {
+     "name": "Sky News",
+     "url": "https://news.sky.com/story/israeli-strike-on-gaza-hospital-kills-six-including-doctor-health-ministry-says-13611456",
+     "type": "publisher",
+     "time": 1794483120000
+    },
+    {
+     "name": "Euronews",
+     "url": "https://www.euronews.com/video/2026/11/12/gaza-devastation-inside-nasser-hospital-after-deadly-israeli-strike",
+     "type": "publisher",
+     "time": 1794499823000
+    },
+    {
+     "name": "Africanews",
+     "url": "http://www.africanews.com/2026/11/12/gaza-devastation-inside-nasser-hospital-after-deadly-israeli-strike/",
+     "type": "publisher",
+     "time": 1794499830000
+    },
+    {
+     "name": "The New York Times",
+     "url": "https://www.nytimes.com/2026/11/11/world/middleeast/nasser-hospital-gaza-strike-israel.html",
+     "type": "publisher",
+     "time": 1794505108000
+    },
+    {
+     "name": "Bluesky \u00b7 @worldimpactnews.bsky.social",
+     "url": "https://bsky.app/profile/worldimpactnews.bsky.social/post/3n267exqp3d2x",
+     "type": "social",
+     "time": 1794546150797
+    },
+    {
+     "name": "Bluesky \u00b7 @mediaactive.bsky.social",
+     "url": "https://bsky.app/profile/mediaactive.bsky.social/post/3n26c2ic6ac2a",
+     "type": "social",
+     "time": 1794549020366
+    },
+    {
+     "name": "Bluesky \u00b7 @palestineproject.bsky.social",
+     "url": "https://bsky.app/profile/palestineproject.bsky.social/post/3n26g4vfov227",
+     "type": "social",
+     "time": 1794553396188
+    },
+    {
+     "name": "Bluesky \u00b7 @esmegrubb.bsky.social",
+     "url": "https://bsky.app/profile/esmegrubb.bsky.social/post/3n26wv63yls2b",
+     "type": "social",
+     "time": 1794571390483
+    },
+    {
+     "name": "Bluesky \u00b7 @amisharma64.bsky.social",
+     "url": "https://bsky.app/profile/amisharma64.bsky.social/post/3n26z4zckdk2d",
+     "type": "social",
+     "time": 1794573801374
+    },
+    {
+     "name": "Bluesky \u00b7 @thenewarab.bsky.social",
+     "url": "https://bsky.app/profile/thenewarab.bsky.social/post/3n275fyb5se2x",
+     "type": "social",
+     "time": 1794578397237
+    },
+    {
+     "name": "Bluesky \u00b7 @bigearthdata.ai",
+     "url": "https://bsky.app/profile/bigearthdata.ai/post/3n27lomp3ma26",
+     "type": "social",
+     "time": 1794593719243
+    },
+    {
+     "name": "Bluesky \u00b7 @serenaribena.bsky.social",
+     "url": "https://bsky.app/profile/serenaribena.bsky.social/post/3n27ohueyc22w",
+     "type": "social",
+     "time": 1794596713883
+    }
+   ],
+   "sourceCount": 4,
+   "reportCount": 13,
+   "weight": 10.25
+  },
+  {
+   "id": "przzvh",
+   "title": "Armed men kill at least 37 civilians in western Niger, say local sources",
+   "summary": "Ruled by a military junta since a 2023 coup, Niger is battling violence by jihadists linked to Al-Qaeda and the Islamic State group. Thousands have been killed in the violence over the last decade",
+   "url": "https://www.thehindu.com/news/international/armed-men-kill-at-least-37-civilians-in-western-niger-say-local-sources/article71699297.ece",
+   "category": "attack",
+   "severity": 5,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 2000,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794590695000,
+   "firstSeen": 1794590695000,
+   "location": {
+    "iso3": "NER",
+    "country": "Niger",
+    "region": "west-africa",
+    "lat": 17.45,
+    "lon": 9.5,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "The Hindu",
+     "url": "https://www.thehindu.com/news/international/armed-men-kill-at-least-37-civilians-in-western-niger-say-local-sources/article71699297.ece",
+     "type": "publisher",
+     "time": 1794590695000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 8.19
+  },
+  {
+   "id": "1xvc1bj",
+   "title": "Pakistan's army says it killed 74 militants in raids on their hideouts",
+   "summary": "Pakistani security forces have killed 74 militants in raids on hideouts in regions bordering Afghanistan over the past 10 days, according to the military.",
+   "url": "https://bit.ly/4iD3BTj",
+   "category": "conflict",
+   "severity": 4,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 74,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794582028000,
+   "firstSeen": 1794582028000,
+   "location": {
+    "iso3": "PAK",
+    "country": "Pakistan",
+    "region": "south-asia",
+    "lat": 29.33,
+    "lon": 68.55,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "Associated Press",
+     "url": "https://bit.ly/4iD3BTj",
+     "type": "publisher",
+     "time": 1794582028000,
+     "via": "Bluesky"
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 5.24
+  },
+  {
+   "id": "a94093",
+   "title": "Ukraine critic injured in Moscow car bombing, Russia says",
+   "summary": "Sergei Zavorotny, previously an aide to Ukrainian Prime Minister Mykola Azarov, became a pro-Kremlin commentator in Russia.",
+   "url": "https://www.washingtonpost.com/world/2026/11/13/ukraine-critic-injured-moscow-car-bombing-russia-says/",
+   "category": "terrorism",
+   "severity": 3,
+   "evidence": "multi",
+   "casualties": {
+    "killed": 1,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794604500000,
+   "firstSeen": 1794495479000,
+   "location": {
+    "iso3": "RUS",
+    "country": "Russia",
+    "region": "eastern-europe",
+    "lat": 59.93,
+    "lon": 30.36,
+    "precision": "city",
+    "place": "Saint Petersburg"
+   },
+   "sources": [
+    {
+     "name": "Euronews",
+     "url": "https://www.euronews.com/video/2026/11/12/russia-soldier-killed-in-car-explosion-in-saint-petersburg",
+     "type": "publisher",
+     "time": 1794495479000
+    },
+    {
+     "name": "Africanews",
+     "url": "http://www.africanews.com/2026/11/12/russia-soldier-killed-in-car-explosion-in-saint-petersburg/",
+     "type": "publisher",
+     "time": 1794495489000
+    },
+    {
+     "name": "The Washington Post",
+     "url": "https://www.washingtonpost.com/world/2026/11/13/ukraine-critic-injured-moscow-car-bombing-russia-says/",
+     "type": "publisher",
+     "time": 1794604500000
+    },
+    {
+     "name": "Bluesky \u00b7 @hermesvector.bsky.social",
+     "url": "https://bsky.app/profile/hermesvector.bsky.social/post/3n26cnibmya2j",
+     "type": "social",
+     "time": 1794549657690
+    },
+    {
+     "name": "Bluesky \u00b7 @borealissaves.bsky.social",
+     "url": "https://bsky.app/profile/borealissaves.bsky.social/post/3n276cfsgws2w",
+     "type": "social",
+     "time": 1794579350960
+    },
+    {
+     "name": "Bluesky \u00b7 @sagire.online",
+     "url": "https://bsky.app/profile/sagire.online/post/3n27kv4kcw624",
+     "type": "social",
+     "time": 1794592863493
+    }
+   ],
+   "sourceCount": 3,
+   "reportCount": 7,
+   "weight": 5.12
+  },
+  {
+   "id": "1shrdki",
+   "title": "Microsoft says services fully restored after global outage hits governments",
+   "summary": "Tech company says operations restored to all customers and regions affected by one of worst IT failures in years Microsoft has said its service has been fully restored after a massive outage that saw widespread disruption to governments, businesses and public services around the world. The technology company said on Saturday morning it had restored service to the remaining customers affected by\u2026",
+   "url": "https://www.theguardian.com/technology/2026/nov/14/microsoft-says-services-fully-restored-after-global-outage",
+   "category": "infrastructure",
+   "severity": 3,
+   "evidence": "multi",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794657271000,
+   "firstSeen": 1794558797728,
+   "location": null,
+   "sources": [
+    {
+     "name": "CNN",
+     "url": "https://bsky.app/profile/cnn.com/post/3n26l5uszer25",
+     "type": "publisher",
+     "time": 1794558797728,
+     "via": "Bluesky"
+    },
+    {
+     "name": "Africanews",
+     "url": "http://www.africanews.com/2026/11/13/outlook-outage-hits-users-in-74-countries-as-microsoft-seeks-fix/",
+     "type": "publisher",
+     "time": 1794567226000
+    },
+    {
+     "name": "RFI",
+     "url": "https://www.rfi.fr/en/science-and-technology/20261113-global-microsoft-outage-knocks-out-outlook-and-other-services",
+     "type": "publisher",
+     "time": 1794573263000
+    },
+    {
+     "name": "The New York Times",
+     "url": "https://www.nytimes.com/2026/11/13/technology/microsoft-outage-what-to-know.html",
+     "type": "publisher",
+     "time": 1794609040000
+    },
+    {
+     "name": "The Hindu",
+     "url": "https://www.thehindu.com/sci-tech/technology/microsoft-outage-live-updates-november-13-2026-steps-to-fix-outlook-and-other-apps-ongoing/article71696624.ece",
+     "type": "publisher",
+     "time": 1794619101000
+    },
+    {
+     "name": "BBC News",
+     "url": "https://www.bbc.co.uk/news/articles/c6rrg51rkz09o?at_medium=RSS&at_campaign=rss",
+     "type": "publisher",
+     "time": 1794638547000
+    },
+    {
+     "name": "CNA (Asia)",
+     "url": "https://www.channelnewsasia.com/world/microsoft-restore-full-service-outlook-teams-global-outage-6551486",
+     "type": "publisher",
+     "time": 1794643011000
+    },
+    {
+     "name": "France 24",
+     "url": "https://www.france24.com/en/microsoft-s-widespread-outages-caused-global-chaos-including-in-the-healthcasre-industry",
+     "type": "publisher",
+     "time": 1794654453000
+    },
+    {
+     "name": "The Guardian",
+     "url": "https://www.theguardian.com/technology/2026/nov/14/microsoft-says-services-fully-restored-after-global-outage",
+     "type": "publisher",
+     "time": 1794657271000
+    }
+   ],
+   "sourceCount": 9,
+   "reportCount": 13,
+   "weight": 3.91
+  },
+  {
+   "id": "1aq6vln",
+   "title": "Caught Between Killers: Ebola on One Side, Islamic State on the Other",
+   "summary": "The new epicenter of Congo\u2019s fast-spreading outbreak is a region scarred by rebel violence. Responders are struggling to help it.",
+   "url": "https://www.nytimes.com/2026/11/13/world/africa/ebola-congo-isis.html",
+   "category": "terrorism",
+   "severity": 3,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794585756000,
+   "firstSeen": 1794585756000,
+   "location": {
+    "iso3": "COD",
+    "country": "DR Congo",
+    "region": "central-southern-africa",
+    "lat": -1.86,
+    "lon": 23.46,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "The New York Times",
+     "url": "https://www.nytimes.com/2026/11/13/world/africa/ebola-congo-isis.html",
+     "type": "publisher",
+     "time": 1794585756000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 3.53
+  },
+  {
+   "id": "12iaaif",
+   "title": "Ukraine: Russian drone attacks hit Kyiv hospital, leave two dead in Odesa",
+   "summary": "Russian overnight attacks on Ukraine killed at least two person in Odesa and injured another at a hospital in Kyiv. Rescuers evacuated patients, including people using wheelchairs and crutches, as firefighters battled the flames.",
+   "url": "http://www.africanews.com/2026/11/13/ukraine-russian-drone-attacks-hit-kyiv-hospital-leave-one-dead-in-odesa/",
+   "category": "conflict",
+   "severity": 3,
+   "evidence": "multi",
+   "casualties": {
+    "killed": 2,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794567616000,
+   "firstSeen": 1794493577000,
+   "location": {
+    "iso3": "UKR",
+    "country": "Ukraine",
+    "region": "eastern-europe",
+    "lat": 50.45,
+    "lon": 30.52,
+    "precision": "city",
+    "place": "Kyiv"
+   },
+   "sources": [
+    {
+     "name": "Euronews",
+     "url": "https://www.euronews.com/video/2026/11/12/ukraine-russian-drone-attack-sparks-major-fire-in-kyiv-residential-building",
+     "type": "publisher",
+     "time": 1794493577000
+    },
+    {
+     "name": "Africanews",
+     "url": "http://www.africanews.com/2026/11/13/ukraine-russian-drone-attacks-hit-kyiv-hospital-leave-one-dead-in-odesa/",
+     "type": "publisher",
+     "time": 1794567616000
+    }
+   ],
+   "sourceCount": 2,
+   "reportCount": 3,
+   "weight": 3.33
+  },
+  {
+   "id": "12vtd68",
+   "title": "Aide to fugitive Ukrainian ex-PM wounded in latest Moscow car bombing",
+   "summary": "Sergei Zavorotny, now a journalist and commentator, was previously an adviser to Ukrainian ex-prime minister Mykola Azarov.",
+   "url": "https://www.bbc.co.uk/news/articles/c5gm3gnwl42eo?at_medium=RSS&at_campaign=rss",
+   "category": "terrorism",
+   "severity": 3,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794575483000,
+   "firstSeen": 1794575483000,
+   "location": {
+    "iso3": "RUS",
+    "country": "Russia",
+    "region": "eastern-europe",
+    "lat": 55.76,
+    "lon": 37.62,
+    "precision": "city",
+    "place": "Moscow"
+   },
+   "sources": [
+    {
+     "name": "BBC News",
+     "url": "https://www.bbc.co.uk/news/articles/c5gm3gnwl42eo?at_medium=RSS&at_campaign=rss",
+     "type": "publisher",
+     "time": 1794575483000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 3.25
+  },
+  {
+   "id": "mmq44i",
+   "title": "U.S. flights resume after hours-long outage as FAA lifts nationwide ground stop",
+   "summary": "Disruption not due to a cyberattack or a sweeping Microsoft outage, top officials said; the incident marked only the second time such an alert was given in U.S. airspace since the 9/11 attacks",
+   "url": "https://www.thehindu.com/news/international/all-departing-us-flights-grounded-due-to-communication-outage/article71700667.ece",
+   "category": "infrastructure",
+   "severity": 3,
+   "evidence": "multi",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794624070000,
+   "firstSeen": 1794609212284,
+   "location": {
+    "iso3": "USA",
+    "country": "United States",
+    "region": "north-america",
+    "lat": 39.54,
+    "lon": -97.48,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "CNN",
+     "url": "https://bsky.app/profile/cnn.com/post/3n2a24dv3n22c",
+     "type": "publisher",
+     "time": 1794609212284,
+     "via": "Bluesky"
+    },
+    {
+     "name": "The Hindu",
+     "url": "https://www.thehindu.com/news/international/all-departing-us-flights-grounded-due-to-communication-outage/article71700667.ece",
+     "type": "publisher",
+     "time": 1794624070000
+    }
+   ],
+   "sourceCount": 2,
+   "reportCount": 2,
+   "weight": 3
+  },
+  {
+   "id": "1a9rzjl",
+   "title": "Trump falsely claims \u2018nobody\u2019s been killed\u2019 in Iran war \u2018in the last five months\u2019",
+   "summary": "In July, three soldiers died in an enemy attack on an air base in Jordan, another died at an air base in Iraq and a Navy captain died during an emergency landing in the Arabian Sea.",
+   "url": "https://www.washingtonpost.com/politics/2026/11/13/trump-falsely-claims-nobodys-been-killed-iran-war-last-five-months/",
+   "category": "conflict",
+   "severity": 3,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 3,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794582000000,
+   "firstSeen": 1794582000000,
+   "location": {
+    "iso3": "IRN",
+    "country": "Iran",
+    "region": "middle-east",
+    "lat": 32.17,
+    "lon": 54.93,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "The Washington Post",
+     "url": "https://www.washingtonpost.com/politics/2026/11/13/trump-falsely-claims-nobodys-been-killed-iran-war-last-five-months/",
+     "type": "publisher",
+     "time": 1794582000000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 2.99
+  },
+  {
+   "id": "1uln38e",
+   "title": "Inside Ethiopia's war: Rare access to a hospital treating victims of renewed fighting",
+   "summary": "Ethiopia's renewed conflict is taking an increasing toll on civilians, with humanitarian organisations reporting a rise in casualties. In the Amhara region, FRANCE 24\u2019s correspondent Tom Canetti was granted rare access to a civilian hospital where surgeons are struggling to treat the influx of wounded patients. But for many caught in the fighting, reaching medical care is a challenge in itself.\u2026",
+   "url": "https://www.france24.com/en/inside-ethiopia-s-war-rare-access-to-a-hospital-treating-victims-of-renewed-fighting",
+   "category": "conflict",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794659012000,
+   "firstSeen": 1794659012000,
+   "location": {
+    "iso3": "ETH",
+    "country": "Ethiopia",
+    "region": "east-africa",
+    "lat": 11.6,
+    "lon": 37.9,
+    "precision": "city",
+    "place": "Amhara"
+   },
+   "sources": [
+    {
+     "name": "France 24",
+     "url": "https://www.france24.com/en/inside-ethiopia-s-war-rare-access-to-a-hospital-treating-victims-of-renewed-fighting",
+     "type": "publisher",
+     "time": 1794659012000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 2.78
+  },
+  {
+   "id": "1mhm01a",
+   "title": "Gunman kills one and barricades himself in building after gym shooting in Washington, DC",
+   "summary": "The gunman first shot and killed a person in a gym, then continued firing after reaching the street. According to police, he then barricaded himself in a building.",
+   "url": "https://www.euronews.com/2026/11/12/gunman-kills-one-and-barricades-himself-in-building-after-gym-shooting-in-washington-dc",
+   "category": "attack",
+   "severity": 3,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 1,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794578464930,
+   "firstSeen": 1794500919000,
+   "location": {
+    "iso3": "USA",
+    "country": "United States",
+    "region": "north-america",
+    "lat": 38.9,
+    "lon": -77.04,
+    "precision": "city",
+    "place": "Washington"
+   },
+   "sources": [
+    {
+     "name": "Euronews",
+     "url": "https://www.euronews.com/2026/11/12/gunman-kills-one-and-barricades-himself-in-building-after-gym-shooting-in-washington-dc",
+     "type": "publisher",
+     "time": 1794500919000
+    },
+    {
+     "name": "Bluesky \u00b7 @jedgarnaut.bsky.social",
+     "url": "https://bsky.app/profile/jedgarnaut.bsky.social/post/3n275hyvqq52u",
+     "type": "social",
+     "time": 1794578464930
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 2,
+   "weight": 2.7
+  },
+  {
+   "id": "9qhfd2",
+   "title": "UN says 25 seafarers killed in, around Hormuz since US-Israel war on Iran",
+   "summary": "'Situation cannot become new normal', says UN's Khaled Khiari, as Iran reports three more vessels hitting mines.",
+   "url": "https://www.aljazeera.com/news/2026/11/14/un-says-25-seafarers-killed-in-around-hormuz-since-february?traffic_source=rss",
+   "category": "conflict",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794642396000,
+   "firstSeen": 1794642396000,
+   "location": {
+    "iso3": "USA",
+    "country": "United States",
+    "region": "north-america",
+    "lat": 39.54,
+    "lon": -97.48,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "Al Jazeera",
+     "url": "https://www.aljazeera.com/news/2026/11/14/un-says-25-seafarers-killed-in-around-hormuz-since-february?traffic_source=rss",
+     "type": "publisher",
+     "time": 1794642396000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 2.43
+  },
+  {
+   "id": "ffxmq1",
+   "title": "A bomb was found at an ethanol plant in central Illinois on Friday, officials said, sparking an investigation involving the FBI and forcing the evacuation of thousands of people living nearby.",
+   "summary": "",
+   "url": "https://bsky.app/profile/cnn.com/post/3n2bb27pove2c",
+   "category": "attack",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794651016728,
+   "firstSeen": 1794651016728,
+   "location": null,
+   "sources": [
+    {
+     "name": "CNN",
+     "url": "https://bsky.app/profile/cnn.com/post/3n2bb27pove2c",
+     "type": "publisher",
+     "time": 1794651016728,
+     "via": "Bluesky"
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 2.42
+  },
+  {
+   "id": "34305g",
+   "title": "How France's student protests grew into a broader movement amid police violence",
+   "summary": "What began in September as a student protest over deteriorating school conditions has over recent weeks grown into a broader social movement across France. The violent police response, notably against young protesters, has helped galvanise support, drawing in university students, trade unions and the wider public.",
+   "url": "https://www.rfi.fr/en/france/20261114-how-france-s-student-protests-grew-into-a-broader-movement-amid-police-violence",
+   "category": "unrest",
+   "severity": 2,
+   "evidence": "multi",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794654697000,
+   "firstSeen": 1794640172000,
+   "location": {
+    "iso3": "FRA",
+    "country": "France",
+    "region": "western-europe",
+    "lat": 48.86,
+    "lon": 2.35,
+    "precision": "city",
+    "place": "Paris"
+   },
+   "sources": [
+    {
+     "name": "France 24",
+     "url": "https://www.france24.com/en/france/20261114-live-france-mobilises-in-fifth-wave-of-student-protests",
+     "type": "publisher",
+     "time": 1794640172000
+    },
+    {
+     "name": "The Hindu",
+     "url": "https://www.thehindu.com/news/international/riots-in-france-how-anti-government-protests-spiralled-out-of-control/article71701195.ece",
+     "type": "publisher",
+     "time": 1794648834000
+    },
+    {
+     "name": "Reuters",
+     "url": "https://reut.rs/4iQHCqV",
+     "type": "publisher",
+     "time": 1794653409000,
+     "via": "Bluesky"
+    },
+    {
+     "name": "RFI",
+     "url": "https://www.rfi.fr/en/france/20261114-fifth-wave-of-french-protests-to-focus-on-child-protection-and-police-laws",
+     "type": "publisher",
+     "time": 1794654231000
+    }
+   ],
+   "sourceCount": 4,
+   "reportCount": 5,
+   "weight": 2.39
+  },
+  {
+   "id": "1c847tl",
+   "title": "Siege fuels disease fears in Yemen\u2019s Taiz",
+   "summary": "Health officials warn that falling numbers of recorded infections may conceal a worsening disease crisis in Taiz.",
+   "url": "https://www.aljazeera.com/news/2026/11/14/siege-fuels-disease-fears-in-yemens-besieged-taiz?traffic_source=rss",
+   "category": "conflict",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794637047000,
+   "firstSeen": 1794637047000,
+   "location": {
+    "iso3": "YEM",
+    "country": "Yemen",
+    "region": "middle-east",
+    "lat": 15.33,
+    "lon": 45.87,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "Al Jazeera",
+     "url": "https://www.aljazeera.com/news/2026/11/14/siege-fuels-disease-fears-in-yemens-besieged-taiz?traffic_source=rss",
+     "type": "publisher",
+     "time": 1794637047000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 2.33
+  },
+  {
+   "id": "10ewybf",
+   "title": "US Air Force personnel at the RAF Lakenheath base in Britain responded to \"suspected unauthorized drone activity\" on Friday evening, although no personnel, aircraft or infrastructure were affected, a US Air Force\u2026",
+   "summary": "",
+   "url": "https://bsky.app/profile/cnn.com/post/3n27yvvzvfs24",
+   "category": "conflict",
+   "severity": 2,
+   "evidence": "multi",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794607922692,
+   "firstSeen": 1794605700000,
+   "location": {
+    "iso3": "USA",
+    "country": "United States",
+    "region": "north-america",
+    "lat": 39.54,
+    "lon": -97.48,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "CNA (Asia)",
+     "url": "https://www.channelnewsasia.com/world/us-air-force-suspected-drone-activity-uk-airbase-6550596",
+     "type": "publisher",
+     "time": 1794605700000
+    },
+    {
+     "name": "CNN",
+     "url": "https://bsky.app/profile/cnn.com/post/3n27yvvzvfs24",
+     "type": "publisher",
+     "time": 1794607922692,
+     "via": "Bluesky"
+    }
+   ],
+   "sourceCount": 2,
+   "reportCount": 2,
+   "weight": 2.3
+  },
+  {
+   "id": "192pnr8",
+   "title": "France protests for fifth Saturday against living costs and heavy-handed policing",
+   "summary": "Different causes are set to come together for one march in Paris this Saturday. Campaign groups, students and Yellow Vest protesters are due to join forces in the capital, bringing together demands on wages, education and civil liberties. But after weeks of demonstrations, union leaders warn that protest fatigue is setting in, while police officers are seeking better compensation for the risk of\u2026",
+   "url": "https://www.france24.com/en/france-protests-for-fifth-saturday-against-living-costs-and-heavy-handed-policing",
+   "category": "unrest",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794651342000,
+   "firstSeen": 1794651342000,
+   "location": {
+    "iso3": "FRA",
+    "country": "France",
+    "region": "western-europe",
+    "lat": 48.86,
+    "lon": 2.35,
+    "precision": "city",
+    "place": "Paris"
+   },
+   "sources": [
+    {
+     "name": "France 24",
+     "url": "https://www.france24.com/en/france-protests-for-fifth-saturday-against-living-costs-and-heavy-handed-policing",
+     "type": "publisher",
+     "time": 1794651342000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 1.86
+  },
+  {
+   "id": "19iwaza",
+   "title": "Man shot dead in Washington DC gym is named",
+   "summary": "A man shot dead in a Washington DC gym on Thursday has been named.",
+   "url": "https://news.sky.com/story/four-shot-in-washington-dc-within-walking-distance-of-white-house-13611509",
+   "category": "attack",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794608737841,
+   "firstSeen": 1794490440000,
+   "location": {
+    "iso3": "USA",
+    "country": "United States",
+    "region": "north-america",
+    "lat": 38.9,
+    "lon": -77.04,
+    "precision": "city",
+    "place": "Washington"
+   },
+   "sources": [
+    {
+     "name": "Sky News",
+     "url": "https://news.sky.com/story/four-shot-in-washington-dc-within-walking-distance-of-white-house-13611509",
+     "type": "publisher",
+     "time": 1794490440000
+    },
+    {
+     "name": "Bluesky \u00b7 @newtownaction.org",
+     "url": "https://bsky.app/profile/newtownaction.org/post/3n27zo7czsc2l",
+     "type": "social",
+     "time": 1794608737841
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 2,
+   "weight": 1.72
+  },
+  {
+   "id": "x4lhfi",
+   "title": "France faces fifth weekend of protests as new grievances take centre stage",
+   "summary": "Some of the largely peaceful rallies have seen fringe violence, as well as accusations of police brutality.",
+   "url": "https://www.channelnewsasia.com/world/france-protests-police-powers-child-protections-6551461",
+   "category": "unrest",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794640735000,
+   "firstSeen": 1794640735000,
+   "location": {
+    "iso3": "FRA",
+    "country": "France",
+    "region": "western-europe",
+    "lat": 46.7,
+    "lon": 2.55,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "CNA (Asia)",
+     "url": "https://www.channelnewsasia.com/world/france-protests-police-powers-child-protections-6551461",
+     "type": "publisher",
+     "time": 1794640735000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 1.71
+  },
+  {
+   "id": "ktwg9l",
+   "title": "Protesters heckle Hakeem Jeffries at Democratic conference",
+   "summary": "US House Minority Leader Hakeem Jeffries faced repeated heckling at a Democratic conference in Denver.",
+   "url": "https://www.aljazeera.com/video/newsfeed/2026/11/14/protesters-heckle-hakeem-jeffries-at-democratic-conference?traffic_source=rss",
+   "category": "unrest",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794640733000,
+   "firstSeen": 1794640733000,
+   "location": {
+    "iso3": "USA",
+    "country": "United States",
+    "region": "north-america",
+    "lat": 39.54,
+    "lon": -97.48,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "Al Jazeera",
+     "url": "https://www.aljazeera.com/video/newsfeed/2026/11/14/protesters-heckle-hakeem-jeffries-at-democratic-conference?traffic_source=rss",
+     "type": "publisher",
+     "time": 1794640733000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 1.71
+  },
+  {
+   "id": "12p6usw",
+   "title": "Microsoft says all services 'fully recovered' after global outage",
+   "summary": "The tech giant confirmed on Saturday morning that all services have recovered \u2060across Teams, Outlook, Copilot and \u2060other applications, ending a global outage that crippled online communications across businesses and governments for over 24 hours. The US homeland security chief confirmed there was 'no Microsoft link' to the US air traffic stoppage.",
+   "url": "https://www.france24.com/en/technology/20261114-microsoft-says-consumer-products-fully-recovered-business-services-improving",
+   "category": "infrastructure",
+   "severity": 2,
+   "evidence": "multi",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794636476000,
+   "firstSeen": 1794571725000,
+   "location": {
+    "iso3": "USA",
+    "country": "United States",
+    "region": "north-america",
+    "lat": 39.54,
+    "lon": -97.48,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "Associated Press",
+     "url": "https://bsky.app/profile/apnews.com/post/3n26x75dby52g",
+     "type": "publisher",
+     "time": 1794571725000,
+     "via": "Bluesky"
+    },
+    {
+     "name": "France 24",
+     "url": "https://www.france24.com/en/technology/20261114-microsoft-says-consumer-products-fully-recovered-business-services-improving",
+     "type": "publisher",
+     "time": 1794636476000
+    }
+   ],
+   "sourceCount": 2,
+   "reportCount": 2,
+   "weight": 1.65
+  },
+  {
+   "id": "xjtxub",
+   "title": "M5.5 earthquake \u2014 northern Mid-Atlantic Ridge",
+   "summary": "USGS PAGER alert: green.",
+   "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty84",
+   "category": "disaster",
+   "severity": 2,
+   "evidence": "official",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794648373073,
+   "firstSeen": 1794648373073,
+   "location": {
+    "iso3": null,
+    "country": "International waters",
+    "region": null,
+    "lat": 30.122,
+    "lon": -42.6346,
+    "precision": "exact",
+    "place": "northern Mid-Atlantic Ridge"
+   },
+   "sources": [
+    {
+     "name": "USGS",
+     "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty84",
+     "type": "official",
+     "time": 1794648373073
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 1.64
+  },
+  {
+   "id": "1i71var",
+   "title": "A \u2018Generational Clash\u2019 Is Fueling Europe\u2019s Protests",
+   "summary": "As retirees live longer, governments need to spend more on pensions. That makes it harder to fund other services, spurring protests like those planned this weekend in France.",
+   "url": "https://www.nytimes.com/2026/11/14/world/europe/student-protests-pensions-generations.html",
+   "category": "unrest",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794632466000,
+   "firstSeen": 1794632466000,
+   "location": {
+    "iso3": "FRA",
+    "country": "France",
+    "region": "western-europe",
+    "lat": 46.7,
+    "lon": 2.55,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "The New York Times",
+     "url": "https://www.nytimes.com/2026/11/14/world/europe/student-protests-pensions-generations.html",
+     "type": "publisher",
+     "time": 1794632466000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 1.6
+  },
+  {
+   "id": "qyrk8l",
+   "title": "Health is wealth? Polymarket and Kalshi now host bets on measles and other US health crises",
+   "summary": "Experts warn of risks of platforms hosting bets tied to US public health \u2013 including vaccine mandates and drug trials The sign was pasted on a construction fence next to an elementary school in the Brooklyn borough of New York City. \u201cVaccines,\u201d it proclaimed in bold capital letters against a blue star-spangled background \u2013 appearing, at first glance, to be like any other public health message on\u2026",
+   "url": "https://www.theguardian.com/world/2026/nov/14/measles-kalshi-polymarket-betting",
+   "category": "health",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794657644000,
+   "firstSeen": 1794657644000,
+   "location": {
+    "iso3": "USA",
+    "country": "United States",
+    "region": "north-america",
+    "lat": 40.71,
+    "lon": -74,
+    "precision": "city",
+    "place": "New York"
+   },
+   "sources": [
+    {
+     "name": "The Guardian",
+     "url": "https://www.theguardian.com/world/2026/nov/14/measles-kalshi-polymarket-betting",
+     "type": "publisher",
+     "time": 1794657644000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 1.57
+  },
+  {
+   "id": "150rlyk",
+   "title": "US loses measles-free status after continued spread of the disease: Report",
+   "summary": "The reported decision by the Americas branch of the World Health Organization comes as the US battles the highest number of measles cases it has seen in more than three decades.",
+   "url": "https://www.channelnewsasia.com/world/us-lose-measles-free-status-disease-transmission-6550971",
+   "category": "health",
+   "severity": 2,
+   "evidence": "multi",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794630072000,
+   "firstSeen": 1794618059000,
+   "location": {
+    "iso3": "USA",
+    "country": "United States",
+    "region": "north-america",
+    "lat": 39.54,
+    "lon": -97.48,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "Reuters",
+     "url": "https://reut.rs/4jh3kph",
+     "type": "publisher",
+     "time": 1794618059000,
+     "via": "Bluesky"
+    },
+    {
+     "name": "The Hindu",
+     "url": "https://www.thehindu.com/news/international/us-loses-measles-free-status-after-continued-spread-of-the-disease-report/article71700760.ece",
+     "type": "publisher",
+     "time": 1794626015000
+    },
+    {
+     "name": "CNA (Asia)",
+     "url": "https://www.channelnewsasia.com/world/us-lose-measles-free-status-disease-transmission-6550971",
+     "type": "publisher",
+     "time": 1794630072000
+    }
+   ],
+   "sourceCount": 3,
+   "reportCount": 3,
+   "weight": 1.57
+  },
+  {
+   "id": "1tlbl6s",
+   "title": "Amnesty demands answers over failure to prevent South Sudan massacre",
+   "summary": "Amnesty International has accused South Sudanese authorities and UN peacekeepers of failing to prevent a massacre earlier this year, despite advance warnings of an imminent attack.",
+   "url": "https://www.rfi.fr/en/africa/20261113-amnesty-demands-answers-over-failure-to-prevent-south-sudan-massacre",
+   "category": "attack",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794595042000,
+   "firstSeen": 1794595042000,
+   "location": {
+    "iso3": "SSD",
+    "country": "South Sudan",
+    "region": "east-africa",
+    "lat": 7.23,
+    "lon": 30.39,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "RFI",
+     "url": "https://www.rfi.fr/en/africa/20261113-amnesty-demands-answers-over-failure-to-prevent-south-sudan-massacre",
+     "type": "publisher",
+     "time": 1794595042000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 1.54
+  },
+  {
+   "id": "19gdppp",
+   "title": "Russian officer killed by car bomb in St Petersburg as murder investigation begins",
+   "summary": "Kyiv rarely claims responsibility for such attacks on Russian troops, but Ukrainian forces have previously used similar blasts to show that Russia\u2019s security services are vulnerable.",
+   "url": "https://www.euronews.com/2026/11/12/russian-officer-killed-by-car-bomb-in-st-petersburg-as-murder-investigation-begins",
+   "category": "terrorism",
+   "severity": 3,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794480532000,
+   "firstSeen": 1794480532000,
+   "location": {
+    "iso3": "RUS",
+    "country": "Russia",
+    "region": "eastern-europe",
+    "lat": 59.93,
+    "lon": 30.36,
+    "precision": "city",
+    "place": "St Petersburg"
+   },
+   "sources": [
+    {
+     "name": "Euronews",
+     "url": "https://www.euronews.com/2026/11/12/russian-officer-killed-by-car-bomb-in-st-petersburg-as-murder-investigation-begins",
+     "type": "publisher",
+     "time": 1794480532000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 1.52
+  },
+  {
+   "id": "njhnzo",
+   "title": "Iran says it targeted US military radar in Bahrain in retaliatory strike",
+   "summary": "First direct attack on US military installations for months was in response to US airstrike on communications tower Iran\u2019s Islamic Revolutionary Guard Corps says it has targeted and destroyed a US early-warning radar in Bahrain in response to a US airstrike on a communications tower in Sirik overlooking the strait of Hormuz. It is Iran\u2019s first direct attack on US military installations for\u2026",
+   "url": "https://www.theguardian.com/world/2026/nov/13/iran-us-radar-bahrain-sirik-hormuz",
+   "category": "conflict",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794577931000,
+   "firstSeen": 1794577931000,
+   "location": {
+    "iso3": "USA",
+    "country": "United States",
+    "region": "north-america",
+    "lat": 39.54,
+    "lon": -97.48,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "The Guardian",
+     "url": "https://www.theguardian.com/world/2026/nov/13/iran-us-radar-bahrain-sirik-hormuz",
+     "type": "publisher",
+     "time": 1794577931000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 1.45
+  },
+  {
+   "id": "mix2ct",
+   "title": "Terror from the skies: drones are redefining warfare in Sudan, and massacring its civilians ->The Guardian",
+   "summary": "Terror from the skies: drones are redefining warfare in Sudan, and massacring its civilians ->The Guardian | More on \"Drone warfare and civilian casualties\" at BigEarthData.ai | #Warfare #Drone #Peace",
+   "url": "https://bsky.app/profile/bigearthdata.ai/post/3n2avfwwqdn2u",
+   "category": "terrorism",
+   "severity": 3,
+   "evidence": "social",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794638525154,
+   "firstSeen": 1794638525154,
+   "location": {
+    "iso3": "SDN",
+    "country": "Sudan",
+    "region": "north-africa",
+    "lat": 16.33,
+    "lon": 29.26,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "Bluesky \u00b7 @bigearthdata.ai",
+     "url": "https://bsky.app/profile/bigearthdata.ai/post/3n2avfwwqdn2u",
+     "type": "social",
+     "time": 1794638525154
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 1.35
+  },
+  {
+   "id": "1tzjgns",
+   "title": "After a summer win, India's Gen Z protesters face a winter of uncertainty",
+   "summary": "A new wave of youth dissent swept India this summer, fuelled by frustration and irreverent online satire.",
+   "url": "https://www.bbc.co.uk/news/articles/cq99e0z4vg1eo?at_medium=RSS&at_campaign=rss",
+   "category": "unrest",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794611511000,
+   "firstSeen": 1794611511000,
+   "location": {
+    "iso3": "IND",
+    "country": "India",
+    "region": "south-asia",
+    "lat": 22.69,
+    "lon": 79.36,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "BBC News",
+     "url": "https://www.bbc.co.uk/news/articles/cq99e0z4vg1eo?at_medium=RSS&at_campaign=rss",
+     "type": "publisher",
+     "time": 1794611511000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 1.35
+  },
+  {
+   "id": "1fgarbr",
+   "title": "Iran showcases missiles as military targets US army radar in Bahrain",
+   "summary": "The Revolutionary Guards said on Friday that it had destroyed a US early-warning radar in the Gulf country, the first such claim in months.",
+   "url": "http://www.africanews.com/2026/11/13/iran-showcases-missiles-as-military-targets-us-army-radar-in-bahrain/",
+   "category": "conflict",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794568249000,
+   "firstSeen": 1794568249000,
+   "location": {
+    "iso3": "IRN",
+    "country": "Iran",
+    "region": "middle-east",
+    "lat": 32.17,
+    "lon": 54.93,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "Africanews",
+     "url": "http://www.africanews.com/2026/11/13/iran-showcases-missiles-as-military-targets-us-army-radar-in-bahrain/",
+     "type": "publisher",
+     "time": 1794568249000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 1.34
+  },
+  {
+   "id": "18238c9",
+   "title": "US-bound flights out of Australia delayed after telecommunications outage grounded American planes",
+   "summary": "Sydney and Melbourne airports say flights were affected by now-lifted ban on departures in US US flight outage \u2013 live updates Get our breaking news email , free app or daily news podcast Some US-bound flights from Sydney airport were grounded or delayed on Saturday after American authorities halted departures and delayed landings at all US airports . Flights from Melbourne airport were also\u2026",
+   "url": "https://www.theguardian.com/australia-news/2026/nov/14/us-bound-flights-out-of-australia-grounded-as-telecommunications-outage-affects-american-travel",
+   "category": "infrastructure",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794632166000,
+   "firstSeen": 1794632166000,
+   "location": {
+    "iso3": "USA",
+    "country": "United States",
+    "region": "north-america",
+    "lat": 39.54,
+    "lon": -97.48,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "The Guardian",
+     "url": "https://www.theguardian.com/australia-news/2026/nov/14/us-bound-flights-out-of-australia-grounded-as-telecommunications-outage-affects-american-travel",
+     "type": "publisher",
+     "time": 1794632166000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 1.28
+  },
+  {
+   "id": "ms9ui1",
+   "title": "An independent commission of experts that reports to the director of the Pan American Health Organization determined that the US no longer qualified as having eliminated measles, a source close to the process told CNN.",
+   "summary": "",
+   "url": "https://bsky.app/profile/cnn.com/post/3n2agtcd65a2s",
+   "category": "health",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794622867298,
+   "firstSeen": 1794622867298,
+   "location": {
+    "iso3": "USA",
+    "country": "United States",
+    "region": "north-america",
+    "lat": 39.54,
+    "lon": -97.48,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "CNN",
+     "url": "https://bsky.app/profile/cnn.com/post/3n2agtcd65a2s",
+     "type": "publisher",
+     "time": 1794622867298,
+     "via": "Bluesky"
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 1.19
+  },
+  {
+   "id": "1pes4kt",
+   "title": "The dramatic grounding will be the second time all flights have been paused since 9/11, when American airspace shut down the day of the terror attack.",
+   "summary": "The dramatic grounding will be the second time all flights have been paused since 9/11, when American airspace shut down the day of the terror attack.",
+   "url": "https://bsky.app/profile/tandbnewsforuk.bsky.social/post/3n2afc2n7622v",
+   "category": "terrorism",
+   "severity": 3,
+   "evidence": "social",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794621215183,
+   "firstSeen": 1794621215183,
+   "location": {
+    "iso3": "USA",
+    "country": "United States",
+    "region": "north-america",
+    "lat": 39.54,
+    "lon": -97.48,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "Bluesky \u00b7 @tandbnewsforuk.bsky.social",
+     "url": "https://bsky.app/profile/tandbnewsforuk.bsky.social/post/3n2afc2n7622v",
+     "type": "social",
+     "time": 1794621215183
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 1.17
+  },
+  {
+   "id": "1jwxr4m",
+   "title": "As deadly storms flood Gaza\u2019s tent cities, the displaced fear a worse winter",
+   "summary": "At least four people were killed when weekend storms triggered a landslide onto tent shelters, which are exposed to risks during severe weather.",
+   "url": "https://www.washingtonpost.com/world/2026/11/12/palestinians-fear-floods-other-storm-risks-tent-cities-gazas-displaced/",
+   "category": "disaster",
+   "severity": 3,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 4,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794519996000,
+   "firstSeen": 1794519996000,
+   "location": {
+    "iso3": "PSE",
+    "country": "Palestinian Territories",
+    "region": "middle-east",
+    "lat": 31.5,
+    "lon": 34.47,
+    "precision": "city",
+    "place": "Gaza"
+   },
+   "sources": [
+    {
+     "name": "The Washington Post",
+     "url": "https://www.washingtonpost.com/world/2026/11/12/palestinians-fear-floods-other-storm-risks-tent-cities-gazas-displaced/",
+     "type": "publisher",
+     "time": 1794519996000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 1.17
+  },
+  {
+   "id": "1gefp9j",
+   "title": "Terrorist Michal Oksinski who murdered 6 in Krakow Poland was a fan of Norway\u2019s neo-Nazi terrorist Anders Breivik.",
+   "summary": "Terrorist Michal Oksinski who murdered 6 in Krakow Poland was a fan of Norway\u2019s neo-Nazi terrorist Anders Breivik. Breivik pushed the racist Great Replacement Theory aka MASS MIGRATION scaremongering. Media silent. #auspol #terrorism #OneNation #neoNazis www.",
+   "url": "https://bsky.app/profile/mark-melbin.bsky.social/post/3n2ac2kttrk23",
+   "category": "terrorism",
+   "severity": 3,
+   "evidence": "social",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794617742517,
+   "firstSeen": 1794617742517,
+   "location": {
+    "iso3": "POL",
+    "country": "Poland",
+    "region": "eastern-europe",
+    "lat": 51.99,
+    "lon": 19.49,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "Bluesky \u00b7 @mark-melbin.bsky.social",
+     "url": "https://bsky.app/profile/mark-melbin.bsky.social/post/3n2ac2kttrk23",
+     "type": "social",
+     "time": 1794617742517
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 1.14
+  },
+  {
+   "id": "1cm3ktc",
+   "title": "Americans unable to determine whether Terror Attack, AI Deployment, Or Crumbling infrastructure cause of current catastrophe.",
+   "summary": "Americans unable to determine whether Terror Attack, AI Deployment, Or Crumbling infrastructure cause of current catastrophe. More at 11",
+   "url": "https://bsky.app/profile/korikaanders.bsky.social/post/3n27ztrwegc2w",
+   "category": "terrorism",
+   "severity": 3,
+   "evidence": "social",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794608925126,
+   "firstSeen": 1794608925126,
+   "location": {
+    "iso3": "USA",
+    "country": "United States",
+    "region": "north-america",
+    "lat": 39.54,
+    "lon": -97.48,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "Bluesky \u00b7 @korikaanders.bsky.social",
+     "url": "https://bsky.app/profile/korikaanders.bsky.social/post/3n27ztrwegc2w",
+     "type": "social",
+     "time": 1794608925126
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 1.06
+  },
+  {
+   "id": "178doye",
+   "title": "M5.8 earthquake \u2014 79 km WSW of Changuillo, Peru",
+   "summary": "USGS PAGER alert: green. Felt reports: 7.",
+   "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty1a",
+   "category": "disaster",
+   "severity": 2,
+   "evidence": "official",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794588182131,
+   "firstSeen": 1794588182131,
+   "location": {
+    "iso3": "PER",
+    "country": "Peru",
+    "region": "south-america",
+    "lat": -14.9934,
+    "lon": -75.8807,
+    "precision": "exact",
+    "place": "79 km WSW of Changuillo, Peru"
+   },
+   "sources": [
+    {
+     "name": "USGS",
+     "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty1a",
+     "type": "official",
+     "time": 1794588182131
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 1.01
+  },
+  {
+   "id": "e9hyns",
+   "title": "Who are the 'street medics' showing up at protests around the world?",
+   "summary": "From treating tear gas exposure to tending to injuries, street medics have become an increasingly common sight at protests all over the world. But who exactly are they and when did they start showing up at demonstrations? Story by Daniel Quinlan.",
+   "url": "https://www.france24.com/en/who-are-the-street-medics-showing-up-at-protests-around-the-world",
+   "category": "unrest",
+   "severity": 1,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794658759000,
+   "firstSeen": 1794658759000,
+   "location": null,
+   "sources": [
+    {
+     "name": "France 24",
+     "url": "https://www.france24.com/en/who-are-the-street-medics-showing-up-at-protests-around-the-world",
+     "type": "publisher",
+     "time": 1794658759000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.99
+  },
+  {
+   "id": "lnxmte",
+   "title": "Microsoft 'deeply sorry' as outage triggers global chaos",
+   "summary": "The tech giant reported broad recovery and stability across its services, but said&nbsp;full services were still being restored.&nbsp;",
+   "url": "https://www.channelnewsasia.com/world/microsoft-outage-recovery-deeply-sorry-outlook-teams-6550421",
+   "category": "infrastructure",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794597480000,
+   "firstSeen": 1794597480000,
+   "location": null,
+   "sources": [
+    {
+     "name": "CNA (Asia)",
+     "url": "https://www.channelnewsasia.com/world/microsoft-outage-recovery-deeply-sorry-outlook-teams-6550421",
+     "type": "publisher",
+     "time": 1794597480000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.97
+  },
+  {
+   "id": "1pxwk47",
+   "title": "The Microsoft outage means no incessant email chimes or message pings, but still we stayed online",
+   "summary": "It was the sound of e-silence. No Microsoft Outlook email chimes, no Teams message pings, no new notifications and, very possibly, no work getting done.",
+   "url": "https://bit.ly/3XpXWYn",
+   "category": "infrastructure",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794592835000,
+   "firstSeen": 1794592835000,
+   "location": null,
+   "sources": [
+    {
+     "name": "Associated Press",
+     "url": "https://bit.ly/3XpXWYn",
+     "type": "publisher",
+     "time": 1794592835000,
+     "via": "Bluesky"
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.93
+  },
+  {
+   "id": "1nojfqa",
+   "title": "Microsoft outage: company scrambles to fix global issue that took down Outlook and Teams",
+   "summary": "Tech firm says it is \u2018deeply sorry\u2019 for disruption that took services down and has now addressed the underlying issue What caused the outage and when will it be fixed? Microsoft outage hits UK hospitals, GPs, schools and police Tell us: have you been affected by the outage? Microsoft has said it is \u201cdeeply sorry\u201d for a widespread outage that caused disruption to millions of users, organisations\u2026",
+   "url": "https://www.theguardian.com/technology/2026/nov/13/microsoft-outage-outlook-teams-word-excel-reports",
+   "category": "infrastructure",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794591675000,
+   "firstSeen": 1794591675000,
+   "location": {
+    "iso3": "GBR",
+    "country": "United Kingdom",
+    "region": "western-europe",
+    "lat": 54.4,
+    "lon": -2.12,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "The Guardian",
+     "url": "https://www.theguardian.com/technology/2026/nov/13/microsoft-outage-outlook-teams-word-excel-reports",
+     "type": "publisher",
+     "time": 1794591675000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.92
+  },
+  {
+   "id": "rsgddg",
+   "title": "Former Hamas bodyguard unmasked after 'plotting terror attack' when given British citizenship",
+   "summary": "Former Hamas bodyguard unmasked after 'plotting terror attack' when given British citizenship",
+   "url": "https://bsky.app/profile/dhigby.bsky.social/post/3n27hff3yhs2d",
+   "category": "terrorism",
+   "severity": 3,
+   "evidence": "social",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794589114563,
+   "firstSeen": 1794589114563,
+   "location": {
+    "iso3": "GBR",
+    "country": "United Kingdom",
+    "region": "western-europe",
+    "lat": 54.4,
+    "lon": -2.12,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "Bluesky \u00b7 @dhigby.bsky.social",
+     "url": "https://bsky.app/profile/dhigby.bsky.social/post/3n27hff3yhs2d",
+     "type": "social",
+     "time": 1794589114563
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.91
+  },
+  {
+   "id": "1830c8c",
+   "title": "Kenyans brace for El Ni\u00f1o rains as flood survivors fear a repeat of 2024 devastation",
+   "summary": "The warning comes as Nairobi continues to grapple with urban planning challenges, encroachment on wetlands and construction in flood-prone areas, factors that increase the city's vulnerability to flooding.",
+   "url": "http://www.africanews.com/2026/11/13/kenyans-brace-for-el-nino-rains-as-flood-survivors-fear-a-repeat-of-2024-devastation/",
+   "category": "disaster",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794573734000,
+   "firstSeen": 1794573734000,
+   "location": {
+    "iso3": "KEN",
+    "country": "Kenya",
+    "region": "east-africa",
+    "lat": -1.29,
+    "lon": 36.82,
+    "precision": "city",
+    "place": "Nairobi"
+   },
+   "sources": [
+    {
+     "name": "Africanews",
+     "url": "http://www.africanews.com/2026/11/13/kenyans-brace-for-el-nino-rains-as-flood-survivors-fear-a-repeat-of-2024-devastation/",
+     "type": "publisher",
+     "time": 1794573734000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.9
+  },
+  {
+   "id": "vgho2b",
+   "title": "www. Zavorotny had been an aide to Azarov until the prime minister resigned in 2014 and fled to Russia.",
+   "summary": "www. Zavorotny had been an aide to Azarov until the prime minister resigned in 2014 and fled to Russia. The car bomb went off a day after a similar explosion killed a Russian colonel in Saint Petersburg.",
+   "url": "https://bsky.app/profile/loquentia.bsky.social/post/3n27fe75nq22d",
+   "category": "terrorism",
+   "severity": 3,
+   "evidence": "social",
+   "casualties": {
+    "killed": 1,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794586927288,
+   "firstSeen": 1794586927288,
+   "location": {
+    "iso3": "RUS",
+    "country": "Russia",
+    "region": "eastern-europe",
+    "lat": 59.93,
+    "lon": 30.36,
+    "precision": "city",
+    "place": "Saint Petersburg"
+   },
+   "sources": [
+    {
+     "name": "Bluesky \u00b7 @loquentia.bsky.social",
+     "url": "https://bsky.app/profile/loquentia.bsky.social/post/3n27fe75nq22d",
+     "type": "social",
+     "time": 1794586927288
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.89
+  },
+  {
+   "id": "139h9d",
+   "title": "Deadly measles outbreaks have driven case counts higher than they've been in the United States since the early 1990s, and the country is on the brink of losing its measles elimination status.",
+   "summary": "",
+   "url": "https://bsky.app/profile/cnn.com/post/3n27744cew226",
+   "category": "health",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794580213291,
+   "firstSeen": 1794580213291,
+   "location": {
+    "iso3": "USA",
+    "country": "United States",
+    "region": "north-america",
+    "lat": 39.54,
+    "lon": -97.48,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "CNN",
+     "url": "https://bsky.app/profile/cnn.com/post/3n27744cew226",
+     "type": "publisher",
+     "time": 1794580213291,
+     "via": "Bluesky"
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.84
+  },
+  {
+   "id": "16ca1dy",
+   "title": "Gen Z protests: Do Baby Boomers really have it better than young people?",
+   "summary": "Should young people in Germany be more worried about their future than Baby Boomers were in the 1980s and 1990s? Or should both generations take to the streets and protest together? DW checked the data.",
+   "url": "https://www.dw.com/en/gen-z-protests-do-baby-boomers-really-have-it-better-than-young-people/a-79918854?maca=en-rss-en-world-4025-xml-mrss",
+   "category": "unrest",
+   "severity": 1,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794636540000,
+   "firstSeen": 1794636540000,
+   "location": {
+    "iso3": "DEU",
+    "country": "Germany",
+    "region": "western-europe",
+    "lat": 50.96,
+    "lon": 9.68,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "Deutsche Welle",
+     "url": "https://www.dw.com/en/gen-z-protests-do-baby-boomers-really-have-it-better-than-young-people/a-79918854?maca=en-rss-en-world-4025-xml-mrss",
+     "type": "publisher",
+     "time": 1794636540000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.83
+  },
+  {
+   "id": "4d6z4r",
+   "title": "Ukraine fires nearly 1,200 drones at Russia as U.S.-led talks consider wider European security",
+   "summary": "Kyiv's forces are using drones and ground robots to help defend against Russia's army along the about 1,200-km front line snaking down eastern and southeastern Ukraine",
+   "url": "https://www.thehindu.com/news/international/ukraine-fires-nearly-1200-drones-at-russia-as-us-led-talks-consider-wider-european-security/article71699290.ece",
+   "category": "conflict",
+   "severity": 1,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794591120000,
+   "firstSeen": 1794591120000,
+   "location": {
+    "iso3": "UKR",
+    "country": "Ukraine",
+    "region": "eastern-europe",
+    "lat": 50.45,
+    "lon": 30.52,
+    "precision": "city",
+    "place": "Kyiv"
+   },
+   "sources": [
+    {
+     "name": "The Hindu",
+     "url": "https://www.thehindu.com/news/international/ukraine-fires-nearly-1200-drones-at-russia-as-us-led-talks-consider-wider-european-security/article71699290.ece",
+     "type": "publisher",
+     "time": 1794591120000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.81
+  },
+  {
+   "id": "3r2xqy",
+   "title": "Storm Charles causes floods and flight cancellations across southern Europe",
+   "summary": "Heavy rain and strong winds have also caused disruption across British Columbia, Canada, over the last week Storm Charles has brought destructive weather to the Iberian peninsula this week, particularly in Portugal and the far south of Spain. Heavy rain and strong south-westerly winds arrived first in the Portuguese island of Madeira, before the system headed towards the mainland on 11 November.\u2026",
+   "url": "https://www.theguardian.com/environment/2026/nov/13/storm-charles-floods-flight-cancellations-southern-europe-weather",
+   "category": "disaster",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794559759000,
+   "firstSeen": 1794559759000,
+   "location": {
+    "iso3": "PRT",
+    "country": "Portugal",
+    "region": "southern-europe",
+    "lat": 39.61,
+    "lon": -8.27,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "The Guardian",
+     "url": "https://www.theguardian.com/environment/2026/nov/13/storm-charles-floods-flight-cancellations-southern-europe-weather",
+     "type": "publisher",
+     "time": 1794559759000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.8
+  },
+  {
+   "id": "4utfay",
+   "title": "Swiss hospital discharges Ebola patient after successful treatment",
+   "summary": "A Swiss woman who contracted the strain of Ebola linked to the ongoing outbreak in the Democratic Republic of Congo has been discharged from hospital in Geneva, health officials said on Thursday.",
+   "url": "http://www.africanews.com/2026/11/13/swiss-hospital-discharges-ebola-patient-after-successful-treatment/",
+   "category": "health",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794569484000,
+   "firstSeen": 1794569484000,
+   "location": {
+    "iso3": "CHE",
+    "country": "Switzerland",
+    "region": "western-europe",
+    "lat": 46.2,
+    "lon": 6.14,
+    "precision": "city",
+    "place": "Geneva"
+   },
+   "sources": [
+    {
+     "name": "Africanews",
+     "url": "http://www.africanews.com/2026/11/13/swiss-hospital-discharges-ebola-patient-after-successful-treatment/",
+     "type": "publisher",
+     "time": 1794569484000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.77
+  },
+  {
+   "id": "ow1sc8",
+   "title": "M5.2 earthquake \u2014 State of Yap, Federated States of Micronesia",
+   "summary": "",
+   "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty7d",
+   "category": "disaster",
+   "severity": 1,
+   "evidence": "official",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794639146706,
+   "firstSeen": 1794639146706,
+   "location": {
+    "iso3": "FSM",
+    "country": "Federated States of Micronesia",
+    "region": "oceania",
+    "lat": 9.7032,
+    "lon": 147.3631,
+    "precision": "exact",
+    "place": "State of Yap, Federated States of Micronesia"
+   },
+   "sources": [
+    {
+     "name": "USGS",
+     "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty7d",
+     "type": "official",
+     "time": 1794639146706
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.76
+  },
+  {
+   "id": "1t9a0ud",
+   "title": "NEW UKRAINIAN TERROR ATTACK IN #MOSCOW Footage of the car after the explosion on Kirovogradskaya Street in Chertanovo.",
+   "summary": "NEW UKRAINIAN TERROR ATTACK IN #MOSCOW Footage of the car after the explosion on Kirovogradskaya Street in Chertanovo. The driver of the exploded Toyota in Moscow survived. According to media reports, medics are providing him with first aid . The blast wave threw him onto the roadway",
+   "url": "https://bsky.app/profile/inidewihepuv.knight.cool/post/3n26n444atv2m",
+   "category": "terrorism",
+   "severity": 3,
+   "evidence": "social",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794560483000,
+   "firstSeen": 1794560483000,
+   "location": {
+    "iso3": "RUS",
+    "country": "Russia",
+    "region": "eastern-europe",
+    "lat": 55.76,
+    "lon": 37.62,
+    "precision": "city",
+    "place": "Moscow"
+   },
+   "sources": [
+    {
+     "name": "Bluesky \u00b7 @inidewihepuv.knight.cool",
+     "url": "https://bsky.app/profile/inidewihepuv.knight.cool/post/3n26n444atv2m",
+     "type": "social",
+     "time": 1794560483000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.72
+  },
+  {
+   "id": "1j6o6uw",
+   "title": "'We've got to run': Inside ruined Ukraine power plant under constant drone threat",
+   "summary": "Dan Johnson visits one of the country's largest power stations, barely left standing after a ballistic missile strike by Russia.",
+   "url": "https://www.bbc.co.uk/news/videos/cm93rp3gxn6qo?at_medium=RSS&at_campaign=rss",
+   "category": "conflict",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794488566000,
+   "firstSeen": 1794488566000,
+   "location": {
+    "iso3": "UKR",
+    "country": "Ukraine",
+    "region": "eastern-europe",
+    "lat": 49.72,
+    "lon": 32.14,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "BBC News",
+     "url": "https://www.bbc.co.uk/news/videos/cm93rp3gxn6qo?at_medium=RSS&at_campaign=rss",
+     "type": "publisher",
+     "time": 1794488566000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.71
+  },
+  {
+   "id": "1ty54m1",
+   "title": "M5.2 earthquake \u2014 off the west coast of northern Sumatra",
+   "summary": "Felt reports: 1.",
+   "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty6n",
+   "category": "disaster",
+   "severity": 1,
+   "evidence": "official",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794625169180,
+   "firstSeen": 1794625169180,
+   "location": {
+    "iso3": "IDN",
+    "country": "Indonesia",
+    "region": "southeast-asia",
+    "lat": 3.304,
+    "lon": 92.8261,
+    "precision": "exact",
+    "place": "off the west coast of northern Sumatra"
+   },
+   "sources": [
+    {
+     "name": "USGS",
+     "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty6n",
+     "type": "official",
+     "time": 1794625169180
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.68
+  },
+  {
+   "id": "2i5dr6",
+   "title": "Microsoft \u2018deeply sorry\u2019 for global outage that could have billion-dollar impact on Australia",
+   "summary": "Experts say disruption exposes \u2018Australia\u2019s reliance on foreign technology\u2019 as software giant says services being restored Get our breaking news email , free app or daily news podcast The Microsoft outage could be a disaster for the Australian economy that forces some small businesses to close, with costs expected to run into the billions of dollars, experts have warned. The US software company\u2026",
+   "url": "https://www.theguardian.com/australia-news/2026/nov/14/microsoft-deeply-sorry-for-global-disruption-that-could-have-billion-dollar-impact-on-australia",
+   "category": "infrastructure",
+   "severity": 1,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794637144000,
+   "firstSeen": 1794637144000,
+   "location": {
+    "iso3": "AUS",
+    "country": "Australia",
+    "region": "oceania",
+    "lat": -24.13,
+    "lon": 134.05,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "The Guardian",
+     "url": "https://www.theguardian.com/australia-news/2026/nov/14/microsoft-deeply-sorry-for-global-disruption-that-could-have-billion-dollar-impact-on-australia",
+     "type": "publisher",
+     "time": 1794637144000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.67
+  },
+  {
+   "id": "147k31y",
+   "title": "At least 6 people were killed by an Israeli airstrike on Nasser hospital, inc.",
+   "summary": "At least 6 people were killed by an Israeli airstrike on Nasser hospital, inc. surgeon Dr Rizq Abu Shaeira. Dozens more were injured. Write to the Foreign Secretary to demand the UK sanction those responsible for attacks on healthcare and suspend all arms to Israel. www.map.",
+   "url": "https://bsky.app/profile/gareth-glynn.bsky.social/post/3n26qu3xrek2n",
+   "category": "conflict",
+   "severity": 3,
+   "evidence": "social",
+   "casualties": {
+    "killed": 6,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794564912242,
+   "firstSeen": 1794564912242,
+   "location": {
+    "iso3": "ISR",
+    "country": "Israel",
+    "region": "middle-east",
+    "lat": 30.91,
+    "lon": 34.85,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "Bluesky \u00b7 @gareth-glynn.bsky.social",
+     "url": "https://bsky.app/profile/gareth-glynn.bsky.social/post/3n26qu3xrek2n",
+     "type": "social",
+     "time": 1794564912242
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.65
+  },
+  {
+   "id": "8crn2g",
+   "title": "M5.1 earthquake \u2014 153 km NW of Kavieng, Papua New Guinea",
+   "summary": "",
+   "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty56",
+   "category": "disaster",
+   "severity": 1,
+   "evidence": "official",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794612638320,
+   "firstSeen": 1794612638320,
+   "location": {
+    "iso3": "PNG",
+    "country": "Papua New Guinea",
+    "region": "oceania",
+    "lat": -1.5038,
+    "lon": 149.92,
+    "precision": "exact",
+    "place": "153 km NW of Kavieng, Papua New Guinea"
+   },
+   "sources": [
+    {
+     "name": "USGS",
+     "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty56",
+     "type": "official",
+     "time": 1794612638320
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.62
+  },
+  {
+   "id": "ubh62b",
+   "title": "Woman killed, daughter injured in explosion involving unidentified explosive device in Kharkiv region #Ukraine",
+   "summary": "Woman killed, daughter injured in explosion involving unidentified explosive device in Kharkiv region #Ukraine",
+   "url": "https://bsky.app/profile/amplifyukraine.eu/post/jjf3ammfrkulu",
+   "category": "attack",
+   "severity": 3,
+   "evidence": "social",
+   "casualties": {
+    "killed": 1,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794564320022,
+   "firstSeen": 1794564320022,
+   "location": {
+    "iso3": "UKR",
+    "country": "Ukraine",
+    "region": "eastern-europe",
+    "lat": 49.99,
+    "lon": 36.23,
+    "precision": "city",
+    "place": "Kharkiv"
+   },
+   "sources": [
+    {
+     "name": "Bluesky \u00b7 @amplifyukraine.eu",
+     "url": "https://bsky.app/profile/amplifyukraine.eu/post/jjf3ammfrkulu",
+     "type": "social",
+     "time": 1794564320022
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.6
+  },
+  {
+   "id": "13sn050",
+   "title": "Odesa has been under sustained attack all night; so far 3 have been killed-another huge explosion just a few minutes ago",
+   "summary": "Odesa has been under sustained attack all night; so far 3 have been killed-another huge explosion just a few minutes ago",
+   "url": "https://bsky.app/profile/connielingus123.bsky.social/post/3n26lv4v3k22v",
+   "category": "attack",
+   "severity": 3,
+   "evidence": "social",
+   "casualties": {
+    "killed": 3,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794559578047,
+   "firstSeen": 1794559578047,
+   "location": {
+    "iso3": "UKR",
+    "country": "Ukraine",
+    "region": "eastern-europe",
+    "lat": 46.48,
+    "lon": 30.73,
+    "precision": "city",
+    "place": "Odesa"
+   },
+   "sources": [
+    {
+     "name": "Bluesky \u00b7 @connielingus123.bsky.social",
+     "url": "https://bsky.app/profile/connielingus123.bsky.social/post/3n26lv4v3k22v",
+     "type": "social",
+     "time": 1794559578047
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.58
+  },
+  {
+   "id": "112x73n",
+   "title": "M5.1 earthquake \u2014 South Sandwich Islands region",
+   "summary": "",
+   "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty3q",
+   "category": "disaster",
+   "severity": 1,
+   "evidence": "official",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794596647703,
+   "firstSeen": 1794596647703,
+   "location": {
+    "iso3": null,
+    "country": "International waters",
+    "region": null,
+    "lat": -58.962,
+    "lon": -25.7253,
+    "precision": "exact",
+    "place": "South Sandwich Islands region"
+   },
+   "sources": [
+    {
+     "name": "USGS",
+     "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty3q",
+     "type": "official",
+     "time": 1794596647703
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.54
+  },
+  {
+   "id": "1myvz72",
+   "title": "M5.2 earthquake \u2014 79 km NE of Kuqa, China",
+   "summary": "",
+   "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty14",
+   "category": "disaster",
+   "severity": 1,
+   "evidence": "official",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794586671680,
+   "firstSeen": 1794586671680,
+   "location": {
+    "iso3": "CHN",
+    "country": "People's Republic of China",
+    "region": "east-asia",
+    "lat": 42.1734,
+    "lon": 83.6657,
+    "precision": "exact",
+    "place": "79 km NE of Kuqa, China"
+   },
+   "sources": [
+    {
+     "name": "USGS",
+     "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty14",
+     "type": "official",
+     "time": 1794586671680
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.5
+  },
+  {
+   "id": "1mhss9a",
+   "title": "M5.2 earthquake \u2014 West Chile Rise",
+   "summary": "",
+   "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty0s",
+   "category": "disaster",
+   "severity": 1,
+   "evidence": "official",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794579167843,
+   "firstSeen": 1794579167843,
+   "location": {
+    "iso3": "CHL",
+    "country": "Chile",
+    "region": "south-america",
+    "lat": -36.4434,
+    "lon": -97.9785,
+    "precision": "exact",
+    "place": "West Chile Rise"
+   },
+   "sources": [
+    {
+     "name": "USGS",
+     "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty0s",
+     "type": "official",
+     "time": 1794579167843
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.47
+  },
+  {
+   "id": "195xnhe",
+   "title": "Congo Attack Toll Hits 66 in Ebola Zone ->The Rio Times",
+   "summary": "Congo Attack Toll Hits 66 in Ebola Zone ->The Rio Times | More on \"Congo violence amid Ebola outbreak\" at BigEarthData.ai | #Ebola",
+   "url": "https://bsky.app/profile/bigearthdata.ai/post/3n25thcjp5u2o",
+   "category": "attack",
+   "severity": 3,
+   "evidence": "social",
+   "casualties": {
+    "killed": 66,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794533344165,
+   "firstSeen": 1794533344165,
+   "location": {
+    "iso3": "COD",
+    "country": "DR Congo",
+    "region": "central-southern-africa",
+    "lat": -1.86,
+    "lon": 23.46,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "Bluesky \u00b7 @bigearthdata.ai",
+     "url": "https://bsky.app/profile/bigearthdata.ai/post/3n25thcjp5u2o",
+     "type": "social",
+     "time": 1794533344165
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.47
+  },
+  {
+   "id": "2hxde9",
+   "title": "Why Aid Isn\u2019t Reaching Ebola\u2019s Epicenter",
+   "summary": "The Ebola outbreak in the eastern Democratic Republic of the Congo has a new epicenter, one largely isolated from aid by an armed group that has killed and kidnapped aid workers. Declan Walsh, our chief Africa correspondent, reports from a town where health workers are struggling to contain the outbreak.",
+   "url": "https://www.nytimes.com/video/world/africa/100000011257751/why-aid-isnt-reaching-ebolas-epicenter.html",
+   "category": "health",
+   "severity": 1,
+   "evidence": "multi",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794564139000,
+   "firstSeen": 1794475974000,
+   "location": {
+    "iso3": "COD",
+    "country": "DR Congo",
+    "region": "central-southern-africa",
+    "lat": -1.86,
+    "lon": 23.46,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "RFI",
+     "url": "https://www.rfi.fr/en/africa/20261112-funds-for-dr-congo-ebola-fight-not-reaching-front-french-medical-charity-msf-says",
+     "type": "publisher",
+     "time": 1794475974000
+    },
+    {
+     "name": "The New York Times",
+     "url": "https://www.nytimes.com/video/world/africa/100000011257751/why-aid-isnt-reaching-ebolas-epicenter.html",
+     "type": "publisher",
+     "time": 1794564139000
+    }
+   ],
+   "sourceCount": 2,
+   "reportCount": 2,
+   "weight": 0.46
+  },
+  {
+   "id": "1m4zeb5",
+   "title": "All of these children were killed at once by a Saudi airstrike last Saturday in Yemen.",
+   "summary": "All of these children were killed at once by a Saudi airstrike last Saturday in Yemen.",
+   "url": "https://bsky.app/profile/jeffrudd.bsky.social/post/3n27x75btyc2b",
+   "category": "conflict",
+   "severity": 2,
+   "evidence": "social",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794606084909,
+   "firstSeen": 1794606084909,
+   "location": {
+    "iso3": "YEM",
+    "country": "Yemen",
+    "region": "middle-east",
+    "lat": 15.33,
+    "lon": 45.87,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "Bluesky \u00b7 @jeffrudd.bsky.social",
+     "url": "https://bsky.app/profile/jeffrudd.bsky.social/post/3n27x75btyc2b",
+     "type": "social",
+     "time": 1794606084909
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.45
+  },
+  {
+   "id": "1yxxqf3",
+   "title": "Nigeria Ebola patient contacts complete 21-day monitoring without signs of infection",
+   "summary": "Good news out of Nigeria where authorities say no further cases of Ebola have been detected since a woman arriving from Uganda tested positive for the virus last month.",
+   "url": "http://www.africanews.com/2026/11/13/nigeria-ebola-patient-contacts-complete-21-day-monitoring-without-signs-of-infection/",
+   "category": "health",
+   "severity": 1,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794581781000,
+   "firstSeen": 1794581781000,
+   "location": {
+    "iso3": "NGA",
+    "country": "Nigeria",
+    "region": "west-africa",
+    "lat": 9.44,
+    "lon": 7.5,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "Africanews",
+     "url": "http://www.africanews.com/2026/11/13/nigeria-ebola-patient-contacts-complete-21-day-monitoring-without-signs-of-infection/",
+     "type": "publisher",
+     "time": 1794581781000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.43
+  },
+  {
+   "id": "1tp7s29",
+   "title": "Russia hit by second car bomb in as many days as peace talks continue ->BBC News",
+   "summary": "Russia hit by second car bomb in as many days as peace talks continue ->BBC News | More on \"Russia Ukraine conflict escalates\" at BigEarthData.ai | #Peace #RussiaUkraineWar",
+   "url": "https://bsky.app/profile/bigearthdata.ai/post/3n274ajfkoh2v",
+   "category": "terrorism",
+   "severity": 2,
+   "evidence": "social",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794577139905,
+   "firstSeen": 1794577139905,
+   "location": {
+    "iso3": "RUS",
+    "country": "Russia",
+    "region": "eastern-europe",
+    "lat": 58.25,
+    "lon": 44.69,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "Bluesky \u00b7 @bigearthdata.ai",
+     "url": "https://bsky.app/profile/bigearthdata.ai/post/3n274ajfkoh2v",
+     "type": "social",
+     "time": 1794577139905
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.41
+  },
+  {
+   "id": "coe7og",
+   "title": "Drought threatens Iraq's marshes, risking one of the oldest ways of life",
+   "summary": "The unique marshes of southern Iraq are beginning to revive after five years of devastating drought. But challenges remain for one of the world's oldest ways of life.",
+   "url": "https://www.npr.org/2026/11/12/nx-s1-6026458/drought-threatens-iraqs-marshes-risking-one-of-the-oldest-ways-of-life",
+   "category": "disaster",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794475894000,
+   "firstSeen": 1794475894000,
+   "location": {
+    "iso3": "IRQ",
+    "country": "Iraq",
+    "region": "middle-east",
+    "lat": 33.09,
+    "lon": 43.26,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "NPR",
+     "url": "https://www.npr.org/2026/11/12/nx-s1-6026458/drought-threatens-iraqs-marshes-risking-one-of-the-oldest-ways-of-life",
+     "type": "publisher",
+     "time": 1794475894000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.41
+  },
+  {
+   "id": "1erqm6l",
+   "title": "Gunmen killed 10 police officers in Kohat, Pakistan, on Wednesday.",
+   "summary": "Gunmen killed 10 police officers in Kohat, Pakistan, on Wednesday. The Pakistani Taliban claimed the attack, and police say 18 fighters died.",
+   "url": "https://bsky.app/profile/allthingsrandomnet.bsky.social/post/3n255rbptek2z",
+   "category": "attack",
+   "severity": 3,
+   "evidence": "social",
+   "casualties": {
+    "killed": 10,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794510056688,
+   "firstSeen": 1794510056688,
+   "location": {
+    "iso3": "PAK",
+    "country": "Pakistan",
+    "region": "south-asia",
+    "lat": 29.33,
+    "lon": 68.55,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "Bluesky \u00b7 @allthingsrandomnet.bsky.social",
+     "url": "https://bsky.app/profile/allthingsrandomnet.bsky.social/post/3n255rbptek2z",
+     "type": "social",
+     "time": 1794510056688
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.39
+  },
+  {
+   "id": "1t5adhm",
+   "title": "Syrian soldier killed, 2 others injured in attack by unidentified gunmen in Deir ez-Zor Mohammad Sio 13 November 2026",
+   "summary": "Syrian soldier killed, 2 others injured in attack by unidentified gunmen in Deir ez-Zor Mohammad Sio 13 November 2026\u2022Update: 13 November 2026 A Syrian soldier was killed and two others were injured in an attack by unidentified assailants in the eastern province \u2026",
+   "url": "https://bsky.app/profile/byteseu.bsky.social/post/3n27h25sdtd2f",
+   "category": "attack",
+   "severity": 2,
+   "evidence": "social",
+   "casualties": {
+    "killed": 0,
+    "injured": 2
+   },
+   "retrospective": false,
+   "time": 1794588735000,
+   "firstSeen": 1794580778033,
+   "location": {
+    "iso3": "SYR",
+    "country": "Syria",
+    "region": "middle-east",
+    "lat": 35.34,
+    "lon": 40.14,
+    "precision": "city",
+    "place": "Deir Ez Zor"
+   },
+   "sources": [
+    {
+     "name": "Bluesky \u00b7 @levant24com.bsky.social",
+     "url": "https://bsky.app/profile/levant24com.bsky.social/post/3n277mwrye22e",
+     "type": "social",
+     "time": 1794580778033
+    },
+    {
+     "name": "Bluesky \u00b7 @byteseu.bsky.social",
+     "url": "https://bsky.app/profile/byteseu.bsky.social/post/3n27h25sdtd2f",
+     "type": "social",
+     "time": 1794588735000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 2,
+   "weight": 0.37
+  },
+  {
+   "id": "1fkuinu",
+   "title": "France marks 11th anniversary of Paris attacks with tribute at Stade de France",
+   "summary": "France is marking the 11th anniversary of the November 2015 Paris terrorist attacks on Friday, with commemorations honouring the 130 people killed. This year the Stade de France, one of the sites targeted by the attackers, hosts a sporting event on 13 November for the first time since the tragedy.",
+   "url": "https://www.rfi.fr/en/france/20261113-france-marks-11th-anniversary-of-paris-attacks-with-tribute-at-stade-de-france",
+   "category": "terrorism",
+   "severity": 1,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 130,
+    "injured": 0
+   },
+   "retrospective": true,
+   "time": 1794596377205,
+   "firstSeen": 1794582528000,
+   "location": {
+    "iso3": "FRA",
+    "country": "France",
+    "region": "western-europe",
+    "lat": 48.86,
+    "lon": 2.35,
+    "precision": "city",
+    "place": "Paris"
+   },
+   "sources": [
+    {
+     "name": "RFI",
+     "url": "https://www.rfi.fr/en/france/20261113-france-marks-11th-anniversary-of-paris-attacks-with-tribute-at-stade-de-france",
+     "type": "publisher",
+     "time": 1794582528000
+    },
+    {
+     "name": "Bluesky \u00b7 @hyenari6296.bsky.social",
+     "url": "https://bsky.app/profile/hyenari6296.bsky.social/post/3n27o5tcbbk26",
+     "type": "social",
+     "time": 1794596377205
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 2,
+   "weight": 0.29
+  },
+  {
+   "id": "zke9rf",
+   "title": "France requests arrest warrants for Iranian suspects over supermarket cyberattack",
+   "summary": "France has requested international arrest warrants for three Iranian men over October\u2019s cyberattack on supermarket fridges, while Tehran rejects the allegations as \u201cbaseless and malicious\u201d.",
+   "url": "https://www.rfi.fr/en/france/20261111-france-requests-arrest-warrants-for-iranian-suspects-over-supermarket-cyberattack",
+   "category": "infrastructure",
+   "severity": 2,
+   "evidence": "publisher",
+   "casualties": {
+    "killed": 0,
+    "injured": 0
+   },
+   "retrospective": false,
+   "time": 1794412840000,
+   "firstSeen": 1794412840000,
+   "location": {
+    "iso3": "FRA",
+    "country": "France",
+    "region": "western-europe",
+    "lat": 46.7,
+    "lon": 2.55,
+    "precision": "country"
+   },
+   "sources": [
+    {
+     "name": "RFI",
+     "url": "https://www.rfi.fr/en/france/20261111-france-requests-arrest-warrants-for-iranian-suspects-over-supermarket-cyberattack",
+     "type": "publisher",
+     "time": 1794412840000
+    }
+   ],
+   "sourceCount": 1,
+   "reportCount": 1,
+   "weight": 0.22
+  }
+ ],
+ "sources": [
+  {
+   "id": "bbc",
+   "name": "BBC News",
+   "kind": "rss",
+   "home": "https://www.bbc.co.uk/news/world",
+   "ok": true,
+   "items": 27,
+   "scanned": 27,
+   "newest": 1794656480000,
+   "note": null,
+   "error": null,
+   "ms": 212
+  },
+  {
+   "id": "aljazeera",
+   "name": "Al Jazeera",
+   "kind": "rss",
+   "home": "https://www.aljazeera.com",
+   "ok": true,
+   "items": 25,
+   "scanned": 25,
+   "newest": 1794656586000,
+   "note": null,
+   "error": null,
+   "ms": 189
+  },
+  {
+   "id": "skynews",
+   "name": "Sky News",
+   "kind": "rss",
+   "home": "https://news.sky.com/world",
+   "ok": true,
+   "items": 5,
+   "scanned": 5,
+   "newest": 1794644340000,
+   "note": null,
+   "error": null,
+   "ms": 181
+  },
+  {
+   "id": "guardian",
+   "name": "The Guardian",
+   "kind": "rss",
+   "home": "https://www.theguardian.com/world",
+   "ok": true,
+   "items": 35,
+   "scanned": 45,
+   "newest": 1794659638000,
+   "note": null,
+   "error": null,
+   "ms": 224
+  },
+  {
+   "id": "france24",
+   "name": "France 24",
+   "kind": "rss",
+   "home": "https://www.france24.com/en/",
+   "ok": true,
+   "items": 24,
+   "scanned": 24,
+   "newest": 1794659012000,
+   "note": null,
+   "error": null,
+   "ms": 230
+  },
+  {
+   "id": "dw",
+   "name": "Deutsche Welle",
+   "kind": "rss",
+   "home": "https://www.dw.com/en/",
+   "ok": true,
+   "items": 12,
+   "scanned": 12,
+   "newest": 1794656400000,
+   "note": null,
+   "error": null,
+   "ms": 191
+  },
+  {
+   "id": "euronews",
+   "name": "Euronews",
+   "kind": "rss",
+   "home": "https://www.euronews.com",
+   "ok": true,
+   "items": 40,
+   "scanned": 50,
+   "newest": 1794654015000,
+   "note": null,
+   "error": null,
+   "ms": 323
+  },
+  {
+   "id": "nyt",
+   "name": "The New York Times",
+   "kind": "rss",
+   "home": "https://www.nytimes.com/section/world",
+   "ok": true,
+   "items": 40,
+   "scanned": 56,
+   "newest": 1794659075000,
+   "note": null,
+   "error": null,
+   "ms": 365
+  },
+  {
+   "id": "npr",
+   "name": "NPR",
+   "kind": "rss",
+   "home": "https://www.npr.org/sections/world/",
+   "ok": true,
+   "items": 10,
+   "scanned": 10,
+   "newest": 1794596524000,
+   "note": null,
+   "error": null,
+   "ms": 400
+  },
+  {
+   "id": "wapo",
+   "name": "The Washington Post",
+   "kind": "rss",
+   "home": "https://www.washingtonpost.com/world/",
+   "ok": true,
+   "items": 14,
+   "scanned": 14,
+   "newest": 1794650400000,
+   "note": null,
+   "error": null,
+   "ms": 10452
+  },
+  {
+   "id": "abcau",
+   "name": "ABC News (Australia)",
+   "kind": "rss",
+   "home": "https://www.abc.net.au/news",
+   "ok": true,
+   "items": 25,
+   "scanned": 25,
+   "newest": 1794645269000,
+   "note": null,
+   "error": null,
+   "ms": 435
+  },
+  {
+   "id": "cna",
+   "name": "CNA (Asia)",
+   "kind": "rss",
+   "home": "https://www.channelnewsasia.com/world",
+   "ok": true,
+   "items": 20,
+   "scanned": 20,
+   "newest": 1794659700000,
+   "note": null,
+   "error": null,
+   "ms": 393
+  },
+  {
+   "id": "rfi",
+   "name": "RFI",
+   "kind": "rss",
+   "home": "https://www.rfi.fr/en/",
+   "ok": true,
+   "items": 20,
+   "scanned": 21,
+   "newest": 1794656230000,
+   "note": null,
+   "error": null,
+   "ms": 597
+  },
+  {
+   "id": "africanews",
+   "name": "Africanews",
+   "kind": "rss",
+   "home": "https://www.africanews.com",
+   "ok": true,
+   "items": 40,
+   "scanned": 50,
+   "newest": 1794653475000,
+   "note": null,
+   "error": null,
+   "ms": 476
+  },
+  {
+   "id": "thehindu",
+   "name": "The Hindu",
+   "kind": "rss",
+   "home": "https://www.thehindu.com/news/international/",
+   "ok": true,
+   "items": 40,
+   "scanned": 60,
+   "newest": 1794659754000,
+   "note": null,
+   "error": null,
+   "ms": 531
+  },
+  {
+   "id": "bsky-cnn",
+   "name": "CNN (Bluesky)",
+   "kind": "bluesky-publisher",
+   "home": "https://bsky.app/profile/cnn.com",
+   "ok": true,
+   "items": 40,
+   "scanned": 50,
+   "newest": 1794659593305,
+   "note": null,
+   "error": null,
+   "ms": 885
+  },
+  {
+   "id": "bsky-reuters",
+   "name": "Reuters (Bluesky)",
+   "kind": "bluesky-publisher",
+   "home": "https://bsky.app/profile/reuters.com",
+   "ok": true,
+   "items": 40,
+   "scanned": 50,
+   "newest": 1794659104000,
+   "note": null,
+   "error": null,
+   "ms": 814
+  },
+  {
+   "id": "bsky-ap",
+   "name": "Associated Press (Bluesky)",
+   "kind": "bluesky-publisher",
+   "home": "https://bsky.app/profile/apnews.com",
+   "ok": true,
+   "items": 40,
+   "scanned": 50,
+   "newest": 1794657617000,
+   "note": null,
+   "error": null,
+   "ms": 841
+  },
+  {
+   "id": "bsky-bno",
+   "name": "BNO News (Bluesky)",
+   "kind": "bluesky-publisher",
+   "home": "https://bsky.app/profile/bnonews.com",
+   "ok": true,
+   "items": 0,
+   "scanned": 50,
+   "newest": 1777844213651,
+   "note": null,
+   "error": null,
+   "ms": 890
+  },
+  {
+   "id": "usgs",
+   "name": "USGS Earthquakes",
+   "kind": "official",
+   "home": "https://earthquake.usgs.gov/earthquakes/map/",
+   "ok": true,
+   "items": 8,
+   "scanned": 21,
+   "newest": 1794648373073,
+   "note": null,
+   "error": null,
+   "ms": 702
+  },
+  {
+   "id": "gdacs",
+   "name": "GDACS Disaster Alerts",
+   "kind": "official",
+   "home": "https://www.gdacs.org/",
+   "ok": true,
+   "items": 0,
+   "scanned": 262,
+   "newest": 1794659638000,
+   "note": null,
+   "error": null,
+   "ms": 1444
+  },
+  {
+   "id": "bsky-search",
+   "name": "Bluesky public posts",
+   "kind": "social",
+   "home": "https://bsky.app/",
+   "ok": true,
+   "items": 67,
+   "scanned": 235,
+   "newest": 1794657818041,
+   "note": "public search",
+   "error": null,
+   "ms": 2099
+  }
+ ],
+ "history": [
+  {
+   "t": 1794660096172,
+   "s": {
+    "central-southern-africa": 19.5,
+    "middle-east": 17.2,
+    "north-america": 14.4,
+    "eastern-europe": 14.1,
+    "west-africa": 8.6,
+    "western-europe": 8.3,
+    "south-asia": 6.7,
+    "east-africa": 4.8,
+    "oceania": 1.8,
+    "south-america": 1.4,
+    "north-africa": 1.4,
+    "southern-europe": 0.8,
+    "southeast-asia": 0.7,
+    "east-asia": 0.5,
+    "central-america": 0,
+    "central-asia": 0
+   }
+  }
+ ]
+}

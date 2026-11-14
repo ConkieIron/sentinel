@@ -1,0 +1,21 @@
+{
+  "name": "sentinel-gatherer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SENTINEL data gatherer: Cloudflare Worker that collects public news, Bluesky and official hazard feeds and computes a regional threat index.",
+  "type": "module",
+  "scripts": {
+    "gather": "node scripts/gather-local.mjs",
+    "dev": "wrangler dev --test-scheduled",
+    "trigger": "curl -s \"http://localhost:8787/__scheduled?cron=*/15+*+*+*+*\"",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail",
+    "test": "node --test \"test/**/*.test.mjs\""
+  },
+  "devDependencies": {
+    "wrangler": "^4.40.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

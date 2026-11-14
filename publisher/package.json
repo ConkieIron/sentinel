@@ -1,0 +1,18 @@
+{
+  "name": "sentinel-publisher",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SENTINEL HTML publisher: compiles a gatherer snapshot into a static site for Cloudflare Pages. No runtime dependencies.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "build:sample": "node build.mjs --snapshot fixtures/sample-snapshot.json --allow-stale",
+    "serve": "node scripts/serve.mjs",
+    "preview": "npx wrangler@4 pages dev dist",
+    "deploy": "npx wrangler@4 pages deploy dist --project-name=${PAGES_PROJECT:-sentinelglobalnews} --branch=main",
+    "test": "node --test \"test/**/*.test.mjs\""
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

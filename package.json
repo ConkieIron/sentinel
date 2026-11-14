@@ -1,0 +1,23 @@
+{
+  "name": "sentinel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SENTINEL Global Incident & Threat Monitor: a Cloudflare Worker data gatherer and a static Cloudflare Pages publisher.",
+  "type": "module",
+  "scripts": {
+    "gather": "npm --prefix worker run gather",
+    "build": "npm --prefix publisher run build",
+    "build:sample": "npm --prefix publisher run build:sample",
+    "serve": "npm --prefix publisher run serve",
+    "local": "npm run gather && npm run build && npm run serve",
+    "test": "npm --prefix worker test && npm --prefix publisher test",
+    "worker:dev": "npm --prefix worker run dev",
+    "worker:trigger": "npm --prefix worker run trigger",
+    "worker:deploy": "npm --prefix worker run deploy",
+    "pages:deploy": "npm --prefix publisher run deploy",
+    "geodata": "node tools/build-geodata.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
