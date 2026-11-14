@@ -17,8 +17,11 @@ BREAKING_MIN_SEVERITY = "4"
 # Secret (set with `npx wrangler secret put GITHUB_TOKEN`; for local dev use .dev.vars):
 #   GITHUB_TOKEN   fine-grained token for the repo above with "Actions: Read and write" only
 #
-# KV namespace for remembering which stories already triggered a publish. Create and add it with:
-#   npx wrangler kv namespace create WATCHER_KV --binding WATCHER_KV --update-config
+# Remembers which stories already triggered a publish. Created with:
+#   npx wrangler kv namespace create WATCHER_KV
+[[kv_namespaces]]
+binding = "WATCHER_KV"
+id = "220bcb6d3eb74eed919e255f55ec1a42"
 
 [observability]
 enabled = true
