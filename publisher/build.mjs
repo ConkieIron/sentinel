@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url';
 import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage, livePage, countryPage, countriesIndexPage, localPage } from './src/pages.js';
 import { countriesOf, adviceChanges } from './src/countries.js';
 import { COUNTRIES as GEO_COUNTRIES } from '../worker/src/data/countries.js';
+import { CATCH_KM, DEFAULT_CATCH_KM } from './src/localGeo.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dist = join(here, 'dist');
@@ -166,6 +167,8 @@ await writePage(
       lat: c.lat,
       lon: c.lon,
       path: pagesByIso.get(c.iso3)?.path || null,
+      // Tiny dependencies only match when you are essentially there (see localGeo.js).
+      catchKm: CATCH_KM[c.iso3] ?? DEFAULT_CATCH_KM,
     })),
   ),
 );

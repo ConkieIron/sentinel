@@ -352,9 +352,81 @@
     const locateBtn = $('[data-local-locate]', localRoot);
     const retryBtn = $('[data-local-retry]', localRoot);
     const items = list ? $$('[data-iso3]', list) : [];
-    const CACHE_KEY = 'sentinel-local-iso3';
+    // v2: catchment scoring replaced pure nearest-centroid (which mis-labelled UK as Jersey).
+    const CACHE_KEY = 'sentinel-local-iso3-v2';
     let geo = null;
 
+    // Same rules as publisher/src/localGeo.js: microstate catchments + regional hubs for large
+    // countries (so Brighton → UK, not Belgium/Jersey).
+    const HUBS = {
+      GBR: [
+        [54.4, -2.12],
+        [51.51, -0.13],
+        [52.48, -1.9],
+        [53.48, -2.24],
+        [55.95, -3.19],
+        [54.6, -5.93],
+        [51.45, -2.6],
+        [50.91, -1.4],
+      ],
+      FRA: [
+        [46.6, 2.5],
+        [48.86, 2.35],
+        [49.63, -1.62],
+        [48.11, -1.68],
+        [43.3, 5.37],
+        [44.84, -0.58],
+        [45.75, 4.85],
+        [50.63, 3.06],
+      ],
+      USA: [
+        [39.54, -97.48],
+        [40.71, -74.01],
+        [34.05, -118.24],
+        [41.88, -87.63],
+        [29.76, -95.37],
+        [33.75, -84.39],
+        [47.61, -122.33],
+        [25.76, -80.19],
+      ],
+      CAN: [
+        [60.32, -101.91],
+        [43.65, -79.38],
+        [45.5, -73.57],
+        [49.28, -123.12],
+        [45.42, -75.69],
+        [53.55, -113.49],
+      ],
+      AUS: [
+        [-24.13, 134.05],
+        [-33.87, 151.21],
+        [-37.81, 144.96],
+        [-27.47, 153.03],
+        [-31.95, 115.86],
+        [-34.93, 138.6],
+      ],
+      DEU: [
+        [51.2, 10.4],
+        [52.52, 13.4],
+        [48.14, 11.58],
+        [50.11, 8.68],
+        [53.55, 9.99],
+      ],
+      ITA: [
+        [42.5, 12.5],
+        [41.9, 12.5],
+        [45.46, 9.19],
+        [40.85, 14.27],
+        [45.07, 7.69],
+      ],
+      ESP: [
+        [40.2, -3.5],
+        [40.42, -3.7],
+        [41.39, 2.17],
+        [37.39, -5.98],
+        [39.47, -0.38],
+      ],
+    };
     const km = (aLat, aLon, bLat, bLon) => {
       const r = Math.PI / 180;
       const x =
@@ -362,13 +434,25 @@
         Math.cos(aLat * r) * Math.cos(bLat * r) * Math.sin(((bLon - aLon) * r) / 2) ** 2;
       return 12742 * Math.asin(Math.sqrt(x));
     };
+    const distTo = (lat, lon, c) => {
+      const hubs = HUBS[c.iso3];
+      if (hubs) {
+        let best = Infinity;
+        for (const [hLat, hLon] of hubs) best = Math.min(best, km(lat, lon, hLat, hLon));
+        return best;
+      }
+      return km(lat, lon, c.lat, c.lon);
+    };
     const nearest = (lat, lon, maxKm = 1500) => {
       let best = null;
       for (const c of geo || []) {
-        const d = km(lat, lon, c.lat, c.lon);
+        const d = distTo(lat, lon, c);
+        if (d > maxKm) continue;
+        const catchKm = c.catchKm || 1100;
+        if (d > catchKm) continue;
         if (!best || d < best.d) best = { c, d };
       }
-      return best && best.d <= maxKm ? best.c : null;
+      return best ? best.c : null;
     };
     const setMessage = (text) => {
       if (message) message.textContent = text;
