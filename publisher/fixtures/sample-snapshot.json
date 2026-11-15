@@ -46,6 +46,17 @@
   "transport": "Major accident",
   "strategic": "Strategic development"
  },
+ "leans": {
+  "left": "Left",
+  "center-left": "Centre-left",
+  "center": "Centre",
+  "center-right": "Centre-right",
+  "right": "Right",
+  "state": "State-funded",
+  "wire": "Wire",
+  "official": "Official",
+  "unrated": "Unrated"
+ },
  "stats": {
   "reportsScanned": 572,
   "incidentReports": 120,

@@ -110,7 +110,7 @@ ${storyFigure(story, { className: 'live-hero-figure' })}
 ${sectionHead('Latest updates', { id: 'updates' })}
 <p class="section-dek">Newest first. Near-identical headlines are shown once. Every row links to the original report on the publisher's site.</p>
 <ol class="live-feed" data-live-id="${esc(story.id)}" data-latest="${story.updatedAt}" data-page-size="20">
-${story.updates.map((u) => liveUpdate(u, now)).join('')}
+${story.updates.map((u) => liveUpdate(u, now, snapshot)).join('')}
 </ol>
 ${story.reportCount > story.updates.length ? `<p class="small muted">${story.outlets.length} outlets · ${story.updates.length} distinct update${story.updates.length === 1 ? '' : 's'} from ${story.reportCount} reports.</p>` : ''}
 </section>
@@ -159,7 +159,7 @@ ${foldPanel(
 <p><a href="/about/">Read the full methodology →</a></p>`,
 )}
 ${foldPanel('Evidence labels', evidenceGuide())}
-${foldPanel('Source health', sourceTable(snapshot.sources, now), {
+${foldPanel('Source health', sourceTable(snapshot.sources, now, snapshot), {
   openWide: false,
   note: `${snapshot.sources.filter((s) => s.ok).length} of ${snapshot.sources.length} online`,
 })}
@@ -572,6 +572,7 @@ export function aboutPage(ctx) {
 <article class="prose">
 <h2>1. Collection and publishing</h2>
 <p>Every five minutes SENTINEL reads ${snapshot.sources.length} sources: news feeds from ${rss.length} publishers (${esc(listNames(rss))}), the official Bluesky accounts of ${bskyPublishers.length} news organisations (${esc(listNames(bskyPublishers))}), public Bluesky posts matching incident keywords, USGS earthquake data and GDACS disaster alerts. Only items from the last ${snapshot.windowHours} hours are used.</p>
+<p>Each outlet is tagged with an approximate <strong>editorial lean</strong> (Left, Centre-left, Centre, Centre-right, Right, Wire, State-funded or Official). These labels are a transparency aid drawn from commonly cited media-bias placements and public-broadcaster status. They are <em>not</em> accuracy ratings, and contested outlets are labelled conservatively.</p>
 <p>A new edition is published whenever something a reader would notice has changed, and at least once an hour. Separately, a watcher checks the wire services and other major outlets every minute. When one reports major breaking news or a new development in a story covered live, it starts a rebuild straight away, so these usually appear within two or three minutes.</p>
 <p>Stock market figures in the masthead come from Yahoo Finance and can be delayed by up to 15 minutes.</p>
 
@@ -613,7 +614,7 @@ export function aboutPage(ctx) {
 </ul>
 
 <h2 id="sources">Sources in this edition</h2>
-${sourceTable(snapshot.sources, now)}
+${sourceTable(snapshot.sources, now, snapshot)}
 <p class="small muted">Edition generated ${esc(fmtUtc(Date.parse(snapshot.generatedAt), { withYear: true }))}. ${snapshot.stats.reportsScanned} reports scanned, ${snapshot.stats.incidentReports} classified as incident reports, merged into ${snapshot.stats.incidents} incidents.</p>
 
 <h2>Evidence labels</h2>

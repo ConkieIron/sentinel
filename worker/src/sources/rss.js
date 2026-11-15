@@ -74,6 +74,15 @@ export function parseFeed(xml) {
   });
 }
 
+/** Google News (and some aggregators) append " - Outlet Name" to titles; strip for clustering. */
+function cleanFeedTitle(title, feedName) {
+  let t = String(title || '').trim();
+  if (!feedName) return t;
+  const escaped = feedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  t = t.replace(new RegExp(`\\s*[-–—|]\\s*${escaped}\\s*$`, 'i'), '').trim();
+  return t || String(title || '').trim();
+}
+
 export async function fetchRss(feed, { now, windowMs, maxItems }) {
   const res = await fetchWithTimeout(feed.url, { headers: { Accept: 'application/rss+xml, application/xml, text/xml, */*' } });
   const xml = await res.text();
@@ -89,7 +98,7 @@ export async function fetchRss(feed, { now, windowMs, maxItems }) {
       sourceId: feed.id,
       sourceName: feed.name,
       type: 'publisher',
-      title: p.title,
+      title: cleanFeedTitle(p.title, feed.name),
       summary: p.summary,
       url: p.url,
       time,

@@ -8,6 +8,7 @@ import { fetchMarkets } from './sources/markets.js';
 import { classify, extractCasualties, CATEGORIES } from './analysis/classify.js';
 import { locate, nearestCountry, COUNTRY_BY_ISO } from './analysis/geo.js';
 import { clusterItems } from './analysis/cluster.js';
+import { leanFor, LEAN } from './data/mediaLean.js';
 import { incidentWeight, scoreRegions, pickBreaking, isReportedTerror } from './analysis/threat.js';
 import { findLiveStories } from './analysis/live.js';
 
@@ -15,16 +16,18 @@ export const SCHEMA_VERSION = 1;
 
 async function runSource(meta, task) {
   const started = Date.now();
+  const lean = leanFor(meta.name);
+  const withLean = { ...meta, lean: lean !== 'unrated' ? lean : undefined };
   try {
     const r = await task();
     return {
-      meta: { ...meta, ok: true, items: r.items.length, scanned: r.parsed, newest: r.newest, note: r.note || null, error: r.partialError || null, ms: Date.now() - started },
+      meta: { ...withLean, ok: true, items: r.items.length, scanned: r.parsed, newest: r.newest, note: r.note || null, error: r.partialError || null, ms: Date.now() - started },
       items: r.items,
     };
   } catch (err) {
     const cause = err?.cause?.code || err?.cause?.message;
     const error = String(err?.message || err) + (cause ? ` (${cause})` : '');
-    return { meta: { ...meta, ok: false, items: 0, scanned: 0, newest: null, error, ms: Date.now() - started }, items: [] };
+    return { meta: { ...withLean, ok: false, items: 0, scanned: 0, newest: null, error, ms: Date.now() - started }, items: [] };
   }
 }
 
@@ -129,6 +132,7 @@ export async function runPipeline(env = {}, { now = Date.now(), history = [] } =
       evidenceWeight: MODEL.evidenceWeight,
     },
     categories: CATEGORIES,
+    leans: LEAN,
     stats: {
       reportsScanned: scanned,
       incidentReports: enriched.length,

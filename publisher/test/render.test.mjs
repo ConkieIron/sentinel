@@ -130,6 +130,17 @@ test('hostile feed content is escaped and unsafe links neutralised', () => {
   assert.ok(!/href="javascript:/i.test(html), 'javascript: link leaked');
 });
 
+test('outlet cards show an approximate editorial lean tag', () => {
+  const snapshot = structuredClone(fixture);
+  const inc = snapshot.incidents.find((i) => i.evidence !== 'social' && i.sources?.[0]);
+  assert.ok(inc, 'fixture has a publisher incident');
+  inc.sources[0].name = 'The Guardian';
+  inc.sources[0].lean = 'left';
+  const home = homePage(context(snapshot));
+  assert.match(home, /class="lean lean-left"[^>]*>Left</);
+  assert.match(aboutPage(context(snapshot)), /editorial lean/);
+});
+
 test('live stories get a front-page teaser and a page listing every update, newest first', () => {
   const ctx = context(withLiveStory(fixture));
   const home = homePage(ctx);

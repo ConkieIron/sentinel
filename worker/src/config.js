@@ -35,6 +35,13 @@ export const RSS_FEEDS = [
   { id: 'japantimes', name: 'The Japan Times', url: 'https://www.japantimes.co.jp/feed/', home: 'https://www.japantimes.co.jp' },
   { id: 'smh', name: 'The Sydney Morning Herald', url: 'https://www.smh.com.au/rss/world.xml', home: 'https://www.smh.com.au/world' },
   { id: 'premiumtimes', name: 'Premium Times (Nigeria)', url: 'https://www.premiumtimesng.com/feed', home: 'https://www.premiumtimesng.com' },
+  // Centre-right / right: native world RSS where available. Telegraph and The Australian block or
+  // empty their public feeds, so those two are pulled via Google News site-search RSS.
+  { id: 'fox', name: 'Fox News', url: 'https://moxie.foxnews.com/google-publisher/world.xml', home: 'https://www.foxnews.com/world' },
+  { id: 'wsj', name: 'The Wall Street Journal', url: 'https://feeds.content.dowjones.io/public/rss/RSSWorldNews', home: 'https://www.wsj.com/world' },
+  { id: 'nypost', name: 'New York Post', url: 'https://nypost.com/world-news/feed/', home: 'https://nypost.com/world-news/' },
+  { id: 'telegraph', name: 'The Telegraph', url: 'https://news.google.com/rss/search?q=site:telegraph.co.uk&hl=en-GB&gl=GB&ceid=GB:en', home: 'https://www.telegraph.co.uk' },
+  { id: 'australian', name: 'The Australian', url: 'https://news.google.com/rss/search?q=site:theaustralian.com.au&hl=en-AU&gl=AU&ceid=AU:en', home: 'https://www.theaustralian.com.au' },
 ];
 
 // Official news-organisation accounts on Bluesky. Treated as publisher reports, not social claims.

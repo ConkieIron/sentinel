@@ -2,6 +2,7 @@
 // close in time, overlapping headline vocabulary) into a single incident.
 
 import { hashId } from '../lib/text.js';
+import { leanFor } from '../data/mediaLean.js';
 
 export const STOP = new Set(
   ('says said after amid over into with from that this have been were their about what more than will would could ' +
@@ -132,7 +133,15 @@ function toIncident({ members }) {
   for (const m of [...members].sort((a, b) => TYPE_RANK[b.type] - TYPE_RANK[a.type] || a.time - b.time)) {
     if (seen.has(m.sourceName)) continue;
     seen.add(m.sourceName);
-    sources.push({ name: m.sourceName, url: m.url, type: m.type, time: m.time, via: m.via });
+    const lean = leanFor(m.sourceName);
+    sources.push({
+      name: m.sourceName,
+      url: m.url,
+      type: m.type,
+      time: m.time,
+      via: m.via,
+      lean: lean !== 'unrated' ? lean : undefined,
+    });
   }
 
   const first = members.reduce((a, b) => (a.time <= b.time ? a : b));

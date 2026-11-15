@@ -15,6 +15,7 @@ import { STOP } from './cluster.js';
 import { truncate, hashId } from '../lib/text.js';
 import { COUNTRIES } from '../data/countries.js';
 import { ALIASES, DEMONYMS, PLACES } from '../data/aliases.js';
+import { leanFor } from '../data/mediaLean.js';
 
 export const LIVE = {
   maxStories: 3,
@@ -55,6 +56,7 @@ const HEADLINE_OUTLETS = new Set([
   'BBC News', 'Reuters', 'Associated Press', 'AFP', 'Sky News', 'The Guardian', 'CNN', 'Al Jazeera', 'NBC News',
   'CBS News', 'ABC News (US)', 'The New York Times', 'The Washington Post', 'The Independent', 'France 24',
   'Deutsche Welle', 'Euronews', 'NPR', 'Bloomberg', 'USA Today', 'Politico',
+  'Fox News', 'The Wall Street Journal', 'New York Post', 'The Telegraph', 'The Australian',
 ]);
 
 /** Headline words in order: acronyms (FAA, US, NATO) and significant words stemmed to 6 letters. */
@@ -403,15 +405,19 @@ export function findLiveStories(incidents, reports, now) {
         takeCount: takes.length,
         topics: topics.slice(0, 4),
         // Timeline shows each development once; outlet count still reflects full coverage.
-        updates: takes.slice(0, LIVE.maxUpdates).map((r) => ({
-          title: r.title,
-          summary: truncate(r.summary || '', 300),
-          url: r.url,
-          source: r.sourceName,
-          via: r.via || undefined,
-          time: r.time,
-          liveBlog: isLiveBlogItem(r) || undefined,
-        })),
+        updates: takes.slice(0, LIVE.maxUpdates).map((r) => {
+          const lean = leanFor(r.sourceName);
+          return {
+            title: r.title,
+            summary: truncate(r.summary || '', 300),
+            url: r.url,
+            source: r.sourceName,
+            via: r.via || undefined,
+            time: r.time,
+            liveBlog: isLiveBlogItem(r) || undefined,
+            lean: lean !== 'unrated' ? lean : undefined,
+          };
+        }),
         _recentOutlets: new Set(recent.map((r) => r.sourceName)).size,
         _novelRecentTakes: novelRecent.length,
       };

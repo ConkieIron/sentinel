@@ -1,5 +1,6 @@
 import { esc, safeHref, timeTag, clockTag, trim, usefulUpdateDek, fmtUtc, filterCategory, LEVEL_LABEL, TREND, EVIDENCE } from './util.js';
 import { countriesOf, countryPath } from './countries.js';
+import { leanTag } from './lean.js';
 
 export function levelBadge(level) {
   return `<span class="lvl lvl-${esc(level)}">${esc(LEVEL_LABEL[level])}</span>`;
@@ -63,7 +64,7 @@ export function incidentCard(inc, ctx, { variant = 'item', anchor = true, classN
   const sources = inc.sources
     .map(
       (s) =>
-        `<li><a href="${esc(safeHref(s.url))}" target="_blank" rel="noopener noreferrer">${esc(s.name)}</a>${s.via ? ` <span class="muted">via ${esc(s.via)}</span>` : ''} · ${esc(fmtUtc(s.time))}</li>`,
+        `<li><a href="${esc(safeHref(s.url))}" target="_blank" rel="noopener noreferrer">${esc(s.name)}</a>${leanTag(s.lean || s.name, snapshot)}${s.via ? ` <span class="muted">via ${esc(s.via)}</span>` : ''} · ${esc(fmtUtc(s.time))}</li>`,
     )
     .join('');
   const evidenceLabel = inc.evidence === 'multi' ? `${EVIDENCE.multi} (${inc.sourceCount})` : EVIDENCE[inc.evidence];
@@ -78,7 +79,7 @@ export function incidentCard(inc, ctx, { variant = 'item', anchor = true, classN
   const meta = [
     live ? `<a class="live-link" href="/live/${esc(live.id)}/">${livePill(live, ctx)} Follow coverage</a>` : '',
     variant === 'row' ? '' : timeTag(inc.time, now),
-    src ? `<span class="src">${esc(src.name)}</span>` : '',
+    src ? `<span class="src">${esc(src.name)}</span>${leanTag(src.lean || src.name, snapshot)}` : '',
     showSev ? `<span class="sev sev-${inc.severity}" title="Severity ${inc.severity} of 5">Severity ${inc.severity}/5</span>` : '',
     showEv ? `<span class="ev ev-${esc(inc.evidence)}">${esc(evidenceLabel)}</span>` : '',
     casualtyText(inc.casualties, inc.evidence),
@@ -137,7 +138,7 @@ ${kicker}
 <h3 class="live-title"><a href="/live/${esc(story.id)}/">${esc(story.title)}</a></h3>
 <ul class="live-latest">${story.updates
     .slice(0, 2)
-    .map((u) => `<li>${clockTag(u.time)}<span class="src">${esc(u.source)}</span>${liveHeadline(u)}</li>`)
+    .map((u) => `<li>${clockTag(u.time)}<span class="src">${esc(u.source)}</span>${leanTag(u.lean || u.source, ctx.snapshot)}${liveHeadline(u)}</li>`)
     .join('')}</ul>
 <a class="live-more" href="/live/${esc(story.id)}/">Follow live coverage: ${story.reportCount} update${story.reportCount === 1 ? '' : 's'} →</a>
 </div>
@@ -145,12 +146,12 @@ ${kicker}
 }
 
 /** One post in a live-coverage timeline. The whole post opens the original article. */
-export function liveUpdate(u, now) {
+export function liveUpdate(u, now, snapshot) {
   const dek = usefulUpdateDek(u);
   return `<li class="live-post${u.liveBlog ? ' is-liveblog' : ''}">
 <div class="live-time">${clockTag(u.time)}${timeTag(u.time, now)}</div>
 <article class="story live-update">
-<p class="live-src"><span class="src">${esc(u.source)}</span>${u.liveBlog ? ' <span class="live-blog-tag">Live blog</span>' : ''}${u.via ? ` <span class="muted">via ${esc(u.via)}</span>` : ''}</p>
+<p class="live-src"><span class="src">${esc(u.source)}</span>${leanTag(u.lean || u.source, snapshot)}${u.liveBlog ? ' <span class="live-blog-tag">Live blog</span>' : ''}${u.via ? ` <span class="muted">via ${esc(u.via)}</span>` : ''}</p>
 <h3 class="headline">${liveHeadline(u)}</h3>
 ${dek ? `<p class="dek">${esc(dek)}</p>` : ''}
 </article>
@@ -206,11 +207,11 @@ export function incidentList(list, ctx, { filterable = false, pageSize = 25, var
   return `${filterable ? filterChips(ctx.snapshot, list, advice.length) : ''}<div class="story-list" data-page-size="${pageSize}">${rows.map((r) => r.html()).join('')}</div>`;
 }
 
-export function sourceTable(sources, now) {
+export function sourceTable(sources, now, snapshot) {
   const rows = sources
     .map(
       (s) =>
-        `<tr><td><a href="${esc(safeHref(s.home))}" target="_blank" rel="noopener noreferrer">${esc(s.name)}</a><div class="muted small">${esc(
+        `<tr><td><a href="${esc(safeHref(s.home))}" target="_blank" rel="noopener noreferrer">${esc(s.name)}</a>${leanTag(s.lean || s.name, snapshot)}<div class="muted small">${esc(
           { rss: 'News RSS', 'bluesky-publisher': 'Publisher on Bluesky', official: 'Official data', social: 'Social (unverified)' }[s.kind] || s.kind,
         )}</div></td><td>${s.ok ? `<span class="ok">● Online</span>` : `<span class="down" title="${esc(s.error || '')}">● Unavailable</span>`}</td><td class="num">${s.items}</td><td class="small">${
           s.newest ? timeTag(s.newest, now) : '—'

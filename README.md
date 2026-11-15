@@ -39,7 +39,9 @@ and tested on its own.
   ABC News (Australia), CNA, RFI, Africanews, The Hindu, The Independent, The Irish Times,
   CBS News, ABC News (US), Los Angeles Times, The Kyiv Independent, The Times of Israel,
   Middle East Eye, Dawn (Pakistan), The Times of India, South China Morning Post, The Japan Times,
-  The Sydney Morning Herald and Premium Times (Nigeria).
+  The Sydney Morning Herald, Premium Times (Nigeria), Fox News, The Wall Street Journal,
+  New York Post, The Telegraph and The Australian. Telegraph and The Australian are read via
+  Google News site-search RSS because their native public feeds are blocked or empty.
 - **Bluesky:** official accounts of CNN, Reuters, AP, AFP, NBC News, Bloomberg, USA Today and
   Politico. These outlets have no usable public RSS feed for world news, so their accounts are
   used instead. There is also a filtered public search,
@@ -74,6 +76,10 @@ using terrorism language stay in Latest but aren't counted.
 Add or remove feeds in `worker/src/config.js`. An outlet with two feeds (BBC, Sky) uses the same
 `name` on both, so a story is counted once per outlet; `label` tells them apart on the sources
 list. Repeat headlines from the same outlet are dropped.
+
+Each known outlet is tagged with an approximate editorial lean (Left through Right, plus Wire,
+State-funded and Official) from `worker/src/data/mediaLean.js`. The tag is a transparency aid, not
+an accuracy score.
 
 ## How the threat index works
 

@@ -373,6 +373,27 @@ th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; colo
 .live-update { border-bottom: 0; }
 .live-src { margin: 0 0 4px; font-size: 0.82rem; color: var(--muted); }
 .live-blog-tag { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--breaking); }
+.lean {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+  vertical-align: 1px;
+}
+.lean-left { color: #6b3a7a; border-color: #d4c2dc; }
+.lean-center-left { color: #3d5a80; border-color: #c5d0e0; }
+.lean-center, .lean-wire, .lean-official { color: #4a5560; border-color: var(--rule); }
+.lean-center-right { color: #7a4a2d; border-color: #e0d0c5; }
+.lean-right { color: #8a3030; border-color: #e0c5c5; }
+.lean-state { color: #1a5f7a; border-color: #c5d8e0; }
+.sources-table .lean { margin-left: 8px; }
+.live-src .lean, .live-latest .lean, .meta .lean { margin-left: 6px; }
 .live-update .dek { margin: 6px 0 0; color: var(--body); font-size: 0.92rem; line-height: 1.45; }
 .outlet-list li { padding: 5px 0; }
 
