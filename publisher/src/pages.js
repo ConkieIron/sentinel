@@ -518,6 +518,56 @@ ${countrySearch(ctx)}
   return layout({ title: 'Countries', description: 'Country briefings: incidents in the news and official UK and US travel advice.', path: '/countries/', body, ctx, active: 'regions' });
 }
 
+/**
+ * Local Incidents: a shell page. The browser's GPS is matched to a country centroid client-side
+ * (coordinates never leave the device); matching cards below are then shown.
+ */
+export function localPage(ctx) {
+  const { snapshot } = ctx;
+  const located = snapshot.incidents
+    .filter((i) => i.location?.iso3 && i.evidence !== 'social' && !i.retrospective)
+    .sort((a, b) => b.time - a.time);
+  const cards = located
+    .map((i) => incidentCard(i, ctx, { variant: 'item', className: 'local-item' }).replace('<article ', '<article hidden '))
+    .join('');
+  const body = `<div class="wrap">
+<section class="hero hero-small">
+<p class="eyebrow">Local incidents</p>
+<h1>Incidents near you</h1>
+<p class="hero-dek">Headlines for the country you are in right now. Your location is used only on this device to pick a country — it is never sent to SENTINEL.</p>
+</section>
+<section class="local-panel" data-local>
+<div class="local-status" data-local-status>
+<p data-local-message>Share your location to see verified incidents reported in your country in the last ${snapshot.windowHours} hours.</p>
+<p class="local-actions"><button type="button" class="local-btn" data-local-locate>Use my location</button></p>
+</div>
+<div class="local-result" data-local-result hidden>
+<p class="eyebrow" data-local-label></p>
+<h2 class="local-country" data-local-country></h2>
+<p class="muted small" data-local-meta></p>
+<p class="local-actions"><button type="button" class="local-btn local-btn-ghost" data-local-retry>Change location</button> <a class="local-link" data-local-briefing hidden>Full country briefing →</a></p>
+</div>
+<div class="local-fallback" data-local-fallback hidden>
+<p class="muted small">Or pick a country by name:</p>
+${countrySearch(ctx)}
+</div>
+</section>
+<section class="section">
+${sectionHead('Incidents in your country')}
+<p class="empty" data-local-empty>Use your location above to load local headlines.</p>
+<div class="story-list" data-local-list data-page-size="40">${cards}</div>
+</section>
+</div>`;
+  return layout({
+    title: 'Local incidents',
+    description: `Incidents reported in your country in the last ${snapshot.windowHours} hours, matched from your device location.`,
+    path: '/local/',
+    body,
+    ctx,
+    active: 'local',
+  });
+}
+
 export function terrorismPage(ctx) {
   const { snapshot } = ctx;
   const all = snapshot.incidents.filter((i) => i.category === 'terrorism').sort((a, b) => b.time - a.time);
@@ -590,6 +640,7 @@ export function aboutPage(ctx) {
 <p>Suspected terrorism counts, the Global terror list and the diamond markers on the maps include only reports from news outlets and official sources. Unverified social posts, and coverage of past attacks such as anniversaries and trials, are listed separately at the foot of the Global terror page.</p>
 <div class="table-wrap"><table><thead><tr><th>Category</th><th class="num">Weight</th><th class="num">In Latest now</th></tr></thead><tbody>${catRows}</tbody></table></div>
 <p class="muted small">Latest headlines are the newest verified reports of severity 3–5. <strong>Most serious right now</strong> ranks by severity, so a grave but older story still surfaces there. The Latest updates list shows other severity-2+ reports, newest first, and never repeats a headline story. Long lede-style titles pasted into a feed (common on Bluesky cards) are shortened to a compact headline. Unverified social posts and look-backs that read as terrorism stay in Latest but are not counted as suspected terrorism.</p>
+<p class="muted small"><strong>Local</strong> uses the browser's location on your device to pick the nearest country centroid, then shows that country's verified incidents. Coordinates are not sent to SENTINEL.</p>
 
 <h2>3. Location</h2>
 <p>Places named in the report are matched against a gazetteer of every country plus key cities and conflict hotspots. USGS and GDACS markers use exact coordinates; others sit on the city or country centre and are approximate. Cloud and IT failures described as worldwide or a global outage are labelled <strong>Global</strong> rather than pinned to a headquarters country. National aviation ground stops (for example an FAA halt) stay with that country.</p>

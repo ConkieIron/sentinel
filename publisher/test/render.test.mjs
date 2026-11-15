@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { esc, safeHref, ago, bySeriousness } from '../src/util.js';
-import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage, livePage, countryPage, countriesIndexPage, headlineIncidents } from '../src/pages.js';
+import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage, livePage, countryPage, countriesIndexPage, localPage, headlineIncidents } from '../src/pages.js';
 import { buildCountries } from '../src/countries.js';
 import { project, MAP_WIDTH, MAP_HEIGHT } from '../src/projection.js';
 
@@ -12,7 +12,7 @@ const EVIL = '<script>alert("x")</script><img src=x onerror=alert(1)>';
 function context(snapshot) {
   return {
     snapshot,
-    site: { url: 'https://example.pages.dev', publishMinutes: 120, homeIncidents: 80, version: '1.0.0' },
+    site: { url: 'https://example.pages.dev', publishMinutes: 120, homeIncidents: 80, version: '1.1.0' },
     now: Date.parse(snapshot.generatedAt),
     byId: new Map(snapshot.incidents.map((i) => [i.id, i])),
     regionNames: Object.fromEntries(snapshot.regions.map((r) => [r.id, r.name])),
@@ -23,6 +23,7 @@ function context(snapshot) {
 function allPages(ctx) {
   return [
     homePage(ctx),
+    localPage(ctx),
     regionsIndexPage(ctx),
     terrorismPage(ctx),
     aboutPage(ctx),
@@ -91,7 +92,7 @@ test('projection keeps the visible world inside the map frame', () => {
 
 test('every page renders a complete document from the fixture', () => {
   const pages = allPages(context(fixture));
-  assert.equal(pages.length, 6 + fixture.regions.length + buildCountries(fixture).size);
+  assert.equal(pages.length, 7 + fixture.regions.length + buildCountries(fixture).size);
   for (const html of pages) {
     assert.match(html, /^<!doctype html>/i);
     assert.match(html, /<\/html>\s*$/);
@@ -145,7 +146,17 @@ test('outlet cards show an approximate editorial lean tag', () => {
 test('masthead shows Beta and version badges', () => {
   const html = homePage(context(fixture));
   assert.match(html, /class="brand-badge brand-beta"[^>]*>Beta</);
-  assert.match(html, /class="brand-badge brand-version"[^>]*>v1\.0\.0</);
+  assert.match(html, /class="brand-badge brand-version"[^>]*>v1\.1\.0</);
+});
+
+test('Local incidents page asks for location and lists country-tagged cards', () => {
+  const html = localPage(context(fixture));
+  assert.match(html, /aria-current="page">Local</);
+  assert.match(html, /data-local-locate/);
+  assert.match(html, /Your location is used only on this device/);
+  assert.match(html, /data-local-list/);
+  const located = fixture.incidents.filter((i) => i.location?.iso3 && i.evidence !== 'social' && !i.retrospective);
+  if (located[0]) assert.match(html, new RegExp(`data-iso3="${located[0].location.iso3}"`));
 });
 
 test('live stories get a front-page teaser and a page listing every update, newest first', () => {

@@ -101,7 +101,8 @@ ${dekHtml}
 <div class="meta">${meta}</div>
 ${showSources ? `<details class="sources"><summary>${sourceSummary(inc.sources)}</summary><ul>${sources}</ul></details>` : ''}`;
 
-  return `<article class="story story-${variant}${className ? ` ${esc(className)}` : ''}"${anchor ? ` id="i-${esc(inc.id)}"` : ''} data-cat="${esc(filterCategory(inc))}" data-ev="${esc(inc.evidence)}">
+  const iso = inc.location?.iso3 || '';
+  return `<article class="story story-${variant}${className ? ` ${esc(className)}` : ''}"${anchor ? ` id="i-${esc(inc.id)}"` : ''} data-cat="${esc(filterCategory(inc))}" data-ev="${esc(inc.evidence)}"${iso ? ` data-iso3="${esc(iso)}"` : ''}>
 ${variant === 'row' ? `<div class="row-time">${timeTag(displayTime(inc, now), now)}</div><div class="row-body">${body}</div>` : body}
 </article>`;
 }

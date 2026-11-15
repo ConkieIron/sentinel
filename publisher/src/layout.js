@@ -3,6 +3,7 @@ import { esc, fmtUtc, clockTag } from './util.js';
 const NAV = [
   ['/', 'Home', 'home'],
   ['/#latest', 'Latest', 'latest'],
+  ['/local/', 'Local', 'local'],
   ['/regions/', 'Incident map', 'regions'],
   ['/terrorism/', 'Global terror', 'terrorism'],
   ['/about/', 'Methodology', 'about'],

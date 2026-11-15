@@ -336,6 +336,175 @@
     });
   }
 
+  // Local Incidents: match GPS to a country centroid on-device, then reveal that country's cards.
+  const localRoot = $('[data-local]');
+  if (localRoot) {
+    const status = $('[data-local-status]', localRoot);
+    const result = $('[data-local-result]', localRoot);
+    const fallback = $('[data-local-fallback]', localRoot);
+    const message = $('[data-local-message]', localRoot);
+    const countryEl = $('[data-local-country]', localRoot);
+    const labelEl = $('[data-local-label]', localRoot);
+    const metaEl = $('[data-local-meta]', localRoot);
+    const briefing = $('[data-local-briefing]', localRoot);
+    const empty = $('[data-local-empty]');
+    const list = $('[data-local-list]');
+    const locateBtn = $('[data-local-locate]', localRoot);
+    const retryBtn = $('[data-local-retry]', localRoot);
+    const items = list ? $$('[data-iso3]', list) : [];
+    const CACHE_KEY = 'sentinel-local-iso3';
+    let geo = null;
+
+    const km = (aLat, aLon, bLat, bLon) => {
+      const r = Math.PI / 180;
+      const x =
+        Math.sin(((bLat - aLat) * r) / 2) ** 2 +
+        Math.cos(aLat * r) * Math.cos(bLat * r) * Math.sin(((bLon - aLon) * r) / 2) ** 2;
+      return 12742 * Math.asin(Math.sqrt(x));
+    };
+    const nearest = (lat, lon, maxKm = 1500) => {
+      let best = null;
+      for (const c of geo || []) {
+        const d = km(lat, lon, c.lat, c.lon);
+        if (!best || d < best.d) best = { c, d };
+      }
+      return best && best.d <= maxKm ? best.c : null;
+    };
+    const setMessage = (text) => {
+      if (message) message.textContent = text;
+    };
+    const showCountry = (country) => {
+      try {
+        sessionStorage.setItem(CACHE_KEY, country.iso3);
+      } catch {}
+      if (status) status.hidden = true;
+      if (result) result.hidden = false;
+      if (fallback) fallback.hidden = true;
+      if (labelEl) labelEl.textContent = 'Your location';
+      if (countryEl) countryEl.textContent = country.name;
+      let shown = 0;
+      for (const el of items) {
+        const match = el.dataset.iso3 === country.iso3;
+        el.hidden = !match;
+        if (match) shown++;
+      }
+      if (metaEl) {
+        metaEl.textContent = shown
+          ? `${shown} verified incident${shown === 1 ? '' : 's'} in this edition`
+          : 'No verified incidents in this country in the current edition';
+      }
+      if (empty) {
+        empty.hidden = shown > 0;
+        empty.textContent = shown
+          ? ''
+          : `No verified incidents were reported in ${country.name} in this edition.`;
+      }
+      if (briefing) {
+        if (country.path) {
+          briefing.hidden = false;
+          briefing.href = country.path;
+          briefing.textContent = `${country.name} briefing →`;
+        } else {
+          briefing.hidden = true;
+        }
+      }
+    };
+    const fail = (text, { showFallback = true } = {}) => {
+      if (status) status.hidden = false;
+      if (result) result.hidden = true;
+      setMessage(text);
+      if (locateBtn) {
+        locateBtn.disabled = false;
+        locateBtn.textContent = 'Try again';
+      }
+      if (fallback) fallback.hidden = !showFallback;
+      for (const el of items) el.hidden = true;
+      if (empty) {
+        empty.hidden = false;
+        empty.textContent = 'Use your location above to load local headlines.';
+      }
+    };
+    const locate = () => {
+      if (!navigator.geolocation) {
+        fail('This browser cannot share a location. Pick a country by name instead.');
+        return;
+      }
+      if (locateBtn) {
+        locateBtn.disabled = true;
+        locateBtn.textContent = 'Locating…';
+      }
+      setMessage('Finding your country…');
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            if (!geo) {
+              const res = await fetch('/data/countries-geo.json', { cache: 'force-cache' });
+              if (!res.ok) throw new Error('geo');
+              geo = await res.json();
+            }
+            const country = nearest(pos.coords.latitude, pos.coords.longitude);
+            if (!country) {
+              fail('Could not match that location to a country. You may be too far offshore — pick a country by name.');
+              return;
+            }
+            showCountry(country);
+            if (locateBtn) {
+              locateBtn.disabled = false;
+              locateBtn.textContent = 'Use my location';
+            }
+          } catch {
+            fail('Could not load the country list. Check your connection and try again.');
+          }
+        },
+        (err) => {
+          if (err?.code === 1) {
+            fail('Location permission was blocked. Allow location for this site, or pick a country by name.');
+          } else if (err?.code === 3) {
+            fail('Location timed out. Try again, or pick a country by name.');
+          } else {
+            fail('Could not read your location. Try again, or pick a country by name.');
+          }
+        },
+        { enableHighAccuracy: false, maximumAge: 600000, timeout: 15000 },
+      );
+    };
+    locateBtn?.addEventListener('click', locate);
+    retryBtn?.addEventListener('click', () => {
+      try {
+        sessionStorage.removeItem(CACHE_KEY);
+      } catch {}
+      if (status) status.hidden = false;
+      if (result) result.hidden = true;
+      setMessage('Share your location to see verified incidents reported in your country.');
+      if (locateBtn) {
+        locateBtn.disabled = false;
+        locateBtn.textContent = 'Use my location';
+      }
+      locate();
+    });
+
+    (async () => {
+      try {
+        const cached = sessionStorage.getItem(CACHE_KEY);
+        if (cached) {
+          const res = await fetch('/data/countries-geo.json', { cache: 'force-cache' });
+          if (res.ok) {
+            geo = await res.json();
+            const country = geo.find((c) => c.iso3 === cached);
+            if (country) {
+              showCountry(country);
+              return;
+            }
+          }
+        }
+        if (navigator.permissions?.query) {
+          const perm = await navigator.permissions.query({ name: 'geolocation' });
+          if (perm.state === 'granted') locate();
+        }
+      } catch {}
+    })();
+  }
+
   // Notify when a newer static edition has been published. Live pages check every minute and
   // count the new updates on their story.
   const generated = document.querySelector('meta[name="sentinel-generated"]')?.content;

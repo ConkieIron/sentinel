@@ -14,8 +14,9 @@ import { createHash } from 'node:crypto';
 import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage, livePage, countryPage, countriesIndexPage } from './src/pages.js';
+import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage, livePage, countryPage, countriesIndexPage, localPage } from './src/pages.js';
 import { countriesOf, adviceChanges } from './src/countries.js';
+import { COUNTRIES as GEO_COUNTRIES } from '../worker/src/data/countries.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dist = join(here, 'dist');
@@ -142,6 +143,7 @@ const ctx = {
 
 const pages = [
   ['index.html', homePage(ctx)],
+  ['local/index.html', localPage(ctx)],
   ['regions/index.html', regionsIndexPage(ctx)],
   ['terrorism/index.html', terrorismPage(ctx)],
   ['about/index.html', aboutPage(ctx)],
@@ -152,6 +154,21 @@ const pages = [
   ...[...countriesOf(ctx).values()].map((c) => [`${c.path.slice(1)}index.html`, countryPage(ctx, c)]),
 ];
 for (const [path, html] of pages) await writePage(path, html);
+
+const pagesByIso = countriesOf(ctx);
+await writePage(
+  'data/countries-geo.json',
+  JSON.stringify(
+    GEO_COUNTRIES.map((c) => ({
+      iso3: c.iso3,
+      name: pagesByIso.get(c.iso3)?.name || c.name,
+      region: c.region,
+      lat: c.lat,
+      lon: c.lon,
+      path: pagesByIso.get(c.iso3)?.path || null,
+    })),
+  ),
+);
 
 await writePage('data/snapshot.json', JSON.stringify(snapshot));
 await writePage(
@@ -177,6 +194,7 @@ await writePage(
 
 const urls = [
   '/',
+  '/local/',
   '/regions/',
   '/terrorism/',
   '/about/',
