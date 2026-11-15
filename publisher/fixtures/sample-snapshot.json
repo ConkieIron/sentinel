@@ -25,7 +25,8 @@
    "disaster": 0.9,
    "infrastructure": 0.8,
    "health": 0.8,
-   "transport": 0.6
+   "transport": 0.6,
+   "strategic": 0.55
   },
   "evidenceWeight": {
    "official": 1,
@@ -42,7 +43,8 @@
   "disaster": "Natural disaster",
   "infrastructure": "Cyber & infrastructure",
   "health": "Health emergency",
-  "transport": "Major accident"
+  "transport": "Major accident",
+  "strategic": "Strategic development"
  },
  "stats": {
   "reportsScanned": 572,
@@ -66,7 +68,8 @@
    "disaster": 12,
    "infrastructure": 9,
    "health": 7,
-   "transport": 0
+   "transport": 0,
+   "strategic": 0
   }
  },
  "breakingId": "bfhk3j",

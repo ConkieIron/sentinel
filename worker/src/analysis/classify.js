@@ -13,6 +13,9 @@ export const CATEGORIES = {
   infrastructure: 'Cyber & infrastructure',
   health: 'Health emergency',
   transport: 'Major accident',
+  // Significant non-military developments that still matter for global awareness (space
+  // milestones, major science breakthroughs) — not routine launches or product news.
+  strategic: 'Strategic development',
 };
 
 const STRONG_TERROR =
@@ -36,6 +39,11 @@ const HEALTH =
   /\b(?:outbreak|epidemic|pandemic|cholera|ebola|mpox|marburg|measles|dengue|bird flu|avian (?:flu|influenza)|h5n1|plague|anthrax|mass poisoning)\b/i;
 const TRANSPORT =
   /\b(?:plane crash|air crash|crash landing|aircraft crash|helicopter crash|derail(?:ed|ment)|train (?:crash|collision)|ferry (?:sank|sinks|capsiz\w*)|boat capsiz\w*|capsized|shipwreck|bus crash|bridge collapse|building collapse|stampede|crowd crush|mine collapse|fire kills|blaze kills)\b/i;
+// Space / science milestones only: catch/landing firsts, crewed flights, named programmes.
+// Routine Starlink batches and funding rounds stay unclassified.
+const STRATEGIC_ROUTINE = /\b(?:starlink|batch of (?:satellites|starlink)|rideshare|another (?:\d+|batch)|raises? \$?\d|funding round|stock|shares?|ipo)\b/i;
+const STRATEGIC =
+  /\b(?:(?:catch(?:es|ing)?|caught)\s+(?:a\s+)?(?:booster|super.?heavy|starship|falcon|rocket|spacecraft|first.?stage)|(?:booster|super.?heavy|starship|falcon|spacecraft|rocket|first.?stage)\s+(?:catch(?:es|ing)?|caught|soft.?land(?:s|ed|ing)|touchdown)|mechazilla|chopsticks(?:\s+catch)?|(?:spacex|nasa|esa|blue origin|roscosmos|isro|jaxa|cnsa|starship|falcon|artemis).{0,80}(?:catch(?:es|ing)?|caught|soft.?land(?:s|ed|ing)|historic|first(?:-|\s)?ever|milestone|breakthrough|crew(?:ed)?|manned|splashdown)|(?:crew(?:ed)?|manned)\s+(?:spacecraft|capsule|mission|flight)\s+(?:launches?|docks?|returns?|lands?|splashdown)|(?:nasa|esa|artemis).{0,40}(?:crew(?:ed)?|capsule|spacecraft).{0,40}(?:return|returns|splashdown|lands?|docks?|launches?)|(?:artemis|starship)\s+(?:launch|flight|test|mission|catch|landing|crew)|(?:first|historic|landmark).{0,50}(?:soft.?landing|moon landing|mars landing|orbital catch|booster catch|spacewalk)|(?:nuclear fusion).{0,40}(?:breakthrough|ignition|net energy|milestone)|(?:quantum (?:computing|computer|supremacy|advantage)).{0,30}(?:breakthrough|milestone|achieves?))\b/i;
 
 const NOT_INCIDENT =
   /\b(?:trade war|price war|culture war|war of words|tariffs?|box office|football|cricket|tennis|rugby|olympics?|world cup|premier league|grand prix|championship|election results?|stock market|recipe|fashion|celebrity|oscars?|grammys?|bets?|betting|prediction markets?|polymarket|kalshi)\b/i;
@@ -104,10 +112,21 @@ function pickCategory(text, casualties) {
   if (INFRA.test(text)) return 'infrastructure';
   if (HEALTH.test(text)) return 'health';
   if (TRANSPORT.test(text)) return 'transport';
+  if (STRATEGIC.test(text) && !STRATEGIC_ROUTINE.test(text)) return 'strategic';
   return null;
 }
 
-const BASE_SEVERITY = { terrorism: 3, attack: 2, conflict: 2, unrest: 2, disaster: 2, infrastructure: 2, health: 2, transport: 2 };
+const BASE_SEVERITY = {
+  terrorism: 3,
+  attack: 2,
+  conflict: 2,
+  unrest: 2,
+  disaster: 2,
+  infrastructure: 2,
+  health: 2,
+  transport: 2,
+  strategic: 2,
+};
 
 /**
  * @param {string} title
@@ -139,6 +158,7 @@ export function classify(title, summary = '') {
   else if (k >= 1) severity += 1;
   else if (casualties.injured >= 20) severity += 1;
   if (ESCALATION.test(text)) severity += 1;
+  if (category === 'strategic' && /\b(?:historic|first(?:-|\s)?ever|breakthrough|milestone|unprecedented)\b/i.test(title)) severity += 1;
   if (RHETORIC.test(title) && k === 0) severity -= 1;
   if (SOFT.test(title)) severity -= 1;
   if (category === 'terrorism' && FOILED.test(title) && k === 0) severity = Math.min(severity, 2);

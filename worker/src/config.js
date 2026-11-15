@@ -81,6 +81,7 @@ export const MODEL = {
     infrastructure: 0.8,
     health: 0.8,
     transport: 0.6,
+    strategic: 0.55,
   },
   evidenceWeight: { official: 1.0, multi: 1.25, publisher: 1.0, social: 0.25 },
   // Within a region, the n-th heaviest incident counts diminishingReturns^(n-1), so many minor

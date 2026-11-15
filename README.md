@@ -77,10 +77,11 @@ list. Repeat headlines from the same outlet are dropped.
 
 ## How the threat index works
 
-1. Every report is classified by its headline into one of eight categories: Suspected terrorism,
+1. Every report is classified by its headline into one of nine categories: Suspected terrorism,
    Violent attack, Armed conflict, Civil unrest, Natural disaster, Cyber & infrastructure,
-   Health emergency, Major accident. Each report gets a severity from 1 to 5 based on reported
-   casualties and escalation language.
+   Health emergency, Major accident, Strategic development (space and science milestones such as
+   a booster catch — not routine satellite batches). Each report gets a severity from 1 to 5 based
+   on reported casualties and escalation language.
 2. Reports are located with a gazetteer (countries, cities, aliases) and clustered into
    incidents across outlets. Sibling clusters about the same event (including cross-border
    wording) are merged in a second pass so the same story is not listed twice.
