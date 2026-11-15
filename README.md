@@ -41,7 +41,8 @@ and tested on its own.
   Middle East Eye, Dawn (Pakistan), The Times of India, South China Morning Post, The Japan Times,
   The Sydney Morning Herald, Premium Times (Nigeria), Fox News, The Wall Street Journal,
   New York Post, The Telegraph and The Australian. Telegraph and The Australian are read via
-  Google News site-search RSS because their native public feeds are blocked or empty.
+  narrowed Google News world/news RSS (wrappers resolved to publisher URLs where possible)
+  because their native public feeds are blocked or empty.
 - **Bluesky:** official accounts of CNN, Reuters, AP, AFP, NBC News, Bloomberg, USA Today and
   Politico. These outlets have no usable public RSS feed for world news, so their accounts are
   used instead. There is also a filtered public search,

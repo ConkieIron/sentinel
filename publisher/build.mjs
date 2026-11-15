@@ -64,13 +64,17 @@ async function codeVersion() {
   return hash.digest('hex').slice(0, 12);
 }
 
-// Identifies what a reader would notice: the site design, region levels, the significant
-// incidents and every report on a live story. Other minor churn (new sev-1/2 reports, extra
-// sources) does not change it. Market prices count once per 15 minutes while a market is open,
-// and once more for the closing prices, so they don't force a deploy on every run.
+// Identifies what a reader would notice: the site design, region levels, significant incidents,
+// the home Latest set (sev ≥ 2), and every report on a live story. Market prices count once per
+// 15 minutes while a market is open, and once more for the closing prices.
 const MARKET_REFRESH_MS = 15 * 60000;
 function editionFingerprint(snapshot, version) {
   const markets = snapshot.markets || [];
+  const latestHome = snapshot.incidents
+    .filter((i) => i.severity >= 2 && i.evidence !== 'social' && !i.retrospective)
+    .sort((a, b) => b.time - a.time)
+    .slice(0, 40)
+    .map((i) => `${i.id}:${i.time}`);
   const material = {
     version,
     markets: markets.some((m) => m.open)
@@ -81,6 +85,7 @@ function editionFingerprint(snapshot, version) {
       .filter((i) => i.severity >= 3)
       .map((i) => `${i.id}:${i.severity}:${i.category}`)
       .sort(),
+    latest: latestHome,
     live: (snapshot.live || []).map((s) => [s.id, ...s.updates.map((u) => u.url)]),
     advice: adviceChanges(snapshot, Date.parse(snapshot.generatedAt)).map((c) => `${c.iso3}:${c.gov}:${c.time}`),
   };
@@ -116,10 +121,12 @@ await rm(dist, { recursive: true, force: true });
 await mkdir(dist, { recursive: true });
 await cp(join(here, 'static/public'), dist, { recursive: true });
 
+const rootPkg = JSON.parse(await readFile(join(here, '../package.json'), 'utf8'));
 const site = {
   url: process.env.SITE_URL || 'https://sentinelglobalnews.pages.dev',
   publishMinutes: Number(process.env.PUBLISH_INTERVAL_MINUTES || 120),
   homeIncidents: 80,
+  version: rootPkg.version || '0.0.0',
 };
 const live = snapshot.live || [];
 const liveByUrl = new Map(live.flatMap((s) => s.updates.map((u) => [u.url, s])));

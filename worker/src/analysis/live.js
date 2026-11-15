@@ -188,6 +188,10 @@ for (const c of COUNTRIES) {
 for (const [phrase, iso] of DEMONYMS) {
   if (iso) addPlaceStem(phrase, iso);
 }
+// Capitals and hotspots so "Tehran"/"Baghdad" count as the same place family as the country.
+for (const [phrase, iso] of PLACES) {
+  if (iso) addPlaceStem(phrase, iso);
+}
 PLACE_STEM.set('us', 'usa');
 PLACE_STEM.set('uk', 'gbr');
 const PLACE_ISOS = new Set(PLACE_STEM.values());
@@ -289,6 +293,15 @@ export function sameTake(a, b) {
   if (titleA.size < 2 || titleB.size < 2) return false;
   const titleShared = sharedCount(titleA, titleB);
   const titleJaccard = titleShared / (titleA.size + titleB.size - titleShared);
+  const placesA = placeTokens(titleA);
+  const placesB = placeTokens(titleB);
+  const placeShared = sharedCount(placesA, placesB);
+  const exclusivePlaces = placesA.size + placesB.size - 2 * placeShared;
+  const famA = eventFamilies(titleA);
+  const famB = eventFamilies(titleB);
+  const famShared = famA.filter((i) => famB.includes(i));
+  const exclusiveDev = (x, y) => x.some((i) => i >= DEVELOPMENT_FAMILY_MIN && !y.includes(i));
+  const developmentShared = famShared.some((i) => i >= DEVELOPMENT_FAMILY_MIN);
 
   let paraphrase = titleShared >= LIVE.titleShared && titleJaccard >= LIVE.takeOverlap;
 
@@ -296,19 +309,24 @@ export function sameTake(a, b) {
   // when wording Jaccard is low. A distinct development family (condemn, sentence) blocks the merge.
   // Single-country court/condemn stories only need one shared place if enough title words overlap.
   if (!paraphrase) {
-    const placesA = placeTokens(titleA);
-    const placesB = placeTokens(titleB);
-    const placeShared = sharedCount(placesA, placesB);
-    const famA = eventFamilies(titleA);
-    const famB = eventFamilies(titleB);
-    const famShared = famA.filter((i) => famB.includes(i));
-    const exclusive = (x, y) => x.some((i) => i >= DEVELOPMENT_FAMILY_MIN && !y.includes(i));
-    const developmentShared = famShared.some((i) => i >= DEVELOPMENT_FAMILY_MIN);
     const placeOk =
       placeShared >= LIVE.skeletonPlaces || (placeShared >= 1 && developmentShared && titleShared >= 3);
-    if (placeOk && famShared.length && !exclusive(famA, famB) && !exclusive(famB, famA)) {
+    if (
+      placeOk &&
+      famShared.length &&
+      titleShared >= 2 &&
+      exclusivePlaces < 2 &&
+      !exclusiveDev(famA, famB) &&
+      !exclusiveDev(famB, famA)
+    ) {
       paraphrase = true;
     }
+  }
+
+  // Different theatres that only share the same actors (Iran+US in Iraq vs Syria) stay separate
+  // unless the headlines are near-identical copies.
+  if (paraphrase && exclusivePlaces >= 2 && !developmentShared && titleJaccard < LIVE.titleNearIdentical) {
+    return false;
   }
 
   if (!paraphrase) return false;

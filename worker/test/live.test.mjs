@@ -251,6 +251,16 @@ test('paraphrases of one strike collapse; a condemnation and an alert stay separ
   assert.ok(kept.some((r) => /radar|intercept|attack/i.test(r.title)));
 });
 
+test('same actors in different theatres are not one take', () => {
+  assert.ok(!sameTake('Iran strikes US base in Iraq', 'Iran strikes US base in Syria'));
+  assert.ok(
+    sameTake(
+      'Iran says it targets US radar in Bahrain. What do we know?',
+      'Bahraini defence forces say several Iranian aerial attacks intercepted',
+    ),
+  );
+});
+
 test('digit and word counts match so sentencing rewrites collapse to one take', () => {
   assert.deepEqual(
     takeTokens('3 men').filter((t) => t.startsWith('n')),

@@ -15,6 +15,7 @@ import {
   livePill,
   storyFigure,
 } from './components.js';
+import { leanCaveat } from './lean.js';
 import { esc, safeHref, timeTag, fmtUtc, ago, LEVEL_LABEL, isReportedTerror, filterCategory, inLatest } from './util.js';
 import { countriesOf, countryPath, adviceChangedAt, adviceChanges } from './countries.js';
 
@@ -167,11 +168,16 @@ ${foldPanel('Official resources', `<ul class="link-list">${OFFICIAL_LINKS.map(([
 </aside>`;
 }
 
-/** Severity-first headlines: a notable story keeps its slot until something more severe arrives. */
-export function headlineIncidents(incidents, limit = 7) {
+/**
+ * Sticky headlines: severity still dominates, but fresher stories get a soft bump so an old
+ * sev-5 does not occupy the lead forever while newer sev-3/4 only appear in Latest.
+ */
+export function headlineIncidents(incidents, limit = 7, now = Date.now()) {
+  const ageHours = (i) => Math.max(0, (now - i.time) / 3600000);
+  const score = (i) => i.severity * Math.pow(0.88, ageHours(i));
   return incidents
     .filter((i) => i.evidence !== 'social' && !i.retrospective && i.severity >= 2)
-    .sort((a, b) => b.severity - a.severity || b.time - a.time)
+    .sort((a, b) => score(b) - score(a) || b.time - a.time)
     .slice(0, limit);
 }
 
@@ -187,7 +193,7 @@ export function homePage(ctx) {
   const s = snapshot.stats;
   const newestFirst = (a, b) => b.time - a.time;
 
-  const fresh = headlineIncidents(snapshot.incidents, 7);
+  const fresh = headlineIncidents(snapshot.incidents, 7, now);
   const lead = fresh[0];
   const tiles = fresh.slice(1);
   const headlineIds = new Set(fresh.map((i) => i.id));
@@ -225,6 +231,7 @@ ${tiles.map((i) => incidentCard(i, ctx, { variant: 'tile' })).join('')}
 
 <section class="section">
 ${sectionHead('Latest updates', { id: 'latest' })}
+${leanCaveat()}
 ${incidentList(feed, ctx, { filterable: true, pageSize: 20, variant: 'row', advice: adviceChanges(snapshot, now) })}
 </section>
 
@@ -572,7 +579,7 @@ export function aboutPage(ctx) {
 <article class="prose">
 <h2>1. Collection and publishing</h2>
 <p>Every five minutes SENTINEL reads ${snapshot.sources.length} sources: news feeds from ${rss.length} publishers (${esc(listNames(rss))}), the official Bluesky accounts of ${bskyPublishers.length} news organisations (${esc(listNames(bskyPublishers))}), public Bluesky posts matching incident keywords, USGS earthquake data and GDACS disaster alerts. Only items from the last ${snapshot.windowHours} hours are used.</p>
-<p>Each outlet is tagged with an approximate <strong>editorial lean</strong> (Left, Centre-left, Centre, Centre-right, Right, Wire, State-funded or Official). These labels are a transparency aid drawn from commonly cited media-bias placements and public-broadcaster status. They are <em>not</em> accuracy ratings, and contested outlets are labelled conservatively.</p>
+<p>Each outlet is tagged with an approximate <strong>editorial lean</strong> (Left, Centre-left, Centre, Centre-right, Right, Wire, State-funded or Official). These labels are a transparency aid drawn from commonly cited media-bias placements and public-broadcaster status. They are <em>not</em> accuracy ratings, and contested outlets are labelled conservatively. BBC is rated Centre as a charter public broadcaster; DW, France 24, RFI, ABC Australia and CNA are marked State-funded as government international services. Multi-outlet incidents may also show a lean span across the sources covering them.</p>
 <p>A new edition is published whenever something a reader would notice has changed, and at least once an hour. Separately, a watcher checks the wire services and other major outlets every minute. When one reports major breaking news or a new development in a story covered live, it starts a rebuild straight away, so these usually appear within two or three minutes.</p>
 <p>Stock market figures in the masthead come from Yahoo Finance and can be delayed by up to 15 minutes.</p>
 

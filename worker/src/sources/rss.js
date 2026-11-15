@@ -3,6 +3,7 @@
 
 import { fetchWithTimeout } from '../lib/http.js';
 import { stripHtml, safeUrl, parseTime, truncate, decodeEntities } from '../lib/text.js';
+import { isGoogleNewsUrl, resolveGoogleNewsItems } from './googleNews.js';
 
 function tag(block, name) {
   const re = new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)</${name}>`, 'i');
@@ -103,10 +104,14 @@ export async function fetchRss(feed, { now, windowMs, maxItems }) {
       url: p.url,
       time,
       image: p.image || undefined,
+      via: feed.viaGoogleNews || isGoogleNewsUrl(p.url) ? 'Google News' : undefined,
     });
     if (items.length >= maxItems) break;
   }
-  return { items, parsed: parsed.length, newest: newest || null };
+  const resolved = feed.viaGoogleNews || items.some((i) => isGoogleNewsUrl(i.url))
+    ? await resolveGoogleNewsItems(items, { limit: 12 })
+    : items;
+  return { items: resolved, parsed: parsed.length, newest: newest || null };
 }
 
 // GDACS: official UN/EC multi-hazard alerts. Only current Orange/Red alerts are kept;

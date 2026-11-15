@@ -6,11 +6,11 @@ test('wires are polled every minute and every other outlet within four minutes',
   const start = Date.parse('2026-11-14T15:00:00Z');
   const runs = [0, 1, 2, 3].map((m) => accountsFor(start + m * 60000).map((a) => a.handle));
   for (const handles of runs) {
-    assert.equal(handles.length, 5);
+    assert.equal(handles.length, 5); // 3 wires + 2 rotating
     for (const wire of ['reuters.com', 'apnews.com', 'cnn.com']) assert.ok(handles.includes(wire));
   }
   const covered = new Set(runs.flat());
-  for (const h of ['afp.com', 'nbcnews.com', 'theguardian.com', 'nytimes.com', 'washingtonpost.com', 'news.sky.com', 'aljazeera.com']) {
+  for (const h of ['afp.com', 'nbcnews.com', 'theguardian.com', 'nytimes.com', 'washingtonpost.com', 'news.sky.com', 'aljazeera.com', 'wsj.com']) {
     assert.ok(covered.has(h), h);
   }
 });

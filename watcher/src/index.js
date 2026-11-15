@@ -61,7 +61,14 @@ const ROTATING = [
   { handle: 'washingtonpost.com', name: 'The Washington Post' },
   { handle: 'news.sky.com', name: 'Sky News' },
   { handle: 'aljazeera.com', name: 'Al Jazeera' },
+  { handle: 'wsj.com', name: 'The Wall Street Journal' },
 ];
+// Fox has no usable official Bluesky account; its world RSS is polled alongside the rotate set.
+const FOX_RSS = {
+  id: 'fox-watch',
+  name: 'Fox News',
+  url: 'https://moxie.foxnews.com/google-publisher/world.xml',
+};
 const ROTATE_PER_RUN = 2;
 // live.json only changes when the site is published, so it is re-read every few minutes.
 const LIVE_TTL_MS = 3 * 60000;
@@ -121,6 +128,31 @@ async function fetchQuakes() {
   });
 }
 
+/** Fox world RSS — polled every run because Fox has no official Bluesky account. */
+async function fetchFoxRss() {
+  const res = await fetchWithTimeout(FOX_RSS.url, {
+    timeoutMs: 8000,
+    headers: { Accept: 'application/rss+xml, application/xml, text/xml, */*' },
+  });
+  const xml = await res.text();
+  const items = [];
+  for (const block of xml.match(/<item\b[\s\S]*?<\/item>/gi) || []) {
+    const title = stripFlash(
+      (block.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '')
+        .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+        .replace(/<[^>]+>/g, '')
+        .replace(/&amp;/g, '&')
+        .trim(),
+    );
+    const link = (block.match(/<link[^>]*>([\s\S]*?)<\/link>/i)?.[1] || '').replace(/<[^>]+>/g, '').trim();
+    const time = Date.parse(block.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i)?.[1] || '');
+    if (title.length < 20 || !Number.isFinite(time) || !link) continue;
+    items.push({ key: `rss:${link}`, source: FOX_RSS.name, title, time, maxAgeMs: WIRE_MAX_AGE_MS });
+    if (items.length >= 5) break;
+  }
+  return items;
+}
+
 let liveCache = { at: 0, stories: [] };
 
 async function fetchLive(siteUrl, now) {
@@ -134,7 +166,12 @@ async function fetchLive(siteUrl, now) {
 }
 
 export async function fetchSources(env = {}, now = Date.now()) {
-  const [live, ...results] = await Promise.allSettled([fetchLive(env.SITE_URL, now), ...accountsFor(now).map((w) => fetchWire(w)), fetchQuakes()]);
+  const [live, ...results] = await Promise.allSettled([
+    fetchLive(env.SITE_URL, now),
+    ...accountsFor(now).map((w) => fetchWire(w)),
+    fetchQuakes(),
+    fetchFoxRss(),
+  ]);
   const items = [];
   const errors = [];
   for (const r of results) {
@@ -145,12 +182,12 @@ export async function fetchSources(env = {}, now = Date.now()) {
   return { items, live: live.status === 'fulfilled' ? live.value : [], errors };
 }
 
-/** New, recent wire posts that match a story the site is covering live. */
+/** New, recent wire/RSS posts that match a story the site is covering live. */
 export function findLiveUpdates(items, live, { now, seen }) {
   if (!live.length) return [];
   const out = [];
   for (const item of items) {
-    if (!item.key.startsWith('bsky:') || seen.has(item.key) || now - item.time > item.maxAgeMs || item.time > now + 5 * 60000) continue;
+    if ((!item.key.startsWith('bsky:') && !item.key.startsWith('rss:')) || seen.has(item.key) || now - item.time > item.maxAgeMs || item.time > now + 5 * 60000) continue;
     const features = topicFeatures(item.title);
     const story = live.find((s) => s.topics.some((t) => topicMatches(features, t)));
     if (story) out.push({ ...item, story });

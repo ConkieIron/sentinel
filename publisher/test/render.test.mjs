@@ -12,7 +12,7 @@ const EVIL = '<script>alert("x")</script><img src=x onerror=alert(1)>';
 function context(snapshot) {
   return {
     snapshot,
-    site: { url: 'https://example.pages.dev', publishMinutes: 120, homeIncidents: 80 },
+    site: { url: 'https://example.pages.dev', publishMinutes: 120, homeIncidents: 80, version: '1.0.0' },
     now: Date.parse(snapshot.generatedAt),
     byId: new Map(snapshot.incidents.map((i) => [i.id, i])),
     regionNames: Object.fromEntries(snapshot.regions.map((r) => [r.id, r.name])),
@@ -138,7 +138,27 @@ test('outlet cards show an approximate editorial lean tag', () => {
   inc.sources[0].lean = 'left';
   const home = homePage(context(snapshot));
   assert.match(home, /class="lean lean-left"[^>]*>Left</);
+  assert.match(home, /lean-caveat/);
   assert.match(aboutPage(context(snapshot)), /editorial lean/);
+});
+
+test('masthead shows Beta and version badges', () => {
+  const html = homePage(context(fixture));
+  assert.match(html, /class="brand-badge brand-beta"[^>]*>Beta</);
+  assert.match(html, /class="brand-badge brand-version"[^>]*>v1\.0\.0</);
+});
+
+test('multi-outlet cards can show a lean span', () => {
+  const snapshot = structuredClone(fixture);
+  const inc = snapshot.incidents.find((i) => i.sources?.length >= 1);
+  assert.ok(inc);
+  inc.evidence = 'multi';
+  inc.sourceCount = 2;
+  inc.sources = [
+    { name: 'The Guardian', lean: 'left', url: 'https://example.com/a', type: 'publisher', time: Date.parse(snapshot.generatedAt) },
+    { name: 'Fox News', lean: 'right', url: 'https://example.com/b', type: 'publisher', time: Date.parse(snapshot.generatedAt) },
+  ];
+  assert.match(homePage(context(snapshot)), /lean-spread[^>]*>Left–Right</);
 });
 
 test('live stories get a front-page teaser and a page listing every update, newest first', () => {
@@ -197,17 +217,19 @@ test('phones get folded sidebar panels', () => {
   assert.match(home, /<section class="panel wide-only">\s*<h2 class="panel-title">Regional threat levels/);
 });
 
-test('headlines are the most severe stories and are not repeated in Latest', () => {
-  const home = homePage(context(fixture));
+test('headlines blend severity with recency and are not repeated in Latest', () => {
+  const ctx = context(fixture);
+  const home = homePage(ctx);
   const headlines = home.slice(home.indexOf('Latest headlines'), home.indexOf('id="latest"'));
   const latest = home.slice(home.indexOf('id="latest"'));
+  const ageHours = (i) => Math.max(0, (ctx.now - i.time) / 3600000);
+  const score = (i) => i.severity * Math.pow(0.88, ageHours(i));
   const notable = [...fixture.incidents]
     .filter((i) => i.evidence !== 'social' && !i.retrospective && i.severity >= 2)
-    .sort((a, b) => b.severity - a.severity || b.time - a.time)
+    .sort((a, b) => score(b) - score(a) || b.time - a.time)
     .slice(0, 7);
-  assert.ok(notable[0].severity >= 4, 'fixture lead should be severe');
+  assert.ok(notable[0].severity >= 4, 'fixture lead should still be severe');
   assert.match(headlines, new RegExp(`id="i-${notable[0].id}"`));
-  assert.doesNotMatch(headlines, /Inside Ethiopia/);
   for (const i of notable) {
     assert.equal(latest.includes(`id="i-${i.id}"`), false, `${i.id} should not reappear in Latest`);
   }

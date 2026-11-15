@@ -1,6 +1,6 @@
 import { esc, safeHref, timeTag, clockTag, trim, usefulUpdateDek, fmtUtc, filterCategory, LEVEL_LABEL, TREND, EVIDENCE } from './util.js';
 import { countriesOf, countryPath } from './countries.js';
-import { leanTag } from './lean.js';
+import { leanTag, leanSpread } from './lean.js';
 
 export function levelBadge(level) {
   return `<span class="lvl lvl-${esc(level)}">${esc(LEVEL_LABEL[level])}</span>`;
@@ -52,7 +52,7 @@ function headline(inc, tag) {
   return `<${tag} class="headline"><a href="${esc(safeHref(inc.url))}" target="_blank" rel="noopener noreferrer">${esc(inc.title)}<span class="vh"> (opens ${esc(via)} in a new tab)</span></a></${tag}>`;
 }
 
-// Dek length per variant; 0 hides the summary.
+// Dek length per variant; 0 hides the summary. Latest rows use usefulUpdateDek for sev ≥ 3.
 const DEK = { lead: 320, tile: 150, item: 200, row: 0, compact: 0 };
 
 /**
@@ -75,11 +75,20 @@ export function incidentCard(inc, ctx, { variant = 'item', anchor = true, classN
   const src = primarySource(inc);
   const dekLen = DEK[variant] ?? 200;
   const live = ctx.liveFor?.(inc);
+  const rowDek = variant === 'row' && inc.severity >= 3 ? usefulUpdateDek(inc, 180) : '';
+  const dekHtml =
+    rowDek
+      ? `<p class="dek">${esc(rowDek)}</p>`
+      : inc.summary && dekLen
+        ? `<p class="dek">${esc(trim(inc.summary, dekLen))}</p>`
+        : '';
+  const spread = inc.evidence === 'multi' ? leanSpread(inc.sources, snapshot) : '';
 
   const meta = [
     live ? `<a class="live-link" href="/live/${esc(live.id)}/">${livePill(live, ctx)} Follow coverage</a>` : '',
     variant === 'row' ? '' : timeTag(inc.time, now),
     src ? `<span class="src">${esc(src.name)}</span>${leanTag(src.lean || src.name, snapshot)}` : '',
+    spread,
     showSev ? `<span class="sev sev-${inc.severity}" title="Severity ${inc.severity} of 5">Severity ${inc.severity}/5</span>` : '',
     showEv ? `<span class="ev ev-${esc(inc.evidence)}">${esc(evidenceLabel)}</span>` : '',
     casualtyText(inc.casualties, inc.evidence),
@@ -88,7 +97,7 @@ export function incidentCard(inc, ctx, { variant = 'item', anchor = true, classN
 
   const body = `<div class="kicker"><span class="cat cat-${esc(inc.category)}">${esc(snapshot.categories[inc.category])}</span>${regionLink(inc, ctx)}</div>
 ${headline(inc, 'h3')}
-${inc.summary && dekLen ? `<p class="dek">${esc(trim(inc.summary, dekLen))}</p>` : ''}
+${dekHtml}
 <div class="meta">${meta}</div>
 ${showSources ? `<details class="sources"><summary>${sourceSummary(inc.sources)}</summary><ul>${sources}</ul></details>` : ''}`;
 
