@@ -190,8 +190,7 @@
   for (const list of $$('.story-list')) {
     const size = narrow ? Math.min(10, Number(list.dataset.pageSize) || 25) : Number(list.dataset.pageSize) || 25;
     const chips = list.previousElementSibling?.classList.contains('chips') ? list.previousElementSibling : null;
-    // On phones the lead headline sits right above Latest, so its row there is left out.
-    const stories = $$('.story', list).filter((s) => !(narrow && s.classList.contains('is-lead')));
+    const stories = $$('.story', list);
     let filter = 'all';
     let hideSocial = false;
     let limit = size;

@@ -82,12 +82,16 @@ list. Repeat headlines from the same outlet are dropped.
    Health emergency, Major accident. Each report gets a severity from 1 to 5 based on reported
    casualties and escalation language.
 2. Reports are located with a gazetteer (countries, cities, aliases) and clustered into
-   incidents across outlets.
-3. Each incident gets a weight: severity × category × evidence (official, multiple outlets,
+   incidents across outlets. Sibling clusters about the same event (including cross-border
+   wording) are merged in a second pass so the same story is not listed twice.
+3. Front-page headlines are the most severe verified incidents; a story keeps its headline
+   slot until something more severe takes its place. Latest updates lists the other
+   severity-2+ incidents and never repeats a headline story.
+4. Each incident gets a weight: severity × category × evidence (official, multiple outlets,
    single outlet, unverified social) × 24-hour recency half-life.
-4. Each region's score sums its incidents, heaviest first, with diminishing returns. This stops
+5. Each region's score sums its incidents, heaviest first, with diminishing returns. This stops
    heavy media coverage of one country from inflating its region.
-5. Levels are **relative**. Each region is compared with the busiest region on a square-root
+6. Levels are **relative**. Each region is compared with the busiest region on a square-root
    scale. High needs ≥ 0.75 of the busiest region and a score of at least 14. Medium needs ≥ 0.4
    and a score of at least 4. The absolute floors stop a quiet news day from showing High anywhere.
 

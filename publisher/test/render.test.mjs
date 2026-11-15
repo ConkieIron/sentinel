@@ -151,13 +151,27 @@ test('hostile content in live stories is escaped', () => {
   assert.ok(!/href="javascript:/i.test(html), 'javascript: link leaked');
 });
 
-test('phones get folded sidebar panels and no duplicate of the lead headline in Latest', () => {
+test('phones get folded sidebar panels', () => {
   const home = homePage(context(fixture));
-  const latest = home.slice(home.indexOf('id="latest"'));
-  assert.equal((latest.match(/class="story story-row is-lead"/g) || []).length, 1);
   assert.match(home, /<details class="panel panel-fold">\s*<summary class="panel-title"><span>Source health<\/span><span class="fold-note">\d+ of \d+ online<\/span>/);
   assert.match(home, /<details class="panel panel-fold" data-open-wide>\s*<summary class="panel-title"><span>Evidence labels<\/span>/);
   assert.match(home, /<section class="panel wide-only">\s*<h2 class="panel-title">Regional threat levels/);
+});
+
+test('headlines are the most severe stories and are not repeated in Latest', () => {
+  const home = homePage(context(fixture));
+  const headlines = home.slice(home.indexOf('Latest headlines'), home.indexOf('id="latest"'));
+  const latest = home.slice(home.indexOf('id="latest"'));
+  const notable = [...fixture.incidents]
+    .filter((i) => i.evidence !== 'social' && !i.retrospective && i.severity >= 2)
+    .sort((a, b) => b.severity - a.severity || b.time - a.time)
+    .slice(0, 7);
+  assert.ok(notable[0].severity >= 4, 'fixture lead should be severe');
+  assert.match(headlines, new RegExp(`id="i-${notable[0].id}"`));
+  assert.doesNotMatch(headlines, /Inside Ethiopia/);
+  for (const i of notable) {
+    assert.equal(latest.includes(`id="i-${i.id}"`), false, `${i.id} should not reappear in Latest`);
+  }
 });
 
 test('the main live story shows its picture, credited and linked to the source', () => {
@@ -213,8 +227,9 @@ test('Global terror lists outlet reports; social posts and anniversaries sit apa
   const panel = home.slice(home.indexOf('<h2>Suspected terrorism</h2>'));
   assert.match(panel, /Gunmen kill 12/);
   assert.doesNotMatch(panel.slice(0, panel.indexOf('</section>')), /Americans unable|France marks/);
-  // The Latest filter chip and the Methodology table count the same reports.
-  assert.match(home, /data-filter="terrorism" aria-pressed="false">Suspected terrorism <span>1<\/span>/);
+  // The outlet report leads the headlines, so Latest only shows the unverified social post.
+  assert.match(home, /story-lead" id="i-t1"/);
+  assert.doesNotMatch(home.slice(home.indexOf('id="latest"')), /id="i-t1"/);
   assert.match(home, /data-cat="unconfirmed"/);
   assert.match(aboutPage(context(snapshot)), /cat-terrorism">Suspected terrorism<\/span><\/td><td class="num">[\d.]+<\/td><td class="num">1<\/td>/);
 });

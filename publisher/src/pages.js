@@ -110,7 +110,7 @@ ${storyFigure(story, { className: 'live-hero-figure' })}
 <div class="main-col">
 <section class="section section-first">
 ${sectionHead('Latest updates', { id: 'updates' })}
-<p class="section-dek">Newest first. Every update links to the original report on the publisher's site. SENTINEL groups reports automatically by matching headlines, so a closely related story can occasionally appear.</p>
+<p class="section-dek">Newest first. Every update links to the original report on the publisher's site. Closely related reports are grouped into one story; a closely related story can occasionally still appear.</p>
 <ol class="live-feed" data-live-id="${esc(story.id)}" data-latest="${story.updatedAt}" data-page-size="20">
 ${story.updates.map((u) => liveUpdate(u, now)).join('')}
 </ol>
@@ -169,10 +169,18 @@ ${foldPanel('Official resources', `<ul class="link-list">${OFFICIAL_LINKS.map(([
 </aside>`;
 }
 
-/** The Latest timeline on the home page, headlines included, newest first. */
-const latestFeed = (ctx) =>
+/** Severity-first headlines: a notable story keeps its slot until something more severe arrives. */
+export function headlineIncidents(incidents, limit = 7) {
+  return incidents
+    .filter((i) => i.evidence !== 'social' && !i.retrospective && i.severity >= 2)
+    .sort((a, b) => b.severity - a.severity || b.time - a.time)
+    .slice(0, limit);
+}
+
+/** Latest timeline: severity ≥ 2, excluding stories already shown as headlines. */
+const latestFeed = (ctx, excludeIds = new Set()) =>
   ctx.snapshot.incidents
-    .filter(inLatest)
+    .filter((i) => inLatest(i) && !excludeIds.has(i.id))
     .sort((a, b) => b.time - a.time)
     .slice(0, ctx.site.homeIncidents);
 
@@ -181,17 +189,13 @@ export function homePage(ctx) {
   const s = snapshot.stats;
   const newestFirst = (a, b) => b.time - a.time;
 
-  // Headlines: the newest verified reports. The most severe of that fresh batch leads.
-  const fresh = snapshot.incidents
-    .filter((i) => i.evidence !== 'social' && !i.retrospective && i.severity >= 2)
-    .sort(newestFirst)
-    .slice(0, 7);
-  const lead = [...fresh].sort((a, b) => b.severity - a.severity || b.time - a.time)[0];
-  const tiles = fresh.filter((i) => i !== lead);
+  const fresh = headlineIncidents(snapshot.incidents, 7);
+  const lead = fresh[0];
+  const tiles = fresh.slice(1);
   const headlineIds = new Set(fresh.map((i) => i.id));
 
-  // The full timeline, headlines included, so its first row is always the newest report.
-  const feed = latestFeed(ctx);
+  // Stories already in the headline grid are left out of Latest so each appears once.
+  const feed = latestFeed(ctx, headlineIds);
   const listedIds = new Set([...headlineIds, ...feed.map((i) => i.id)]);
   const serious = snapshot.incidents.filter((i) => i.evidence !== 'social' && !i.retrospective).slice(0, 5);
   const terror = snapshot.incidents.filter(isReportedTerror).sort(newestFirst);
@@ -223,7 +227,7 @@ ${tiles.map((i) => incidentCard(i, ctx, { variant: 'tile' })).join('')}
 
 <section class="section">
 ${sectionHead('Latest updates', { id: 'latest' })}
-${incidentList(feed, ctx, { filterable: true, pageSize: 20, variant: 'row', advice: adviceChanges(snapshot, now), leadId: lead?.id })}
+${incidentList(feed, ctx, { filterable: true, pageSize: 20, variant: 'row', advice: adviceChanges(snapshot, now) })}
 </section>
 
 <section id="map" class="section">
@@ -551,7 +555,7 @@ export function aboutPage(ctx) {
   const { snapshot, now } = ctx;
   const m = snapshot.model;
   const inFeed = {};
-  for (const i of latestFeed(ctx)) inFeed[filterCategory(i)] = (inFeed[filterCategory(i)] || 0) + 1;
+  for (const i of snapshot.incidents.filter(inLatest)) inFeed[filterCategory(i)] = (inFeed[filterCategory(i)] || 0) + 1;
   const catRows = Object.entries(snapshot.categories)
     .map(([k, label]) => `<tr><td><span class="cat cat-${esc(k)}">${esc(label)}</span></td><td class="num">${m.categoryWeight[k]}</td><td class="num">${inFeed[k] || 0}</td></tr>`)
     .join('');
@@ -577,7 +581,7 @@ export function aboutPage(ctx) {
 <p>Each headline and standfirst is matched against an explainable rule set that assigns a category, extracts reported casualty figures and sets a <strong>severity from 1 to 5</strong>. Retrospective items (anniversaries, trials, sentencing) are capped at severity 1. Commentary, sport and business stories are excluded. Public social posts that read as jokes or satire are dropped.</p>
 <p>Suspected terrorism counts, the Global terror list and the diamond markers on the maps include only reports from news outlets and official sources. Unverified social posts, and coverage of past attacks such as anniversaries and trials, are listed separately at the foot of the Global terror page.</p>
 <div class="table-wrap"><table><thead><tr><th>Category</th><th class="num">Weight</th><th class="num">In Latest now</th></tr></thead><tbody>${catRows}</tbody></table></div>
-<p class="muted small">Latest lists reports of severity 2 and above. Unverified social posts and look-backs that read as terrorism stay in Latest but are not counted as suspected terrorism.</p>
+<p class="muted small">Headlines are the most severe verified reports (severity 2 and above), kept until something more severe takes their place. Latest lists the other severity-2+ reports, newest first, so a story is not shown twice. Unverified social posts and look-backs that read as terrorism stay in Latest but are not counted as suspected terrorism.</p>
 
 <h2>3. Location</h2>
 <p>Places named in the report are matched against a gazetteer of every country plus key cities and conflict hotspots. USGS and GDACS markers use exact coordinates; others sit on the city or country centre and are approximate.</p>

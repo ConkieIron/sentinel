@@ -10,10 +10,17 @@ export const STOP = new Set(
     'attack attacks injured wounded near during against while where which there here them they other since').split(' '),
 );
 
+function stemToken(w) {
+  let s = w.length > 6 ? w.slice(0, 6) : w;
+  // claim/claims, strike/strikes: keep a singular form so outlets still match.
+  if (s.length > 4 && s.endsWith('s') && !s.endsWith('ss')) s = s.slice(0, -1);
+  return s;
+}
+
 export function significantTokens(text) {
   const out = new Set();
   for (const w of String(text).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/[^a-z0-9]+/)) {
-    if (w.length > 3 && !STOP.has(w)) out.add(w.length > 6 ? w.slice(0, 6) : w);
+    if (w.length > 3 && !STOP.has(w)) out.add(stemToken(w));
   }
   return out;
 }
@@ -22,7 +29,7 @@ const FAMILY = { terrorism: 'violence', attack: 'violence', conflict: 'violence'
 const family = (c) => FAMILY[c] || c;
 const TYPE_RANK = { official: 3, publisher: 2, social: 1 };
 
-function similar(a, b) {
+export function similar(a, b) {
   if (Math.abs(a.time - b.time) > 36 * 3600000) return false;
   if (family(a.cls.category) !== family(b.cls.category)) return false;
   if (a.dedupeKey && b.dedupeKey) return a.dedupeKey === b.dedupeKey;
@@ -40,7 +47,41 @@ function similar(a, b) {
   for (const t of a.tokens) if (b.tokens.has(t)) shared++;
   if (shared < 2) return false;
   const overlap = shared / Math.max(1, Math.min(a.tokens.size, b.tokens.size));
-  return overlap >= (a.loc && b.loc ? 0.42 : 0.5);
+  // Same or missing country: slightly lower bar. Cross-border matches need a clearer overlap
+  // so "Iran … Bahrain" can join "Bahrain … Iran" without merging unrelated regional stories.
+  const samePlace = !a.loc?.iso3 || !b.loc?.iso3 || a.loc.iso3 === b.loc.iso3;
+  return overlap >= (samePlace ? (a.loc && b.loc ? 0.42 : 0.5) : 0.55);
+}
+
+function hardMembers(members) {
+  const hard = members.filter((m) => m.type !== 'social');
+  return hard.length ? hard : members;
+}
+
+function clustersMatch(a, b) {
+  const poolA = hardMembers(a.members);
+  const poolB = hardMembers(b.members);
+  return poolA.some((x) => poolB.some((y) => similar(x, y)));
+}
+
+/** Merge sibling clusters that the greedy country pass left apart (cross-border, social seeds). */
+function consolidate(clusters) {
+  const out = clusters.map((c) => ({ members: [...c.members] }));
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (let i = 0; i < out.length; i++) {
+      for (let j = i + 1; j < out.length; j++) {
+        if (!clustersMatch(out[i], out[j])) continue;
+        out[i].members.push(...out[j].members);
+        out.splice(j, 1);
+        changed = true;
+        break;
+      }
+      if (changed) break;
+    }
+  }
+  return out;
 }
 
 export function clusterItems(items) {
@@ -66,7 +107,7 @@ export function clusterItems(items) {
     }
     buckets.set(key, bucket);
   }
-  return clusters.map(toIncident);
+  return consolidate(clusters).map(toIncident);
 }
 
 function toIncident({ members }) {

@@ -48,3 +48,24 @@ test('social-only incidents are capped at severity 3', () => {
   assert.equal(inc.evidence, 'social');
   assert.ok(inc.severity <= 3);
 });
+
+test('sibling clusters about the same event are consolidated', () => {
+  // Different social seeds and a cross-border outlet used to leave three incidents.
+  const incidents = clusterItems([
+    item('Bluesky', 'Senior Hamas commander killed in Israeli strike in Gaza', { type: 'social', minutesAgo: 600 }),
+    item('Bluesky', 'Named Hamas commander killed in Israeli strike on Khan Younis', { type: 'social', minutesAgo: 400 }),
+    item('Irish Times', 'Senior Hamas commander killed in Israeli strike in Gaza', { minutesAgo: 26 }),
+    item('Middle East Eye', 'Hamas commander Samir Abu Younis killed in Israeli strike on Khan Younis', { minutesAgo: 270 }),
+    item('Sky News', 'Hamas says senior commander killed in Israeli airstrike', { minutesAgo: 314 }),
+  ]);
+  assert.equal(incidents.length, 1);
+  assert.ok(incidents[0].sourceCount >= 3);
+});
+
+test('cross-border reports of the same strike merge', () => {
+  const incidents = clusterItems([
+    item('France 24', 'Iran claims attack on US military airbase in Bahrain', { minutesAgo: 30 }),
+    item('The Hindu', "Sirens sound in Bahrain as Iran's Guards claim drone attack", { minutesAgo: 290 }),
+  ]);
+  assert.equal(incidents.length, 1);
+});
