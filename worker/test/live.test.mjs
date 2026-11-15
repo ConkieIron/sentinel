@@ -251,6 +251,23 @@ test('paraphrases of one strike collapse; a condemnation and an alert stay separ
   assert.ok(kept.some((r) => /radar|intercept|attack/i.test(r.title)));
 });
 
+test('digit and word counts match so sentencing rewrites collapse to one take', () => {
+  assert.deepEqual(
+    takeTokens('3 men').filter((t) => t.startsWith('n')),
+    takeTokens('three men').filter((t) => t.startsWith('n')),
+  );
+  const bbc = 'Three men sentenced to death in Jordan over fatal church mass shooting';
+  const toi = 'Jordan sentences 3 men to death for October church attack that killed 9';
+  assert.ok(sameTake(bbc, toi));
+  assert.equal(
+    dedupeTakes([
+      { ...report('BBC News', bbc, 1), summary: 'The attack on a funeral at a Greek Orthodox church killed nine and injured 34 others last month.' },
+      { ...report('The Times of India', toi, 2), summary: 'A Jordanian court has handed down death sentences to three men for their participation in a horrific terrorist attack.' },
+    ]).length,
+    1,
+  );
+});
+
 test('a summary that adds facts counts as a new take, and live-blog items are preferred', () => {
   assert.ok(isLiveBlogItem({ title: 'FAA ground stop updates: flights resume', url: 'https://www.bbc.co.uk/news/live/abc' }));
   assert.ok(isLiveBlogItem({ title: 'Live: Bahrain intercepts Iranian drones', url: 'https://www.reuters.com/world/bahrain' }));

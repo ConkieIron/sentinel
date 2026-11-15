@@ -200,7 +200,7 @@ function stemWord(w) {
 
 /** Event families: paraphrases of one development share a family even when verbs differ. */
 const EVENT_FAMILIES = [
-  'attack strike struck target bomb raid shell missile rocket drone intercept interc'.split(' ').map(stemWord),
+  'attack strike struck target bomb raid shell missile rocket drone intercept interc shoot shooting shot gunman'.split(' ').map(stemWord),
   'alert threat warning siren'.split(' ').map(stemWord),
   'kill killed killing dead death toll casual injured wound'.split(' ').map(stemWord),
   'condemn condem denounce protest'.split(' ').map(stemWord),
@@ -208,7 +208,15 @@ const EVENT_FAMILIES = [
   'ceasefire truce hostage liberat rescue'.split(' ').map(stemWord),
 ].map((words) => new Set(words));
 
-/** Tokens for take comparison: keep event verbs and fold demonyms onto country codes. */
+// Development families (condemn / sentence / ceasefire): index >= 3 in EVENT_FAMILIES.
+const DEVELOPMENT_FAMILY_MIN = 3;
+
+const WORD_TO_NUM = {
+  one: '1', two: '2', three: '3', four: '4', five: '5', six: '6', seven: '7', eight: '8', nine: '9',
+  ten: '10', eleven: '11', twelve: '12',
+};
+
+/** Tokens for take comparison: keep event verbs, fold demonyms onto country codes, unify 3/three. */
 export function takeTokens(text) {
   const words = String(text || '')
     .replace(/\bU\.S\.A?\.?|\bUnited States(?: of America)?\b/gi, 'US')
@@ -219,12 +227,20 @@ export function takeTokens(text) {
   const out = [];
   for (const w of words) {
     if (!w) continue;
+    const l = w.toLowerCase();
+    if (/^\d+$/.test(l)) {
+      out.push(`n${String(parseInt(l, 10))}`);
+      continue;
+    }
+    if (WORD_TO_NUM[l]) {
+      out.push(`n${WORD_TO_NUM[l]}`);
+      continue;
+    }
     let tok;
     if (/^[A-Z][A-Z0-9]{1,5}$/.test(w)) {
       if (ACRONYM_STOP.has(w)) continue;
       tok = w.toLowerCase();
     } else {
-      const l = w.toLowerCase();
       if (l.length <= 3) continue;
       if (STOP.has(l) && !TAKE_KEEP.has(l)) continue;
       tok = stemWord(l);
@@ -250,12 +266,8 @@ function summaryExtras(r) {
   return new Set(takeTokens(r.summary || '').filter((t) => !titleTok.has(t)));
 }
 
-const NUMBER_WORDS = new Set(
-  'one two three four five six seven eight nine ten eleven twelve dozen score hundred thousand million'.split(' '),
-);
-
 function figureTokens(extras) {
-  return [...extras].filter((t) => /^\d/.test(t) || NUMBER_WORDS.has(t)).sort();
+  return [...extras].filter((t) => /^n\d+$/.test(t)).sort();
 }
 
 function placeTokens(tokens) {
@@ -282,6 +294,7 @@ export function sameTake(a, b) {
 
   // Same places + same event family catches "intercepted Iranian strikes" vs "radar … attacked"
   // when wording Jaccard is low. A distinct development family (condemn, sentence) blocks the merge.
+  // Single-country court/condemn stories only need one shared place if enough title words overlap.
   if (!paraphrase) {
     const placesA = placeTokens(titleA);
     const placesB = placeTokens(titleB);
@@ -289,13 +302,11 @@ export function sameTake(a, b) {
     const famA = eventFamilies(titleA);
     const famB = eventFamilies(titleB);
     const famShared = famA.filter((i) => famB.includes(i));
-    const exclusive = (x, y) => x.some((i) => i >= 3 && !y.includes(i)); // condemn / sentence / ceasefire
-    if (
-      placeShared >= LIVE.skeletonPlaces &&
-      famShared.length &&
-      !exclusive(famA, famB) &&
-      !exclusive(famB, famA)
-    ) {
+    const exclusive = (x, y) => x.some((i) => i >= DEVELOPMENT_FAMILY_MIN && !y.includes(i));
+    const developmentShared = famShared.some((i) => i >= DEVELOPMENT_FAMILY_MIN);
+    const placeOk =
+      placeShared >= LIVE.skeletonPlaces || (placeShared >= 1 && developmentShared && titleShared >= 3);
+    if (placeOk && famShared.length && !exclusive(famA, famB) && !exclusive(famB, famA)) {
       paraphrase = true;
     }
   }
