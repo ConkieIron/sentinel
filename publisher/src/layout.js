@@ -11,14 +11,15 @@ const NAV = [
 
 const price = new Intl.NumberFormat('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-/** Masthead ticker: open markets only (closed indexes stay out of the way of threat signals). */
+/** Masthead ticker: one index at a time. Open markets first so the rotator leads with live quotes. */
 function marketTicker(markets = []) {
-  const open = (markets || []).filter((m) => m.open && Number.isFinite(m.price));
-  if (!open.length) return '';
-  const items = open.map((m, i) => {
+  const list = [...(markets || [])].filter((m) => Number.isFinite(m.price));
+  if (!list.length) return '';
+  list.sort((a, b) => Number(b.open) - Number(a.open));
+  const items = list.map((m, i) => {
     const dir = m.changePct > 0 ? 'up' : m.changePct < 0 ? 'down' : 'flat';
     const change = m.changePct === null ? '' : `<span class="tk-${dir}">${dir === 'up' ? '▲' : dir === 'down' ? '▼' : '■'} ${Math.abs(m.changePct).toFixed(2)}%</span>`;
-    const status = `<span class="tk-status">${change ? ' · ' : ''}${clockTag(m.time)}</span>`;
+    const status = `<span class="tk-status">${change ? ' · ' : ''}${m.open ? clockTag(m.time) : 'Closed'}</span>`;
     return `<span class="wc-face" data-ticker-item${i ? ' hidden' : ''}><span class="wc-city">${esc(m.name)}</span><span class="wc-time">${price.format(m.price)}</span><span class="wc-meta">${change}${status}</span></span>`;
   });
   return `<button type="button" class="ticker rotator" data-ticker aria-label="Stock markets, show the next index">${items.join('')}</button>`;

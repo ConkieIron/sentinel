@@ -303,21 +303,17 @@ test('the main live story shows its picture, credited and linked to the source',
   assert.ok(!/href="javascript:/i.test(badLink));
 });
 
-test('the masthead ticker shows open indexes only, the first visible without JavaScript', () => {
+test('the masthead ticker shows each index with open markets first', () => {
   const snapshot = structuredClone(fixture);
   const at = Date.parse(snapshot.generatedAt);
   snapshot.markets = [
-    { id: 'ftse', name: 'FTSE 100', price: 10902.56, changePct: 0.36, time: at, open: true },
     { id: 'dow', name: 'Dow Jones', price: 52347.55, changePct: -0.4, time: at - 86400000, open: false },
-    { id: 'nikkei', name: 'Nikkei 225', price: 50200.1, changePct: 0.12, time: at, open: true },
+    { id: 'ftse', name: 'FTSE 100', price: 10902.56, changePct: 0.36, time: at, open: true },
   ];
   const home = homePage(context(snapshot));
   assert.match(home, /data-ticker-item><span class="wc-city">FTSE 100<\/span><span class="wc-time">10,902\.56<\/span><span class="wc-meta"><span class="tk-up">▲ 0\.36%<\/span><span class="tk-status"> · <time/);
-  assert.match(home, /data-ticker-item hidden><span class="wc-city">Nikkei 225<\/span>/);
-  assert.doesNotMatch(home, /Dow Jones/, 'closed indexes stay out of the masthead');
+  assert.match(home, /data-ticker-item hidden><span class="wc-city">Dow Jones<\/span>.*▼ 0\.40%<\/span><span class="tk-status"> · Closed/);
   assert.match(home, /data-edition-age/);
-  snapshot.markets = [{ id: 'dow', name: 'Dow Jones', price: 52347.55, changePct: -0.4, time: at - 86400000, open: false }];
-  assert.doesNotMatch(homePage(context(snapshot)), /data-ticker/, 'all closed, no ticker');
   delete snapshot.markets;
   assert.doesNotMatch(homePage(context(snapshot)), /data-ticker/, 'no market data, no ticker');
 });
