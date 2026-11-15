@@ -9,6 +9,7 @@ import {
   dedupeTakes,
   isLiveBlogItem,
   takeText,
+  takeTokens,
 } from '../src/analysis/live.js';
 
 const NOW = Date.parse('2026-11-14T14:00:00Z');
@@ -220,6 +221,34 @@ test('the same announcement from many outlets is not a live story', () => {
   assert.deepEqual(findLiveStories(incidents, reports, NOW), []);
   assert.ok(sameTake(reports[0].title, reports[1].title));
   assert.equal(dedupeTakes(reports.slice(0, 4)).length, 1);
+});
+
+test('paraphrases of one strike collapse; a condemnation and an alert stay separate', () => {
+  // Iran/Iranian must share a place token; "attack" is a clustering stopword but must count here.
+  assert.ok(takeTokens('Iranian strikes').includes('irn'));
+  assert.ok(takeTokens('Iranian aerial attacks').includes('attack'));
+
+  const titles = [
+    'Jordan condemns Iranian drone strike on Bahrain',
+    'Iran says it targets US radar in Bahrain. What do we know?',
+    'Bahrain says it intercepted Iranian strikes, Tehran targets U.S. assets',
+    'Bahraini defence forces say several Iranian aerial attacks intercepted',
+    'Bahrain issues first threat alerts since September as Iran says it attacked US base',
+    'US radar facility at Bahrain base attacked with six drones, IRGC claims',
+    "Bahrain's interior ministry issues alerts of potential threats",
+  ];
+  assert.ok(sameTake(titles[1], titles[2]), 'radar target ≈ intercepted strikes');
+  assert.ok(sameTake(titles[2], titles[3]), 'intercepted strikes ≈ aerial attacks intercepted');
+  assert.ok(sameTake(titles[1], titles[5]), 'radar target ≈ radar facility attacked');
+  assert.ok(!sameTake(titles[0], titles[1]), 'condemnation is a new development');
+  assert.ok(!sameTake(titles[1], titles[6]), 'alerts-only is not the strike take');
+
+  const reports = titles.map((title, i) => report('Outlet', title, i));
+  const kept = dedupeTakes(reports);
+  assert.equal(kept.length, 3, 'strike cluster + Jordan condemnation + alerts');
+  assert.ok(kept.some((r) => /condemns/i.test(r.title)));
+  assert.ok(kept.some((r) => /alerts of potential threats/i.test(r.title)));
+  assert.ok(kept.some((r) => /radar|intercept|attack/i.test(r.title)));
 });
 
 test('a summary that adds facts counts as a new take, and live-blog items are preferred', () => {

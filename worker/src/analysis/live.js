@@ -32,12 +32,15 @@ export const LIVE = {
   activeOutlets: 2,
   matureHours: 12,
   matureOutlets: 3,
-  // Title paraphrase (Jaccard): wording variants of one announcement collapse. A standfirst only
-  // splits a take when the headlines are near-identical and the dek introduces a new figure.
+  // Title paraphrase (Jaccard on take-tokens): close wording variants collapse. When verbs differ
+  // ("intercepted strikes" vs "radar attacked"), the place+event skeleton fallback still merges.
+  // A standfirst only splits a take when headlines are near-identical and the dek adds a figure.
   takeOverlap: 0.42,
   takeShared: 4,
   titleShared: 4,
   titleNearIdentical: 0.85,
+  // Fallback: shared places/actors plus the same event family (attack vs alert vs condemn).
+  skeletonPlaces: 2,
   // A two-word match must fall this close to a stronger match on the same story.
   weakMatchHours: 4,
   lookbackHours: 36,
@@ -156,8 +159,83 @@ export function takeText(r) {
   return `${title} ${extra.join(' ')}`;
 }
 
+// Clustering drops "attack"/"killed" as too common; take-dedupe must keep them so paraphrases match.
+const TAKE_KEEP = new Set(
+  ('attack attacks strike strikes struck targeted targeting bomb bombs bombing raid raids shell shelling ' +
+    'missile missiles rocket rockets drone drones intercept intercepted intercepts kill killed kills killing dead death ' +
+    'toll injured wounded condemn condemns condemned denounce alert alerts threat threats warning warnings ' +
+    'sentence sentenced arrest arrested ceasefire truce hostage hostages').split(/\s+/),
+);
+
+// Multi-word country names contribute "city"/"south"/etc.; those must not become place tokens.
+const PLACE_GENERIC = new Set(
+  'city state states island islands republic kingdom north south east west united holy see feder arab emirates'.split(' '),
+);
+
+/** Map demonym stems (irania) and country stems (iran) onto one ISO-keyed place token. */
+const PLACE_STEM = new Map();
+function addPlaceStem(phrase, iso) {
+  const key = String(iso).toLowerCase();
+  const toks = orderedTokens(phrase);
+  for (const t of toks) {
+    if (toks.length > 1 && PLACE_GENERIC.has(t)) continue;
+    PLACE_STEM.set(t, key);
+  }
+}
+for (const c of COUNTRIES) {
+  for (const name of [c.name, ...(c.names || [])]) addPlaceStem(name, c.iso3);
+}
+for (const [phrase, iso] of DEMONYMS) {
+  if (iso) addPlaceStem(phrase, iso);
+}
+PLACE_STEM.set('us', 'usa');
+PLACE_STEM.set('uk', 'gbr');
+const PLACE_ISOS = new Set(PLACE_STEM.values());
+
+/** Stem a verb the same way takeTokens does, so families match truncated tokens. */
+function stemWord(w) {
+  const l = String(w).toLowerCase();
+  return l.length > 6 ? l.slice(0, 6) : l;
+}
+
+/** Event families: paraphrases of one development share a family even when verbs differ. */
+const EVENT_FAMILIES = [
+  'attack strike struck target bomb raid shell missile rocket drone intercept interc'.split(' ').map(stemWord),
+  'alert threat warning siren'.split(' ').map(stemWord),
+  'kill killed killing dead death toll casual injured wound'.split(' ').map(stemWord),
+  'condemn condem denounce protest'.split(' ').map(stemWord),
+  'sentence senten arrest charge convict'.split(' ').map(stemWord),
+  'ceasefire truce hostage liberat rescue'.split(' ').map(stemWord),
+].map((words) => new Set(words));
+
+/** Tokens for take comparison: keep event verbs and fold demonyms onto country codes. */
+export function takeTokens(text) {
+  const words = String(text || '')
+    .replace(/\bU\.S\.A?\.?|\bUnited States(?: of America)?\b/gi, 'US')
+    .replace(/\bU\.K\.?|\bUnited Kingdom\b/gi, 'UK')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .split(/[^A-Za-z0-9]+/);
+  const out = [];
+  for (const w of words) {
+    if (!w) continue;
+    let tok;
+    if (/^[A-Z][A-Z0-9]{1,5}$/.test(w)) {
+      if (ACRONYM_STOP.has(w)) continue;
+      tok = w.toLowerCase();
+    } else {
+      const l = w.toLowerCase();
+      if (l.length <= 3) continue;
+      if (STOP.has(l) && !TAKE_KEEP.has(l)) continue;
+      tok = stemWord(l);
+    }
+    out.push(PLACE_STEM.get(tok) || tok);
+  }
+  return out;
+}
+
 function tokenSet(text) {
-  return new Set(orderedTokens(text));
+  return new Set(takeTokens(text));
 }
 
 function sharedCount(A, B) {
@@ -169,7 +247,7 @@ function sharedCount(A, B) {
 function summaryExtras(r) {
   if (typeof r === 'string') return new Set();
   const titleTok = tokenSet(r.title || '');
-  return new Set(orderedTokens(r.summary || '').filter((t) => !titleTok.has(t)));
+  return new Set(takeTokens(r.summary || '').filter((t) => !titleTok.has(t)));
 }
 
 const NUMBER_WORDS = new Set(
@@ -180,6 +258,18 @@ function figureTokens(extras) {
   return [...extras].filter((t) => /^\d/.test(t) || NUMBER_WORDS.has(t)).sort();
 }
 
+function placeTokens(tokens) {
+  return new Set([...tokens].filter((t) => PLACE_ISOS.has(t)));
+}
+
+function eventFamilies(tokens) {
+  const hit = [];
+  for (let i = 0; i < EVENT_FAMILIES.length; i++) {
+    if ([...tokens].some((t) => EVENT_FAMILIES[i].has(t))) hit.push(i);
+  }
+  return hit;
+}
+
 /** True when two reports (or headline strings) are essentially the same news restated. */
 export function sameTake(a, b) {
   const titleA = tokenSet(typeof a === 'string' ? a : a.title || '');
@@ -187,8 +277,30 @@ export function sameTake(a, b) {
   if (titleA.size < 2 || titleB.size < 2) return false;
   const titleShared = sharedCount(titleA, titleB);
   const titleJaccard = titleShared / (titleA.size + titleB.size - titleShared);
-  // Paraphrases of one announcement ("Jordan sentences three…" / "Three sentenced…").
-  if (titleShared < LIVE.titleShared || titleJaccard < LIVE.takeOverlap) return false;
+
+  let paraphrase = titleShared >= LIVE.titleShared && titleJaccard >= LIVE.takeOverlap;
+
+  // Same places + same event family catches "intercepted Iranian strikes" vs "radar … attacked"
+  // when wording Jaccard is low. A distinct development family (condemn, sentence) blocks the merge.
+  if (!paraphrase) {
+    const placesA = placeTokens(titleA);
+    const placesB = placeTokens(titleB);
+    const placeShared = sharedCount(placesA, placesB);
+    const famA = eventFamilies(titleA);
+    const famB = eventFamilies(titleB);
+    const famShared = famA.filter((i) => famB.includes(i));
+    const exclusive = (x, y) => x.some((i) => i >= 3 && !y.includes(i)); // condemn / sentence / ceasefire
+    if (
+      placeShared >= LIVE.skeletonPlaces &&
+      famShared.length &&
+      !exclusive(famA, famB) &&
+      !exclusive(famB, famA)
+    ) {
+      paraphrase = true;
+    }
+  }
+
+  if (!paraphrase) return false;
 
   // Different wording of the same announcement: ignore dek differences so syndication collapses.
   if (titleJaccard < LIVE.titleNearIdentical) return true;
