@@ -204,7 +204,7 @@ test('phones get folded sidebar panels', () => {
   assert.match(home, /<section class="panel wide-only">\s*<h2 class="panel-title">Regional threat levels/);
 });
 
-test('a fresh lower severity never outranks an older higher severity', () => {
+test('Most serious ranks by severity; Latest headlines are newest severity 3+', () => {
   const now = Date.now();
   const olderFive = {
     id: 'ebola',
@@ -215,35 +215,49 @@ test('a fresh lower severity never outranks an older higher severity', () => {
     evidence: 'multi',
     retrospective: false,
   };
-  const freshFour = {
-    id: 'jordan',
-    title: 'Jordan sentences three men to death',
-    severity: 4,
-    weight: 14,
+  const freshThree = {
+    id: 'protest',
+    title: 'Large protest fills capital streets',
+    severity: 3,
+    weight: 4,
     time: now - 3600000,
     evidence: 'multi',
     retrospective: false,
   };
-  assert.ok(bySeriousness(olderFive, freshFour) < 0);
-  const ranked = headlineIncidents([freshFour, olderFive], 2);
-  assert.equal(ranked[0].id, 'ebola');
-  assert.equal(ranked[1].id, 'jordan');
+  const minor = {
+    id: 'quake',
+    title: 'Minor quake felt in coastal town',
+    severity: 2,
+    weight: 2,
+    time: now,
+    evidence: 'publisher',
+    retrospective: false,
+  };
+  assert.ok(bySeriousness(olderFive, freshThree) < 0);
+  const headlines = headlineIncidents([olderFive, freshThree, minor], 3);
+  assert.equal(headlines[0].id, 'protest', 'newest severity 3+ leads headlines');
+  assert.equal(headlines[1].id, 'ebola');
+  assert.ok(!headlines.some((i) => i.id === 'quake'), 'severity 2 stays out of headlines');
 });
 
-test('headlines and Most serious rank by severity first and are not repeated in Latest', () => {
+test('headlines are newest first, Most serious is severity first, and neither repeats in Latest', () => {
   const ctx = context(fixture);
   const home = homePage(ctx);
   const headlines = home.slice(home.indexOf('Latest headlines'), home.indexOf('id="latest"'));
   const latest = home.slice(home.indexOf('id="latest"'));
   const mostSerious = home.slice(home.indexOf('Most serious right now'));
-  const notable = [...fixture.incidents]
-    .filter((i) => i.evidence !== 'social' && !i.retrospective && i.severity >= 2)
-    .sort(bySeriousness)
+  const fresh = [...fixture.incidents]
+    .filter((i) => i.evidence !== 'social' && !i.retrospective && i.severity >= 3)
+    .sort((a, b) => b.time - a.time || b.severity - a.severity)
     .slice(0, 7);
-  assert.ok(notable[0].severity >= 4, 'fixture lead should still be severe');
-  assert.match(headlines, new RegExp(`id="i-${notable[0].id}"`));
-  assert.match(mostSerious, new RegExp(notable[0].title.slice(0, 30).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
-  for (const i of notable) {
+  const serious = [...fixture.incidents]
+    .filter((i) => i.evidence !== 'social' && !i.retrospective && i.severity >= 3)
+    .sort(bySeriousness)
+    .slice(0, 5);
+  assert.ok(fresh[0], 'fixture should have severity 3+ incidents');
+  assert.match(headlines, new RegExp(`id="i-${fresh[0].id}"`));
+  assert.match(mostSerious, new RegExp(serious[0].title.slice(0, 30).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  for (const i of fresh) {
     assert.equal(latest.includes(`id="i-${i.id}"`), false, `${i.id} should not reappear in Latest`);
   }
 });

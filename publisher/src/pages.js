@@ -169,13 +169,13 @@ ${foldPanel('Official resources', `<ul class="link-list">${OFFICIAL_LINKS.map(([
 }
 
 /**
- * Sticky headlines: sort by severity first (what the badge shows), then weight / time.
- * Recency and category weight never let a lower severity outrank a higher one.
+ * Latest headlines: newest verified reports of severity 3–5. Severity ranking belongs in
+ * "Most serious right now", not here — otherwise a stale 5/5 blocks fresher breaking news.
  */
 export function headlineIncidents(incidents, limit = 7) {
   return incidents
-    .filter((i) => i.evidence !== 'social' && !i.retrospective && i.severity >= 2)
-    .sort(bySeriousness)
+    .filter((i) => i.evidence !== 'social' && !i.retrospective && i.severity >= 3)
+    .sort((a, b) => b.time - a.time || b.severity - a.severity)
     .slice(0, limit);
 }
 
@@ -199,9 +199,9 @@ export function homePage(ctx) {
   // Stories already in the headline grid are left out of Latest so each appears once.
   const feed = latestFeed(ctx, headlineIds);
   const listedIds = new Set([...headlineIds, ...feed.map((i) => i.id)]);
-  // Same severity-first order as headlines — not the weight-sorted incident list.
+  // Severity first — independent of Latest headlines, which are newest-first.
   const serious = snapshot.incidents
-    .filter((i) => i.evidence !== 'social' && !i.retrospective && i.severity >= 2)
+    .filter((i) => i.evidence !== 'social' && !i.retrospective && i.severity >= 3)
     .sort(bySeriousness)
     .slice(0, 5);
   const terror = snapshot.incidents.filter(isReportedTerror).sort(newestFirst);
@@ -589,7 +589,7 @@ export function aboutPage(ctx) {
 <p>Each headline and standfirst is matched against an explainable rule set that assigns a category, extracts reported casualty figures and sets a <strong>severity from 1 to 5</strong>. Retrospective items (anniversaries, trials, sentencing) are capped at severity 1. Commentary, sport and business stories are excluded. <strong>Strategic development</strong> covers significant space and science milestones (for example catching a returning booster) but not routine satellite launches or funding news. Public social posts that read as jokes or satire are dropped.</p>
 <p>Suspected terrorism counts, the Global terror list and the diamond markers on the maps include only reports from news outlets and official sources. Unverified social posts, and coverage of past attacks such as anniversaries and trials, are listed separately at the foot of the Global terror page.</p>
 <div class="table-wrap"><table><thead><tr><th>Category</th><th class="num">Weight</th><th class="num">In Latest now</th></tr></thead><tbody>${catRows}</tbody></table></div>
-<p class="muted small">Headlines are the most severe verified reports (severity 2 and above), kept until something more severe takes their place. Latest lists the other severity-2+ reports, newest first, so a story is not shown twice. Unverified social posts and look-backs that read as terrorism stay in Latest but are not counted as suspected terrorism.</p>
+<p class="muted small">Latest headlines are the newest verified reports of severity 3–5. <strong>Most serious right now</strong> ranks by severity, so a grave but older story still surfaces there. The Latest updates list shows other severity-2+ reports, newest first, and never repeats a headline story. Unverified social posts and look-backs that read as terrorism stay in Latest but are not counted as suspected terrorism.</p>
 
 <h2>3. Location</h2>
 <p>Places named in the report are matched against a gazetteer of every country plus key cities and conflict hotspots. USGS and GDACS markers use exact coordinates; others sit on the city or country centre and are approximate. Cloud and IT failures described as worldwide or a global outage are labelled <strong>Global</strong> rather than pinned to a headquarters country. National aviation ground stops (for example an FAA halt) stay with that country.</p>

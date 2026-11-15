@@ -92,8 +92,8 @@ an accuracy score.
 2. Reports are located with a gazetteer (countries, cities, aliases) and clustered into
    incidents across outlets. Sibling clusters about the same event (including cross-border
    wording) are merged in a second pass so the same story is not listed twice.
-3. Front-page headlines are the most severe verified incidents; a story keeps its headline
-   slot until something more severe takes its place. Latest updates lists the other
+3. Front-page Latest headlines are the newest verified incidents of severity 3–5. Most
+   serious right now ranks by severity instead. Latest updates lists the other
    severity-2+ incidents and never repeats a headline story.
 4. Each incident gets a weight: severity × category × evidence (official, multiple outlets,
    single outlet, unverified social) × 24-hour recency half-life.
