@@ -26,10 +26,10 @@ function casualtyText(c, evidence) {
 function regionLink(inc, ctx) {
   const loc = inc.location;
   if (!loc) return '<span>Location unclear</span>';
-  const region = loc.region && ctx.regionNames[loc.region];
   const href = countryPath(ctx, loc.iso3);
   const country = href ? `<a href="${esc(href)}">${esc(loc.country)}</a>` : esc(loc.country);
-  return `${region ? `<a class="k-region" href="/region/${esc(loc.region)}/">${esc(region)}</a><span class="k-sep" aria-hidden="true">·</span>` : ''}<span>${loc.place ? `<span class="k-place">${esc(loc.place)}, </span>` : ''}${country}</span>`;
+  // Country (and city/place when known) only — readers do not need the SENTINEL region name here.
+  return `<span>${loc.place ? `<span class="k-place">${esc(loc.place)}, </span>` : ''}${country}</span>`;
 }
 
 function sourceSummary(sources) {
@@ -67,10 +67,11 @@ export function incidentCard(inc, ctx, { variant = 'item', anchor = true, classN
         `<li><a href="${esc(safeHref(s.url))}" target="_blank" rel="noopener noreferrer">${esc(s.name)}</a>${leanTag(s.lean || s.name, snapshot)}${s.via ? ` <span class="muted">via ${esc(s.via)}</span>` : ''} · ${esc(fmtUtc(s.time))}</li>`,
     )
     .join('');
-  const evidenceLabel = inc.evidence === 'multi' ? `${EVIDENCE.multi} (${inc.sourceCount})` : EVIDENCE[inc.evidence];
+  const evidenceLabel = EVIDENCE[inc.evidence];
   const brief = variant === 'tile' || variant === 'row';
   const showSev = !brief || inc.severity >= (variant === 'tile' ? 4 : 3);
-  const showEv = !brief || inc.evidence !== 'publisher';
+  // Skip "Multiple outlets" on cards — the source list already shows corroboration.
+  const showEv = inc.evidence !== 'multi' && (!brief || inc.evidence !== 'publisher');
   const showSources = variant !== 'tile' && inc.sources.length > 1;
   const src = primarySource(inc);
   const dekLen = DEK[variant] ?? 200;
@@ -88,7 +89,7 @@ export function incidentCard(inc, ctx, { variant = 'item', anchor = true, classN
     variant === 'row' ? '' : timeTag(inc.time, now),
     src ? `<span class="src">${esc(src.name)}</span>${leanTag(src.lean || src.name, snapshot)}` : '',
     showSev ? `<span class="sev sev-${inc.severity}" title="Severity ${inc.severity} of 5">Severity ${inc.severity}/5</span>` : '',
-    showEv ? `<span class="ev ev-${esc(inc.evidence)}">${esc(evidenceLabel)}</span>` : '',
+    showEv && evidenceLabel ? `<span class="ev ev-${esc(inc.evidence)}">${esc(evidenceLabel)}</span>` : '',
     casualtyText(inc.casualties, inc.evidence),
     inc.retrospective ? '<span class="muted">Background / retrospective</span>' : '',
   ].join('');
