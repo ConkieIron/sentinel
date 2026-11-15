@@ -41,19 +41,25 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
 .skip { position: absolute; left: -999px; top: 0; background: var(--navy); color: #fff; padding: 8px 12px; z-index: 100; }
 .skip:focus { left: 8px; }
 
-/* Masthead: wordmark left, markets/clock right. */
+/* Masthead: markets left, centred wordmark, clock right. */
 @media (max-width: 599px) {
   .masthead .wrap { padding-top: 10px; padding-bottom: 8px; }
   .story-lead .dek { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 }
 .masthead { border-bottom: 1px solid var(--rule); }
 .masthead .wrap {
-  display: flex; align-items: center; justify-content: space-between;
+  position: relative; display: flex; align-items: center; justify-content: space-between;
   gap: 16px; padding-top: 14px; padding-bottom: 12px;
 }
-.brand { display: block; color: var(--navy); min-width: 0; }
+.masthead-side { position: relative; z-index: 1; flex: 1 1 0; min-width: 0; display: flex; align-items: center; }
+.masthead-markets { justify-content: flex-start; }
+.masthead-clock { justify-content: flex-end; }
+.brand {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  z-index: 0; display: block; color: var(--navy); max-width: min(100%, 420px);
+}
 .brand:hover { text-decoration: none; }
-.brand-text { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
+.brand-text { display: flex; align-items: flex-start; justify-content: center; gap: 8px; min-width: 0; }
 .brand-word { display: block; height: 42px; width: auto; max-width: min(100%, 280px); }
 .brand-badges { display: inline-flex; align-items: center; gap: 5px; height: 28px; margin-top: 1px; }
 .brand-badge {
@@ -63,12 +69,12 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
 }
 .brand-beta { color: var(--blue-dark); border-color: #b8cce8; background: var(--blue-soft); }
 .brand-version { color: var(--navy); }
-.masthead-tools { display: flex; align-items: center; justify-content: flex-end; gap: 0; min-width: 0; margin-left: auto; }
 .rotator {
-  padding: 2px 0 2px 14px; margin-left: 14px; border: 0; border-left: 1px solid var(--rule);
-  background: none; font: inherit; color: inherit; text-align: right; cursor: pointer; min-width: 0;
+  padding: 0; margin: 0; border: 0; background: none; font: inherit; color: inherit;
+  cursor: pointer; min-width: 0;
 }
-.masthead-tools .rotator:first-child { margin-left: 0; padding-left: 0; border-left: 0; }
+.masthead-markets .rotator { text-align: left; }
+.masthead-clock .rotator { text-align: right; }
 .ticker { opacity: 0.9; }
 .wc-face { display: block; transition: opacity 0.25s ease; }
 .rotator.is-switching .wc-face { opacity: 0; }
@@ -85,15 +91,17 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
   .wc-time { font-size: 1.15rem; }
 }
 @media (max-width: 599px) {
-  .masthead .wrap { flex-wrap: wrap; gap: 10px 12px; }
-  .masthead-tools {
-    flex: 1 1 100%; justify-content: space-between;
-    padding-top: 8px; border-top: 1px solid var(--rule-soft); margin-left: 0;
+  .masthead .wrap { flex-wrap: wrap; gap: 10px 12px; padding-top: 12px; }
+  .brand {
+    position: static; transform: none; order: -1; flex: 1 1 100%;
+    max-width: none; text-align: center;
   }
-  .brand-text { gap: 6px; }
-  .brand-word { height: 32px; max-width: 100%; }
-  .rotator { margin: 0; padding: 0; border: 0; }
-  .ticker { text-align: left; }
+  .brand-text { justify-content: center; }
+  .brand-word { height: 32px; margin: 0 auto; }
+  .masthead-side { flex: 1 1 0; }
+  .masthead-markets, .masthead-clock {
+    padding-top: 8px; border-top: 1px solid var(--rule-soft);
+  }
   .rotator .wc-face { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
   .rotator .wc-city { font-size: 0.66rem; }
   .rotator .wc-time { font-size: 1rem; }

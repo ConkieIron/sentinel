@@ -81,11 +81,11 @@ ${breaking ? `<meta name="sentinel-breaking" content="${esc(breaking.id)}">` : '
 <body>
 <a class="skip" href="#content">Skip to content</a>
 <header class="masthead"><div class="wrap">
+<div class="masthead-side masthead-markets">${marketTicker(snapshot.markets)}</div>
 <a class="brand" href="/" aria-label="SENTINEL home">
 <span class="brand-text"><img class="brand-word" src="/sentinel-wordmark.png${iconV}" alt="SENTINEL — Global Incident and Threat Monitor" width="720" height="107"><span class="brand-badges" aria-label="Release status"><span class="brand-badge brand-beta">Beta</span>${site.version ? `<span class="brand-badge brand-version">v${esc(site.version)}</span>` : ''}</span></span>
 </a>
-<div class="masthead-tools">
-${marketTicker(snapshot.markets)}
+<div class="masthead-side masthead-clock">
 <button type="button" class="world-clock rotator" data-world-clock hidden aria-label="World clock, show the next city"><span class="wc-face"><span class="wc-city"></span><span class="wc-time"></span><span class="wc-meta"></span></span></button>
 </div>
 </div></header>
