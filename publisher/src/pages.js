@@ -592,7 +592,7 @@ export function aboutPage(ctx) {
 <p class="muted small">Headlines are the most severe verified reports (severity 2 and above), kept until something more severe takes their place. Latest lists the other severity-2+ reports, newest first, so a story is not shown twice. Unverified social posts and look-backs that read as terrorism stay in Latest but are not counted as suspected terrorism.</p>
 
 <h2>3. Location</h2>
-<p>Places named in the report are matched against a gazetteer of every country plus key cities and conflict hotspots. USGS and GDACS markers use exact coordinates; others sit on the city or country centre and are approximate. Events described as worldwide or a global outage are labelled <strong>Global</strong> rather than pinned to a headquarters country.</p>
+<p>Places named in the report are matched against a gazetteer of every country plus key cities and conflict hotspots. USGS and GDACS markers use exact coordinates; others sit on the city or country centre and are approximate. Cloud and IT failures described as worldwide or a global outage are labelled <strong>Global</strong> rather than pinned to a headquarters country. National aviation ground stops (for example an FAA halt) stay with that country.</p>
 
 <h2>4. Corroboration</h2>
 <p>Reports about the same event (same country, compatible category, within 36 hours, overlapping key terms) are merged into one incident. Independent coverage by several outlets raises confidence; social posts alone never do.</p>

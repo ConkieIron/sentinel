@@ -3,6 +3,7 @@
 
 import { hashId } from '../lib/text.js';
 import { leanFor } from '../data/mediaLean.js';
+import { isNationalAviation } from './geo.js';
 
 export const STOP = new Set(
   ('says said after amid over into with from that this have been were their about what more than will would could ' +
@@ -126,9 +127,12 @@ function toIncident({ members }) {
   const evidence = members.some((m) => m.type === 'official') ? 'official' : sourceNames.size >= 2 ? 'multi' : hard.length ? 'publisher' : 'social';
 
   const byPrecision = (p) => members.find((m) => m.loc?.precision === p)?.loc;
-  // Exact coords win; otherwise a worldwide report beats an HQ-country pin from a sibling headline.
+  // Exact coords win. Global beats an HQ pin for true worldwide outages, but a national aviation
+  // ground stop (FAA / nationwide) keeps its country even if a sibling mentions a global IT outage.
+  const nationalAviation = members.some((m) => isNationalAviation(m.title, m.summary || ''));
   const loc =
     byPrecision('exact') ||
+    (nationalAviation ? byPrecision('city') || byPrecision('country') || lead.loc : null) ||
     byPrecision('global') ||
     byPrecision('city') ||
     lead.loc ||

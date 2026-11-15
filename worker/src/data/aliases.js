@@ -25,6 +25,9 @@ export const ALIASES = [
   ['somaliland', 'SOM', 9.56, 44.06], ['northern cyprus', 'CYP', 35.25, 33.6], ['america', 'USA'],
   ['palestinian territories', 'PSE'], ['occupied west bank', 'PSE', 31.95, 35.3], ['west bank', 'PSE', 31.95, 35.3],
   ['north korea', 'PRK'], ['south korea', 'KOR'], ['vatican', 'VAT'],
+  // US aviation regulator — do not add "nationwide ground stop" here; those words become
+  // background terms in live matching and break the "ground stop" phrase.
+  ['faa', 'USA'],
 
 ];
 

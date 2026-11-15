@@ -80,3 +80,14 @@ test('a worldwide outage stays Global even if a sibling headline names the US', 
   assert.equal(incidents[0].location?.country, 'Global');
   assert.equal(incidents[0].location?.iso3, null);
 });
+
+test('an FAA ground stop stays USA even if a sibling mentions a global outage', () => {
+  const incidents = clusterItems([
+    item('Reuters', 'FAA lifts nationwide ground stop on all US flights after outage', { minutesAgo: 20 }),
+    item('CNN', 'FAA lifts nationwide ground stop after global Microsoft outage hits airlines', { minutesAgo: 40 }),
+  ]);
+  assert.equal(incidents.length, 1);
+  assert.equal(incidents[0].location?.iso3, 'USA');
+  assert.equal(incidents[0].location?.country, 'United States');
+  assert.notEqual(incidents[0].location?.precision, 'global');
+});

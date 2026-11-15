@@ -48,6 +48,14 @@ test('worldwide and global outages are Global, not a HQ country', () => {
   assert.equal(locate('Protests spread across Iran')?.iso3, 'IRN');
 });
 
+test('FAA and nationwide ground stops stay USA, even when a global outage is mentioned', () => {
+  assert.equal(locate('FAA Lifts Ground Stop, Allowing Flights to Resume After Outage')?.iso3, 'USA');
+  assert.equal(locate('Airlines cancel thousands more flights after nationwide ground stop')?.iso3, 'USA');
+  const mixed = locate('FAA lifts nationwide ground stop after Microsoft global outage');
+  assert.equal(mixed?.iso3, 'USA');
+  assert.notEqual(mixed?.precision, 'global');
+});
+
 test('nearestCountry resolves coordinates', () => {
   assert.equal(nearestCountry(35.68, 139.69)?.iso3, 'JPN');
   assert.equal(nearestCountry(-40, -140), null);

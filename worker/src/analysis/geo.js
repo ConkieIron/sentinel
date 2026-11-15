@@ -67,6 +67,10 @@ function scan(text, weight, scores, offset, leadBonus = 0) {
 const GLOBAL_SCOPE =
   /\b(?:worldwide|world[\s-]?wide|globally|(?:across|around) the (?:globe|world)|global (?:outage|outages|it\b|cloud|internet|service|services|disruption|disruptions|blackout|blackouts|failure|failures|shutdown|shutdowns))\b/i;
 
+/** National aviation halts (FAA / nationwide ground stop) mainly affect one country — keep them there. */
+const NATIONAL_AVIATION =
+  /\b(?:\bFAA\b|nationwide ground[\s-]?stops?|national ground[\s-]?stops?)\b/i;
+
 export const GLOBAL_LOCATION = {
   iso3: null,
   country: 'Global',
@@ -74,17 +78,24 @@ export const GLOBAL_LOCATION = {
   precision: 'global',
 };
 
+export function isNationalAviation(title, summary = '') {
+  return NATIONAL_AVIATION.test(String(title || '')) || NATIONAL_AVIATION.test(String(summary || ''));
+}
+
 export function isGlobalScope(title, summary = '') {
+  if (isNationalAviation(title, summary)) return false;
   return GLOBAL_SCOPE.test(String(title || '')) || GLOBAL_SCOPE.test(String(summary || ''));
 }
 
 /**
  * Resolve the most likely country (and city if named) for a report.
- * Worldwide/global-scope events return precision 'global' (country label "Global", no iso3).
+ * Worldwide cloud/IT outages return precision 'global'. National aviation ground stops stay with
+ * that country (usually the USA) even when a headline also mentions a global outage.
  * @returns {null | {iso3:string|null, country:string, region:string|null, lat?:number, lon?:number, precision:'city'|'country'|'global', place?:string}}
  */
 export function locate(title, summary = '', placeHint = '') {
-  // Prefer Global over a HQ-country pin when the report itself says worldwide / global outage.
+  // Prefer Global over a HQ-country pin when the report itself says worldwide / global outage —
+  // but not for national aviation ground stops, which mainly affect one country.
   if (isGlobalScope(title, summary)) return { ...GLOBAL_LOCATION };
 
   const scores = new Map();
@@ -94,6 +105,10 @@ export function locate(title, summary = '', placeHint = '') {
   let best = null;
   for (const [iso3, s] of scores) {
     if (!best || s.score > best.s.score || (s.score === best.s.score && s.first < best.s.first)) best = { iso3, s };
+  }
+  // A nationwide / FAA ground stop with no place cue is still a US aviation event.
+  if ((!best || best.s.score < 0.9) && isNationalAviation(title, summary)) {
+    best = { iso3: 'USA', s: { score: 1, first: 0, city: null, cityScore: 0 } };
   }
   if (!best || best.s.score < 0.9) return null;
   const c = COUNTRY_BY_ISO.get(best.iso3);
