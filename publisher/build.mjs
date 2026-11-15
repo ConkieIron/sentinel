@@ -18,6 +18,7 @@ import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFo
 import { countriesOf, adviceChanges } from './src/countries.js';
 import { COUNTRIES as GEO_COUNTRIES } from '../worker/src/data/countries.js';
 import { CATCH_KM, DEFAULT_CATCH_KM } from './src/localGeo.js';
+import { bumpPatch, fetchLiveVersion } from './src/version.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dist = join(here, 'dist');
@@ -124,11 +125,21 @@ await mkdir(dist, { recursive: true });
 await cp(join(here, 'static/public'), dist, { recursive: true });
 
 const rootPkg = JSON.parse(await readFile(join(here, '../package.json'), 'utf8'));
+const siteUrl = process.env.SITE_URL || 'https://sentinelglobalnews.pages.dev';
+// On CI publishes, the badge is always one patch above whatever is currently live, so each
+// uploaded edition advances 0.0.1. Local builds keep package.json unchanged.
+const pkgVersion = rootPkg.version || '0.0.0';
+const bumpOnPublish = process.env.GITHUB_ACTIONS === 'true' || process.env.BUMP_VERSION === '1';
+const liveVersion = bumpOnPublish ? await fetchLiveVersion(siteUrl) : null;
+const siteVersion = bumpOnPublish ? bumpPatch(liveVersion || pkgVersion) : pkgVersion;
+if (bumpOnPublish) {
+  console.log(`Version badge: ${liveVersion || pkgVersion} → ${siteVersion}${liveVersion ? ' (from live)' : ' (from package.json)'}`);
+}
 const site = {
-  url: process.env.SITE_URL || 'https://sentinelglobalnews.pages.dev',
+  url: siteUrl,
   publishMinutes: Number(process.env.PUBLISH_INTERVAL_MINUTES || 120),
   homeIncidents: 80,
-  version: rootPkg.version || '0.0.0',
+  version: siteVersion,
 };
 const live = snapshot.live || [];
 const liveByUrl = new Map(live.flatMap((s) => s.updates.map((u) => [u.url, s])));
@@ -176,7 +187,12 @@ await writePage(
 await writePage('data/snapshot.json', JSON.stringify(snapshot));
 await writePage(
   'data/meta.json',
-  JSON.stringify({ generatedAt: snapshot.generatedAt, incidents: snapshot.incidents.length, fingerprint: editionFingerprint(snapshot, await codeVersion()) }),
+  JSON.stringify({
+    generatedAt: snapshot.generatedAt,
+    incidents: snapshot.incidents.length,
+    version: site.version,
+    fingerprint: editionFingerprint(snapshot, await codeVersion()),
+  }),
 );
 // Read by open live pages (new-update count) and by the breaking-news watcher (topic matching).
 await writePage(
