@@ -50,7 +50,7 @@ const STRATEGIC =
 const NOT_INCIDENT =
   /\b(?:trade war|price war|culture war|war of words|tariffs?|box office|football|cricket|tennis|rugby|olympics?|world cup|premier league|grand prix|championship|election results?|stock market|recipe|fashion|celebrity|oscars?|grammys?|bets?|betting|prediction markets?|polymarket|kalshi)\b/i;
 const RETROSPECTIVE =
-  /\b(?:anniversary|years? (?:after|since|ago|on)|decades? (?:after|since|ago)|memorial|commemorat\w+|sentenced|convicted|verdict|jailed|inquest|on trial|trial of|lawsuit|obituary|dies aged|documentary|exhibition|quiz|remembering|looking back)\b/i;
+  /\b(?:anniversary|years? (?:after|since|ago|on)|decades? (?:after|since|ago)|memorial|commemorat\w+|sentenc\w*|convicted|verdict|jailed|inquest|on trial|trial of|lawsuit|obituary|dies aged|documentary|exhibition|quiz|remembering|looking back)\b/i;
 const SOFT = /\b(?:opinion|analysis|explainer|interview|podcast|in pictures|photos|newsletter|live updates|what to know)\b/i;
 const RHETORIC =
   /\b(?:warns?|threatens?|vows?|condemns?|calls for|urges|could|may|plans?|considering|talks|negotiat\w+|ceasefire|truce|peace|aid|summit|sanctions?|pact|deal|agreement|signs?|elections?|postpones?|powers|law|bill|budget)\b/i;

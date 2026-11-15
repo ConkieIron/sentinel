@@ -69,6 +69,13 @@ export const filterCategory = (i) => (i.category === 'terrorism' && !isReportedT
 
 /** Latest leaves out severity-1 items (minor quakes, anniversaries). */
 export const inLatest = (i) => i.severity >= 2;
+
+/**
+ * Rank by the severity badge first, then threat weight, then freshness.
+ * A 5/5 always outranks a 4/5 — category and recency must not reorder severity levels.
+ */
+export const bySeriousness = (a, b) =>
+  b.severity - a.severity || (b.weight ?? 0) - (a.weight ?? 0) || b.time - a.time;
 export const TREND = {
   rising: ['▲', 'Rising'],
   falling: ['▼', 'Falling'],

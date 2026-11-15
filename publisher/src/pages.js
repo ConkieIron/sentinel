@@ -16,7 +16,7 @@ import {
   storyFigure,
 } from './components.js';
 import { leanCaveat } from './lean.js';
-import { esc, safeHref, timeTag, fmtUtc, ago, LEVEL_LABEL, isReportedTerror, filterCategory, inLatest } from './util.js';
+import { esc, safeHref, timeTag, fmtUtc, ago, LEVEL_LABEL, isReportedTerror, filterCategory, inLatest, bySeriousness } from './util.js';
 import { countriesOf, countryPath, adviceChangedAt, adviceChanges } from './countries.js';
 
 const OFFICIAL_LINKS = [
@@ -169,15 +169,13 @@ ${foldPanel('Official resources', `<ul class="link-list">${OFFICIAL_LINKS.map(([
 }
 
 /**
- * Sticky headlines: severity still dominates, but fresher stories get a soft bump so an old
- * sev-5 does not occupy the lead forever while newer sev-3/4 only appear in Latest.
+ * Sticky headlines: sort by severity first (what the badge shows), then weight / time.
+ * Recency and category weight never let a lower severity outrank a higher one.
  */
-export function headlineIncidents(incidents, limit = 7, now = Date.now()) {
-  const ageHours = (i) => Math.max(0, (now - i.time) / 3600000);
-  const score = (i) => i.severity * Math.pow(0.88, ageHours(i));
+export function headlineIncidents(incidents, limit = 7) {
   return incidents
     .filter((i) => i.evidence !== 'social' && !i.retrospective && i.severity >= 2)
-    .sort((a, b) => score(b) - score(a) || b.time - a.time)
+    .sort(bySeriousness)
     .slice(0, limit);
 }
 
@@ -193,7 +191,7 @@ export function homePage(ctx) {
   const s = snapshot.stats;
   const newestFirst = (a, b) => b.time - a.time;
 
-  const fresh = headlineIncidents(snapshot.incidents, 7, now);
+  const fresh = headlineIncidents(snapshot.incidents, 7);
   const lead = fresh[0];
   const tiles = fresh.slice(1);
   const headlineIds = new Set(fresh.map((i) => i.id));
@@ -201,7 +199,11 @@ export function homePage(ctx) {
   // Stories already in the headline grid are left out of Latest so each appears once.
   const feed = latestFeed(ctx, headlineIds);
   const listedIds = new Set([...headlineIds, ...feed.map((i) => i.id)]);
-  const serious = snapshot.incidents.filter((i) => i.evidence !== 'social' && !i.retrospective).slice(0, 5);
+  // Same severity-first order as headlines — not the weight-sorted incident list.
+  const serious = snapshot.incidents
+    .filter((i) => i.evidence !== 'social' && !i.retrospective && i.severity >= 2)
+    .sort(bySeriousness)
+    .slice(0, 5);
   const terror = snapshot.incidents.filter(isReportedTerror).sort(newestFirst);
   const pins = snapshot.incidents.filter((i) => i.location && (listedIds.has(i.id) || i.severity >= 3)).slice(0, 220);
   const pinnedNotListed = pins.filter((i) => !listedIds.has(i.id));

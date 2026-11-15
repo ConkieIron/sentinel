@@ -56,6 +56,10 @@ test('headline casualty figures win over summary figures', () => {
 test('foiled plots and retrospectives are downgraded', () => {
   assert.ok(classify('Police foil terror plot targeting concert').severity <= 2);
   assert.equal(classify('Ten years on from the Paris terror attacks, survivors remember').severity, 1);
+  // Present-tense "sentences" must match, not only "sentenced".
+  const sentencing = classify('Jordan sentences three men to death after fatal church mass shooting');
+  assert.equal(sentencing.retrospective, true);
+  assert.equal(sentencing.severity, 1);
 });
 
 test('extractCasualties reads numbers and number words', () => {
