@@ -144,6 +144,34 @@ test('live stories get a front-page teaser and a page listing every update, newe
   assert.match(page, /via Bluesky/);
 });
 
+test('live updates show a dek only when the summary adds facts, and mark live-blog ticks', () => {
+  const now = Date.parse(fixture.generatedAt);
+  const snapshot = withLiveStory(fixture);
+  snapshot.live[0].updates = [
+    {
+      title: 'US flights resume after nationwide ground stop',
+      summary: 'US flights resume after nationwide ground stop',
+      url: 'https://www.bbc.co.uk/news/live/ground-stop',
+      source: 'BBC News',
+      time: now - 600000,
+      liveBlog: true,
+    },
+    {
+      title: 'FAA lifts nationwide ground stop',
+      summary:
+        'The FAA lifted a nationwide ground stop after air traffic control systems failed for several hours, leaving thousands of passengers stranded.',
+      url: 'https://www.reuters.com/x',
+      source: 'Reuters',
+      time: now - 3600000,
+    },
+  ];
+  const page = livePage(context(snapshot), snapshot.live[0]);
+  assert.match(page, /is-liveblog/);
+  assert.match(page, /Live blog/);
+  assert.match(page, /thousands of passengers stranded/);
+  assert.doesNotMatch(page, /US flights resume after nationwide ground stop<\/a><\/h3>\s*<p class="dek">US flights resume/);
+});
+
 test('hostile content in live stories is escaped', () => {
   const ctx = context(withLiveStory(fixture, { title: EVIL, url: 'javascript:alert(1)' }));
   const html = allPages(ctx).join('\n');

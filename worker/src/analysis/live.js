@@ -1,7 +1,8 @@
 // Major developing stories ("live" coverage). A story is live when at least minOutlets different
-// publishers have reported it and the latest report is recent. Every publisher report on the
-// story is collected as an update, including follow-ups the incident classifier ignores and
-// reports the stricter incident clustering kept apart (the same event told from another country).
+// publishers have reported it, the coverage has moved on (minTakes distinct headline takes), and
+// recent reports show it is still developing. Syndication of the same announcement from many
+// outlets (a sentencing, a restored outage) is not live. Near-identical headlines are collapsed
+// in the updates list so the timeline shows developments, not repeats.
 //
 // Matching weights each word by how rare it is across everything gathered, so "FAA" counts for
 // far more than "flights". A report must share at least three words with the story, two of them
@@ -20,6 +21,9 @@ export const LIVE = {
   candidates: 40,
   minOutlets: 3,
   minReports: 4,
+  // At least this many distinct headline takes (not paraphrases of the same line) so a story
+  // that every outlet restates once never counts as live coverage.
+  minTakes: 2,
   activeHours: 3,
   // A story is still developing only while this many outlets have reported it in activeHours;
   // once it is matureHours old it needs matureOutlets, so late re-reports of a story that has
@@ -27,6 +31,12 @@ export const LIVE = {
   activeOutlets: 2,
   matureHours: 12,
   matureOutlets: 3,
+  // Title paraphrase (Jaccard): wording variants of one announcement collapse. A standfirst only
+  // splits a take when the headlines are near-identical and the dek introduces a new figure.
+  takeOverlap: 0.42,
+  takeShared: 4,
+  titleShared: 4,
+  titleNearIdentical: 0.85,
   // A two-word match must fall this close to a stronger match on the same story.
   weakMatchHours: 4,
   lookbackHours: 36,
@@ -41,6 +51,11 @@ export const LIVE = {
 
 const ACRONYM_STOP = new Set(['THE', 'AND', 'FOR', 'BBC', 'CNN', 'NPR', 'LIVE', 'NEWS', 'WATCH', 'VIDEO', 'UPDATE', 'BREAKING', 'OF', 'IN', 'ON', 'TO', 'AT', 'BY', 'AS', 'IS', 'IT', 'A', 'I']);
 const PAIR_WINDOW = 2;
+const HEADLINE_OUTLETS = new Set([
+  'BBC News', 'Reuters', 'Associated Press', 'AFP', 'Sky News', 'The Guardian', 'CNN', 'Al Jazeera', 'NBC News',
+  'CBS News', 'ABC News (US)', 'The New York Times', 'The Washington Post', 'The Independent', 'France 24',
+  'Deutsche Welle', 'Euronews', 'NPR', 'Bloomberg', 'USA Today', 'Politico',
+]);
 
 /** Headline words in order: acronyms (FAA, US, NATO) and significant words stemmed to 6 letters. */
 export function orderedTokens(text) {
@@ -113,6 +128,105 @@ export function matchStrength(features, topic) {
   return topic.phrases.some((p) => features.pairs.has(p)) ? 2 : 0;
 }
 
+/**
+ * Live-blog shaped feed items: titles or URLs that look like ongoing coverage rather than a
+ * one-shot story. These are preferred on the updates timeline when they paraphrase the same take.
+ */
+export function isLiveBlogItem(r) {
+  const title = String(r?.title || '');
+  const url = String(r?.url || '');
+  if (/\/live(?:[-/]|$)|\/liveblog|\/live[_-]updates?|\/as-it-happened\b/i.test(url)) return true;
+  if (/^live\b|\blive\s*[:\-–—]/i.test(title)) return true;
+  if (/\bupdates?:|\blive\s+(?:updates?|blog|coverage)\b|\bas it happened\b/i.test(title)) return true;
+  return false;
+}
+
+/** Title plus summary tokens that add facts the headline does not already carry. */
+export function takeText(r) {
+  if (typeof r === 'string') return r;
+  const title = String(r?.title || '');
+  const summary = String(r?.summary || '').trim();
+  if (!summary || summary === title) return title;
+  const titleTok = new Set(orderedTokens(title));
+  const extra = orderedTokens(summary).filter((t) => !titleTok.has(t));
+  // Same headline with a dek that only adds "death toll rises to 12" must count as a new take.
+  if (extra.length < 2) return title;
+  return `${title} ${extra.join(' ')}`;
+}
+
+function tokenSet(text) {
+  return new Set(orderedTokens(text));
+}
+
+function sharedCount(A, B) {
+  let n = 0;
+  for (const t of A) if (B.has(t)) n++;
+  return n;
+}
+
+function summaryExtras(r) {
+  if (typeof r === 'string') return new Set();
+  const titleTok = tokenSet(r.title || '');
+  return new Set(orderedTokens(r.summary || '').filter((t) => !titleTok.has(t)));
+}
+
+const NUMBER_WORDS = new Set(
+  'one two three four five six seven eight nine ten eleven twelve dozen score hundred thousand million'.split(' '),
+);
+
+function figureTokens(extras) {
+  return [...extras].filter((t) => /^\d/.test(t) || NUMBER_WORDS.has(t)).sort();
+}
+
+/** True when two reports (or headline strings) are essentially the same news restated. */
+export function sameTake(a, b) {
+  const titleA = tokenSet(typeof a === 'string' ? a : a.title || '');
+  const titleB = tokenSet(typeof b === 'string' ? b : b.title || '');
+  if (titleA.size < 2 || titleB.size < 2) return false;
+  const titleShared = sharedCount(titleA, titleB);
+  const titleJaccard = titleShared / (titleA.size + titleB.size - titleShared);
+  // Paraphrases of one announcement ("Jordan sentences three…" / "Three sentenced…").
+  if (titleShared < LIVE.titleShared || titleJaccard < LIVE.takeOverlap) return false;
+
+  // Different wording of the same announcement: ignore dek differences so syndication collapses.
+  if (titleJaccard < LIVE.titleNearIdentical) return true;
+
+  // Near-identical headlines: a new figure in the standfirst is a new take (toll rises to twelve).
+  const fa = figureTokens(summaryExtras(a));
+  const fb = figureTokens(summaryExtras(b));
+  if (!fa.length && !fb.length) return true;
+  if (!fa.length || !fb.length) return false;
+  return fa.some((n) => fb.includes(n));
+}
+
+function reportScore(r) {
+  return (
+    (isLiveBlogItem(r) ? 8 : 0) +
+    (!r.via ? 4 : 0) +
+    (orderedTokens(takeText(r)).length > orderedTokens(r.title || '').length ? 2 : 0) +
+    (HEADLINE_OUTLETS.has(r.sourceName) ? 1 : 0)
+  );
+}
+
+/**
+ * Newest-first reports with near-paraphrases removed; one row per development.
+ * When several outlets restate the same take, upgrade to a live-blog item or richer summary
+ * only when it scores strictly better, so the newest timestamp stays on the timeline.
+ */
+export function dedupeTakes(reports) {
+  const out = [];
+  for (const r of reports) {
+    const i = out.findIndex((k) => sameTake(k, r));
+    if (i < 0) {
+      out.push(r);
+      continue;
+    }
+    const kept = out[i];
+    if (reportScore(r) > reportScore(kept)) out[i] = { ...r, time: kept.time };
+  }
+  return out;
+}
+
 /** Reports on a topic; two-word matches count only near a strong one. */
 function matchReports(pool, topic) {
   const hits = [];
@@ -145,11 +259,6 @@ function buildTopic(seed, weightOf, isPhrase, extraTerms = [], extraPairs = []) 
   };
 }
 
-const HEADLINE_OUTLETS = new Set([
-  'BBC News', 'Reuters', 'Associated Press', 'AFP', 'Sky News', 'The Guardian', 'CNN', 'Al Jazeera', 'NBC News',
-  'CBS News', 'ABC News (US)', 'The New York Times', 'The Washington Post', 'The Independent', 'France 24',
-  'Deutsche Welle', 'Euronews', 'NPR', 'Bloomberg', 'USA Today', 'Politico',
-]);
 const NOT_HEADLINE_START =
   /^(?:why|how|what|who|when|where|which|is|are|was|were|can|could|should|would|will|does|do|did|inside|analysis|opinion|comment|explainer|explained|watch|listen|video|live|in pictures|timeline|the latest|here'?s|here is|everything|a look|[0-9]+ things|follow)\b/i;
 const NOT_HEADLINE =
@@ -204,14 +313,16 @@ export function findLiveStories(incidents, reports, now) {
   const lookback = LIVE.lookbackHours * 3600000;
   const pool = reports
     .filter((r) => r.title && now - r.time <= lookback)
-    .map((r) => ({ ...r, features: topicFeatures(r.title) }));
+    .map((r) => ({ ...r, liveBlog: isLiveBlogItem(r), features: topicFeatures(r.title) }));
   if (!pool.length) return [];
 
   const df = new Map();
   const pairDf = new Map();
   for (const r of pool) {
-    for (const t of r.features.terms) df.set(t, (df.get(t) || 0) + 1);
-    for (const p of r.features.pairs) pairDf.set(p, (pairDf.get(p) || 0) + 1);
+    // Live-blog ticks count twice so their vocabulary joins the story topic faster.
+    const w = r.liveBlog ? 2 : 1;
+    for (const t of r.features.terms) df.set(t, (df.get(t) || 0) + w);
+    for (const p of r.features.pairs) pairDf.set(p, (pairDf.get(p) || 0) + w);
   }
   const weightOf = (t) => Math.log((pool.length + 1) / ((df.get(t) || 0) + 1));
   // A pair is a phrase when its words mostly appear together: "ground stop" does, while
@@ -239,7 +350,10 @@ export function findLiveStories(incidents, reports, now) {
     const need = Math.max(2, Math.ceil(matched.length * 0.4));
     const count = (key) => {
       const m = new Map();
-      for (const r of matched) for (const x of r.features[key]) m.set(x, (m.get(x) || 0) + 1);
+      for (const r of matched) {
+        const w = r.liveBlog ? 2 : 1;
+        for (const x of r.features[key]) m.set(x, (m.get(x) || 0) + w);
+      }
       return [...m].filter(([, c]) => c >= need).map(([x]) => x);
     };
     topic = buildTopic(seed, weightOf, isPhrase, count('terms'), count('pairs'));
@@ -260,9 +374,19 @@ export function findLiveStories(incidents, reports, now) {
 
   return stories
     .map(({ inc, topics, reports: byUrl }) => {
-      const all = [...byUrl.values()].sort((a, b) => b.time - a.time);
+      // Newest first; live-blog ticks win ties so they surface when several land together.
+      const all = [...byUrl.values()].sort(
+        (a, b) => b.time - a.time || (isLiveBlogItem(b) ? 1 : 0) - (isLiveBlogItem(a) ? 1 : 0),
+      );
+      const takes = dedupeTakes(all);
       const outlets = [...new Set(all.map((r) => r.sourceName))];
       const lead = leadHeadline(all, inc);
+      const activeMs = LIVE.activeHours * 3600000;
+      const recent = all.filter((r) => now - r.time <= activeMs);
+      const olderTakes = dedupeTakes(all.filter((r) => now - r.time > activeMs));
+      // A recent report only counts as fresh development if it is not a paraphrase of an older
+      // take (title+summary), so "restored" re-reports do not keep it live.
+      const novelRecent = dedupeTakes(recent.filter((r) => !olderTakes.some((o) => sameTake(o, r))));
       return {
         // Keyed on the earliest report, so the page address survives a change of lead headline.
         id: hashId(all[all.length - 1].url),
@@ -276,24 +400,38 @@ export function findLiveStories(incidents, reports, now) {
         updatedAt: all[0].time,
         outlets,
         reportCount: all.length,
+        takeCount: takes.length,
         topics: topics.slice(0, 4),
-        updates: all.slice(0, LIVE.maxUpdates).map((r) => ({
+        // Timeline shows each development once; outlet count still reflects full coverage.
+        updates: takes.slice(0, LIVE.maxUpdates).map((r) => ({
           title: r.title,
           summary: truncate(r.summary || '', 300),
           url: r.url,
           source: r.sourceName,
           via: r.via || undefined,
           time: r.time,
+          liveBlog: isLiveBlogItem(r) || undefined,
         })),
+        _recentOutlets: new Set(recent.map((r) => r.sourceName)).size,
+        _novelRecentTakes: novelRecent.length,
       };
     })
-    .filter(
-      (s) =>
-        s.outlets.length >= LIVE.minOutlets &&
-        s.reportCount >= LIVE.minReports &&
-        new Set(s.updates.filter((u) => now - u.time <= LIVE.activeHours * 3600000).map((u) => u.source)).size >=
-          (now - s.startedAt >= LIVE.matureHours * 3600000 ? LIVE.matureOutlets : LIVE.activeOutlets),
+    .filter((s) => {
+      if (s.outlets.length < LIVE.minOutlets || s.reportCount < LIVE.minReports || s.takeCount < LIVE.minTakes) return false;
+      const mature = now - s.startedAt >= LIVE.matureHours * 3600000;
+      const needOutlets = mature ? LIVE.matureOutlets : LIVE.activeOutlets;
+      if (s._recentOutlets < needOutlets) return false;
+      // Once mature, late syndication of an old take is not live coverage.
+      if (mature && s._novelRecentTakes < 1) return false;
+      return true;
+    })
+    .map(({ _recentOutlets, _novelRecentTakes, ...s }) => s)
+    // Prefer stories that have real live-blog ticks when outlet counts are close.
+    .sort(
+      (a, b) =>
+        b.outlets.length - a.outlets.length ||
+        (b.updates.filter((u) => u.liveBlog).length || 0) - (a.updates.filter((u) => u.liveBlog).length || 0) ||
+        b.updatedAt - a.updatedAt,
     )
-    .sort((a, b) => b.outlets.length - a.outlets.length || b.updatedAt - a.updatedAt)
     .slice(0, LIVE.maxStories);
 }

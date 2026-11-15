@@ -43,6 +43,22 @@ export function trim(s, max) {
   return t.length <= max ? t : t.slice(0, max - 1).replace(/\s+\S*$/, '') + '…';
 }
 
+/** Standfirst for a live update only when it adds facts the headline does not already carry. */
+export function usefulUpdateDek(u, max = 220) {
+  const title = String(u?.title || '').trim();
+  const summary = String(u?.summary || '').trim();
+  if (!summary || summary === title) return '';
+  const words = (t) => t.toLowerCase().split(/[^a-z0-9]+/).filter((w) => w.length > 3);
+  const titleWords = new Set(words(title));
+  const extra = words(summary).filter((w) => !titleWords.has(w));
+  if (extra.length < 2) return '';
+  if (summary.startsWith(title)) {
+    const rest = summary.slice(title.length).replace(/^[\s.:\-–—]+/, '');
+    return rest.length >= 40 ? trim(rest, max) : trim(summary, max);
+  }
+  return trim(summary, max);
+}
+
 export const LEVEL_LABEL = { high: 'High', medium: 'Medium', low: 'Low' };
 
 /** Same rule as the gatherer's counts: reported by an outlet or official source, not a look back. */

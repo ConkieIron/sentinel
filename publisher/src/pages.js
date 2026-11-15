@@ -88,8 +88,6 @@ export function livePage(ctx, story) {
   const others = (snapshot.live || []).filter((s) => s.id !== story.id);
   const loc = story.location;
   const region = loc?.region && regionNames[loc.region];
-  const shown = story.updates.length;
-
   const body = `<div class="wrap">
 <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <span>Live coverage</span></nav>
 <section class="hero hero-small live-hero">
@@ -110,11 +108,11 @@ ${storyFigure(story, { className: 'live-hero-figure' })}
 <div class="main-col">
 <section class="section section-first">
 ${sectionHead('Latest updates', { id: 'updates' })}
-<p class="section-dek">Newest first. Every update links to the original report on the publisher's site. Closely related reports are grouped into one story; a closely related story can occasionally still appear.</p>
+<p class="section-dek">Newest first. Near-identical headlines are shown once. Every row links to the original report on the publisher's site.</p>
 <ol class="live-feed" data-live-id="${esc(story.id)}" data-latest="${story.updatedAt}" data-page-size="20">
 ${story.updates.map((u) => liveUpdate(u, now)).join('')}
 </ol>
-${story.reportCount > shown ? `<p class="small muted">Showing the newest ${shown} of ${story.reportCount} reports.</p>` : ''}
+${story.reportCount > story.updates.length ? `<p class="small muted">${story.outlets.length} outlets · ${story.updates.length} distinct update${story.updates.length === 1 ? '' : 's'} from ${story.reportCount} reports.</p>` : ''}
 </section>
 </div>
 <aside class="sidebar">
@@ -590,8 +588,8 @@ export function aboutPage(ctx) {
 <p>Reports about the same event (same country, compatible category, within 36 hours, overlapping key terms) are merged into one incident. Independent coverage by several outlets raises confidence; social posts alone never do.</p>
 
 <h2>5. Breaking and live coverage</h2>
-<p>A story gets its own live page when at least three outlets have reported it, with at least four reports in total, and at least two outlets have reported it in the last three hours (three, once a story is more than 12 hours old, so late re-reports of a story that has ended don't keep it live). Reports are matched by their distinctive words and phrases, so follow-ups such as “flights resume” join the story even when they don't repeat its first headline. A report that shares only a couple of words with a story is added only if it appeared within a few hours of the story's main coverage. The most widely reported live story is marked <strong>Breaking</strong> and the others <strong>Live</strong>.</p>
-<p>A live story's title is the newest straight news headline from the last two hours, preferring major outlets, so it follows events rather than the first report. Explainers, questions and video teasers are never used as the title. Every update links to the outlet's original report.</p>
+<p>A story gets its own live page when coverage is <strong>developing</strong>: at least three outlets, four reports, and at least two distinct headline takes (not the same announcement restated). At least two outlets must have reported it in the last three hours (three, once a story is more than 12 hours old). After 12 hours, late re-reports of an old take — for example another “services restored” — do not keep it live; only a new development does. Reports are matched by their distinctive words and phrases, so follow-ups such as “flights resume” join the story even when they don't repeat its first headline. A report that shares only a couple of words with a story is added only if it appeared within a few hours of the story's main coverage. The most widely reported live story is marked <strong>Breaking</strong> and the others <strong>Live</strong>.</p>
+<p>A live story's title is the newest straight news headline from the last two hours, preferring major outlets, so it follows events rather than the first report. Explainers, questions and video teasers are never used as the title. The updates timeline collapses near-identical headlines so each development appears once, prefers feed items that look like live blogs, and treats a standfirst that adds new facts (for example a rising death toll) as a new update even when the headline is unchanged. Every row links to the outlet's original report. SENTINEL reads public RSS and Bluesky feeds, not the outlets' live-blog HTML pages.</p>
 
 <h2>6. Regional threat index</h2>
 <p>Each incident contributes <code>severity weight × category weight × evidence weight × recency</code>. Severity weights are ${m.severityWeight.slice(1).join(', ')} for levels 1 to 5. Evidence weights are ${Object.entries(m.evidenceWeight).map(([k, v]) => `${k} ${v}`).join(', ')}. Recency halves every ${m.recencyHalfLifeHours} hours.</p>

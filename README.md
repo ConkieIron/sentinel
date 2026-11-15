@@ -101,13 +101,17 @@ Methodology page explains the model to readers.
 ## Live coverage of developing stories
 
 `worker/src/analysis/live.js` picks up to three major developing stories, such as a nationwide
-flight ground stop. A story qualifies when at least 3 outlets have reported it and at least 2
-outlets have reported it in the last 3 hours, or 3 once the story is more than 12 hours old. So
-one late or stray report can't keep an old story live, and nor can a couple of outlets
-republishing "services restored" after a story has ended. Each story gets a BBC-style page at `/live/<id>/` with every outlet's
-report, newest first, each linking to the original article. The front page shows these stories at
-the top, above the headlines. The leading one is tagged "Breaking" and the others "Live"; there is
-no separate breaking-news banner.
+flight ground stop. A story qualifies when at least 3 outlets have reported it, coverage has
+moved on (at least 2 distinct headline takes, not the same announcement restated), and at least 2
+outlets have reported it in the last 3 hours, or 3 once the story is more than 12 hours old. After
+12 hours, late syndication of an old take ("services restored" again) does not keep it live — only
+a new development does. The updates timeline collapses near-identical headlines so each development
+appears once, prefers live-blog-shaped feed items (titles/URLs with “live”, “updates:”, `/live/`),
+and treats a standfirst that adds new facts as a new take even when the headline is unchanged.
+Each story gets a BBC-style page at `/live/<id>/` with those updates, newest first, each linking
+to the original article. The front page shows these stories at the top, above the headlines. The
+leading one is tagged "Breaking" and the others "Live"; there is no separate breaking-news banner.
+SENTINEL reads RSS and Bluesky feeds only; it does not scrape outlets' live-blog HTML pages.
 
 A story's title is the newest straight news headline from the last two hours, preferring major
 outlets (BBC, Reuters, AP, Sky, Guardian, CNN and others). So it follows events ("flights resume")

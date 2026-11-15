@@ -1,4 +1,4 @@
-import { esc, safeHref, timeTag, clockTag, trim, fmtUtc, filterCategory, LEVEL_LABEL, TREND, EVIDENCE } from './util.js';
+import { esc, safeHref, timeTag, clockTag, trim, usefulUpdateDek, fmtUtc, filterCategory, LEVEL_LABEL, TREND, EVIDENCE } from './util.js';
 import { countriesOf, countryPath } from './countries.js';
 
 export function levelBadge(level) {
@@ -146,12 +146,13 @@ ${kicker}
 
 /** One post in a live-coverage timeline. The whole post opens the original article. */
 export function liveUpdate(u, now) {
-  return `<li class="live-post">
+  const dek = usefulUpdateDek(u);
+  return `<li class="live-post${u.liveBlog ? ' is-liveblog' : ''}">
 <div class="live-time">${clockTag(u.time)}${timeTag(u.time, now)}</div>
 <article class="story live-update">
-<p class="live-src"><span class="src">${esc(u.source)}</span>${u.via ? ` <span class="muted">via ${esc(u.via)}</span>` : ''}</p>
+<p class="live-src"><span class="src">${esc(u.source)}</span>${u.liveBlog ? ' <span class="live-blog-tag">Live blog</span>' : ''}${u.via ? ` <span class="muted">via ${esc(u.via)}</span>` : ''}</p>
 <h3 class="headline">${liveHeadline(u)}</h3>
-${u.summary && u.summary !== u.title ? `<p class="dek">${esc(trim(u.summary, 300))}</p>` : ''}
+${dek ? `<p class="dek">${esc(dek)}</p>` : ''}
 </article>
 </li>`;
 }

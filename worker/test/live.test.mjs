@@ -1,6 +1,15 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { findLiveStories, topicFeatures, topicMatches, storyImage } from '../src/analysis/live.js';
+import {
+  findLiveStories,
+  topicFeatures,
+  topicMatches,
+  storyImage,
+  sameTake,
+  dedupeTakes,
+  isLiveBlogItem,
+  takeText,
+} from '../src/analysis/live.js';
 
 const NOW = Date.parse('2026-11-14T14:00:00Z');
 const H = 3600000;
@@ -148,6 +157,8 @@ test('a day-old story is not kept live by later headlines that share a couple of
     report('CNN', 'US Air Force personnel at the RAF Lakenheath base in Britain responded to suspected unauthorized drone activity', 19.5),
     report('South China Morning Post', 'US Air Force responds to suspected drone activity over UK airbase', 18),
     report('The Kyiv Independent', 'US Air Force responds to suspected drone activity at military base in UK', 17.7),
+    // A second take is what makes it live coverage rather than one announcement restated.
+    report('BBC News', 'No aircraft damaged after US Air Force responds to drone activity at RAF Lakenheath', 17.5),
   ];
   const STRAYS = [
     report('CNA (Asia)', "US Air Force captain arrested in Japan's Okinawa for alleged drunk driving", 8),
@@ -159,7 +170,8 @@ test('a day-old story is not kept live by later headlines that share a couple of
   const then = NOW - 17 * H;
   const [story] = findLiveStories(incidents, [...DRONE, ...STRAYS.map((r) => ({ ...r, time: r.time - 17 * H }))], then + H);
   assert.ok(story, 'live while outlets were reporting it');
-  assert.deepEqual(story.updates.map((u) => u.source).sort(), DRONE.map((r) => r.sourceName).sort());
+  assert.ok(story.takeCount >= 2);
+  assert.ok(story.updates.length < DRONE.length, 'near-identical drone headlines collapsed');
 });
 
 test('one late report does not keep a story live', () => {
@@ -172,6 +184,7 @@ test('one late report does not keep a story live', () => {
 test('a story that has ended is not kept live by a couple of late re-reports', () => {
   const incidents = [incident("Microsoft announces service 'restored', global outage over", 0.2, { category: 'infrastructure' })];
   const MSFT = [
+    report('Reuters', 'Microsoft cloud outage disrupts Teams, Outlook and Azure worldwide', 14),
     report('The Japan Times', 'Microsoft says services fully restored after outage roiled world', 12.8),
     report('BBC News', 'Microsoft says services fully restored after day-long global outage', 11),
     report('CBS News', 'Microsoft says it "restored service" after major worldwide outage', 10.2),
@@ -183,8 +196,65 @@ test('a story that has ended is not kept live by a couple of late re-reports', (
   ];
   const background = BACKGROUND.filter((r) => !/Microsoft/.test(r.title));
   assert.deepEqual(findLiveStories(incidents, [...MSFT, ...background], NOW), []);
-  const busy = [...MSFT, report('Reuters', 'Microsoft says global outage fully restored, cause under review', 1)];
-  assert.equal(findLiveStories(incidents, [...busy, ...background], NOW).length, 1, 'still live while three outlets are on it');
+  // Three outlets restating "restored" is not a new development.
+  const busy = [...MSFT, report('Reuters', 'Microsoft says services are fully restored after global outage', 1)];
+  assert.deepEqual(findLiveStories(incidents, [...busy, ...background], NOW), []);
+  // A genuine later development (cause identified) keeps it live alongside recent restored coverage.
+  const moving = [
+    ...MSFT,
+    report('Associated Press', 'Microsoft says faulty software update caused global outage as services return', 1),
+    report('CNN', 'Microsoft blames configuration change for worldwide outage after services restored', 0.8),
+  ];
+  assert.equal(findLiveStories(incidents, [...moving, ...background], NOW).length, 1);
+});
+
+test('the same announcement from many outlets is not a live story', () => {
+  const incidents = [incident('Jordan sentences 3 men to death for October church attack that killed 9', 1, { category: 'terrorism', severity: 4 })];
+  const reports = [
+    report('The Times of India', 'Jordan sentences 3 men to death for October church attack that killed 9', 1.2),
+    report('The Hindu', 'Jordan sentences three men to death over church attack', 1),
+    report('France 24', 'Three sentenced to death over Jordan church attack', 0.9),
+    report('Al Jazeera', 'Jordan sentences three men to death by hanging after deadly church attack', 0.5),
+    ...BACKGROUND,
+  ];
+  assert.deepEqual(findLiveStories(incidents, reports, NOW), []);
+  assert.ok(sameTake(reports[0].title, reports[1].title));
+  assert.equal(dedupeTakes(reports.slice(0, 4)).length, 1);
+});
+
+test('a summary that adds facts counts as a new take, and live-blog items are preferred', () => {
+  assert.ok(isLiveBlogItem({ title: 'FAA ground stop updates: flights resume', url: 'https://www.bbc.co.uk/news/live/abc' }));
+  assert.ok(isLiveBlogItem({ title: 'Live: Bahrain intercepts Iranian drones', url: 'https://www.reuters.com/world/bahrain' }));
+  assert.ok(!isLiveBlogItem({ title: 'Bahrain intercepts Iranian drones', url: 'https://www.reuters.com/world/bahrain-intercepts' }));
+
+  const headline = 'FAA lifts nationwide ground stop on all US flights after outage';
+  const oneShot = {
+    ...report('Sky News', headline, 1),
+    summary: 'The FAA has lifted its nationwide ground stop on flights.',
+  };
+  const liveBlog = {
+    ...report('BBC News', headline, 0.9),
+    url: 'https://www.bbc.co.uk/news/live/faa-ground-stop',
+    summary: 'The FAA has lifted its nationwide ground stop on flights after an hours-long communications failure.',
+  };
+  assert.ok(isLiveBlogItem(liveBlog));
+  assert.ok(sameTake(oneShot, liveBlog));
+  const [kept] = dedupeTakes([oneShot, liveBlog].sort((a, b) => b.time - a.time));
+  assert.equal(kept.url, liveBlog.url, 'live-blog tick preferred over the one-shot restatement');
+
+  const risingToll = [
+    {
+      ...report('Reuters', 'Brooklyn building collapse kills eight', 2),
+      summary: 'Eight people were killed when a Brooklyn building collapsed.',
+    },
+    {
+      ...report('Associated Press', 'Brooklyn building collapse kills eight', 1),
+      summary: 'The death toll from the Brooklyn building collapse has risen to twelve as rescuers continue to search the rubble.',
+    },
+  ];
+  assert.ok(takeText(risingToll[1]).includes('twelve') || takeText(risingToll[1]).includes('rubble'));
+  assert.ok(!sameTake(risingToll[0], risingToll[1]), 'same headline, new toll in the dek');
+  assert.equal(dedupeTakes(risingToll).length, 2);
 });
 
 test('published topics match new wire headlines on the story and nothing else', () => {

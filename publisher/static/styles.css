@@ -371,6 +371,8 @@ th { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; colo
 .live-time .clock { font-size: 1rem; font-weight: 800; color: var(--ink); }
 .live-update { border-bottom: 0; }
 .live-src { margin: 0 0 4px; font-size: 0.82rem; color: var(--muted); }
+.live-blog-tag { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--breaking); }
+.live-update .dek { margin: 6px 0 0; color: var(--body); font-size: 0.92rem; line-height: 1.45; }
 .outlet-list li { padding: 5px 0; }
 
 /* Prose (methodology) */
