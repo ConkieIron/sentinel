@@ -51,8 +51,7 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
   position: relative; display: flex; align-items: center; justify-content: space-between;
   gap: 16px; padding-top: 14px; padding-bottom: 12px;
 }
-.masthead-lead { position: relative; z-index: 1; min-width: 0; flex: 1 1 0; }
-.brand { display: block; color: var(--navy); min-width: 0; width: fit-content; max-width: 100%; }
+.brand { position: relative; z-index: 1; display: block; color: var(--navy); min-width: 0; flex: 1 1 0; }
 .brand:hover { text-decoration: none; }
 .brand-text { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
 .brand-word { display: block; height: 42px; width: auto; max-width: min(100%, 280px); }
@@ -70,11 +69,6 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
 }
 .brand-mark-link:hover { text-decoration: none; opacity: 0.92; }
 .brand-mark { width: 48px; height: 48px; display: block; }
-.edition-age {
-  display: block; margin-top: 5px;
-  color: var(--muted); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em;
-  text-transform: uppercase; white-space: nowrap;
-}
 .masthead-tools { position: relative; z-index: 1; display: flex; align-items: center; justify-content: flex-end; gap: 0; min-width: 0; flex: 1 1 0; }
 .rotator {
   padding: 2px 0 2px 14px; margin-left: 14px; border: 0; border-left: 1px solid var(--rule);
@@ -102,7 +96,7 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
   .brand-mark-link {
     position: static; transform: none; order: -1; flex: none;
   }
-  .masthead-lead { flex: 1 1 0; }
+  .brand { flex: 1 1 0; }
   .masthead-tools {
     flex: 1 1 100%; justify-content: space-between;
     padding-top: 8px; border-top: 1px solid var(--rule-soft);
@@ -110,7 +104,6 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
   .brand-mark { width: 36px; height: 36px; }
   .brand-text { gap: 6px; }
   .brand-word { height: 32px; max-width: 100%; }
-  .edition-age { margin-top: 3px; font-size: 0.6rem; }
   .rotator { margin: 0; padding: 0; border: 0; }
   .ticker { text-align: left; }
   .rotator .wc-face { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
@@ -164,11 +157,20 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
   .rotator .wc-time { font-size: 0.9rem; }
 }
 .nav { background: #fff; border-bottom: 3px solid var(--blue); position: sticky; top: 0; z-index: 20; }
-.nav ul { display: flex; gap: 2px; list-style: none; margin: 0; padding: 0; overflow-x: auto; scrollbar-width: none; }
+.nav .wrap { display: flex; align-items: center; gap: 12px; }
+.nav ul { display: flex; gap: 2px; list-style: none; margin: 0; padding: 0; overflow-x: auto; scrollbar-width: none; min-width: 0; flex: 1 1 auto; }
 .nav ul::-webkit-scrollbar { display: none; }
 .nav a { display: block; padding: 12px 12px 10px; color: var(--ink); font-weight: 700; font-size: 0.82rem; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; border-bottom: 3px solid transparent; margin-bottom: -3px; }
 .nav a:hover { color: var(--blue); text-decoration: none; }
 .nav a[aria-current='page'] { color: var(--blue); border-bottom-color: var(--navy); }
+.nav .edition-age {
+  flex: none; margin-left: auto; padding-left: 12px;
+  color: var(--muted); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; white-space: nowrap;
+}
+@media (max-width: 599px) {
+  .nav .edition-age { font-size: 0.6rem; padding-left: 8px; }
+}
 .update-banner { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 30; max-width: calc(100% - 24px); }
 .update-banner a { display: block; background: var(--navy); color: #fff; font-weight: 700; font-size: 0.9rem; padding: 10px 18px; border-radius: 999px; box-shadow: 0 4px 14px rgba(11, 37, 69, 0.3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .update-banner a:hover { text-decoration: none; background: var(--blue-dark); }

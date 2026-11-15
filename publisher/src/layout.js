@@ -81,12 +81,9 @@ ${breaking ? `<meta name="sentinel-breaking" content="${esc(breaking.id)}">` : '
 <body>
 <a class="skip" href="#content">Skip to content</a>
 <header class="masthead"><div class="wrap">
-<div class="masthead-lead">
 <a class="brand" href="/" aria-label="SENTINEL home">
 <span class="brand-text"><img class="brand-word" src="/sentinel-wordmark.png${iconV}" alt="SENTINEL — Global Incident and Threat Monitor" width="720" height="107"><span class="brand-badges" aria-label="Release status"><span class="brand-badge brand-beta">Beta</span>${site.version ? `<span class="brand-badge brand-version">v${esc(site.version)}</span>` : ''}</span></span>
 </a>
-${editionAge(generated)}
-</div>
 <a class="brand-mark-link" href="/" tabindex="-1" aria-hidden="true">
 <svg class="brand-mark" viewBox="0 0 240 240" aria-hidden="true"><rect width="240" height="240" rx="42" fill="#1c2753"/><path d="M20 119.5A129.7 129.7 0 0 1 219 119.5A129.7 129.7 0 0 1 20 119.5Z" fill="none" stroke="#fff" stroke-width="10" stroke-linejoin="round"/><circle cx="119.5" cy="119.5" r="44.25" fill="#1c2753" stroke="#0078ff" stroke-width="9.5"/><ellipse cx="119.5" cy="119.5" rx="17.5" ry="44.25" fill="none" stroke="#0078ff" stroke-width="8"/><path d="M75 119.5H164" stroke="#0078ff" stroke-width="9"/></svg>
 </a>
@@ -95,7 +92,7 @@ ${marketTicker(snapshot.markets)}
 <button type="button" class="world-clock rotator" data-world-clock hidden aria-label="World clock, show the next city"><span class="wc-face"><span class="wc-city"></span><span class="wc-time"></span><span class="wc-meta"></span></span></button>
 </div>
 </div></header>
-<nav class="nav" aria-label="Sections"><div class="wrap"><ul>${nav}</ul></div></nav>
+<nav class="nav" aria-label="Sections"><div class="wrap"><ul>${nav}</ul>${editionAge(generated)}</div></nav>
 ${breakingKicker(breaking)}
 <div class="update-banner" role="status" hidden><a href="" data-reload><span data-banner-text>New updates published</span> · Refresh</a></div>
 <div class="breaking-flash" data-breaking-flash hidden role="dialog" aria-modal="true" aria-labelledby="breaking-flash-title">
