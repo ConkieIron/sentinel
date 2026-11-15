@@ -41,20 +41,22 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
 .skip { position: absolute; left: -999px; top: 0; background: var(--navy); color: #fff; padding: 8px 12px; z-index: 100; }
 .skip:focus { left: 8px; }
 
-/* Masthead, world clock, nav */
+/* Masthead: wordmark left, eye centred, markets/clock right. */
 @media (max-width: 599px) {
   .masthead .wrap { padding-top: 10px; padding-bottom: 8px; }
   .story-lead .dek { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 }
 .masthead { border-bottom: 1px solid var(--rule); }
-.masthead .wrap { display: flex; align-items: center; padding-top: 14px; padding-bottom: 12px; }
-.brand { display: flex; align-items: flex-start; gap: 10px; color: var(--navy); }
+.masthead .wrap {
+  position: relative; display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding-top: 14px; padding-bottom: 12px;
+}
+.masthead-lead { position: relative; z-index: 1; min-width: 0; flex: 1 1 0; }
+.brand { display: block; color: var(--navy); min-width: 0; width: fit-content; max-width: 100%; }
 .brand:hover { text-decoration: none; }
-/* Mark + badges sit on the SENTINEL cap height (~65% of the wordmark), not the tagline. */
-.brand-mark { width: 28px; height: 28px; flex: none; margin-top: 1px; }
 .brand-text { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
-.brand-word { display: block; height: 42px; width: auto; }
-.brand-badges { display: inline-flex; align-items: center; gap: 5px; height: 28px; margin-top: 1px; padding-top: 1px; }
+.brand-word { display: block; height: 42px; width: auto; max-width: min(100%, 280px); }
+.brand-badges { display: inline-flex; align-items: center; gap: 5px; height: 28px; margin-top: 1px; }
 .brand-badge {
   display: inline-block; padding: 2px 7px; border: 1px solid var(--rule); border-radius: 3px;
   font-size: 0.62rem; font-weight: 650; letter-spacing: 0.06em; line-height: 1.3; text-transform: uppercase;
@@ -62,37 +64,54 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
 }
 .brand-beta { color: var(--blue-dark); border-color: #b8cce8; background: var(--blue-soft); }
 .brand-version { color: var(--navy); }
-@media (max-width: 599px) {
-  .brand { gap: 8px; }
-  .brand-mark { width: 24px; height: 24px; margin-top: 1px; }
-  .brand-text { gap: 6px; }
-  .brand-word { height: 36px; }
-  .brand-badges { height: 24px; margin-top: 1px; }
-  .brand-badge { padding: 1px 5px; font-size: 0.55rem; }
+.brand-mark-link {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  display: flex; align-items: center; color: inherit; text-decoration: none; z-index: 0;
 }
-.masthead-tools { display: flex; align-items: center; margin-left: auto; gap: 0; }
+.brand-mark-link:hover { text-decoration: none; opacity: 0.92; }
+.brand-mark { width: 48px; height: 48px; display: block; }
 .edition-age {
-  margin-left: 12px; padding-left: 12px; border-left: 1px solid var(--rule);
-  color: var(--muted); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em;
+  display: block; margin-top: 5px;
+  color: var(--muted); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em;
   text-transform: uppercase; white-space: nowrap;
 }
-.rotator { padding: 4px 0 4px 12px; margin-left: 12px; border: 0; border-left: 1px solid var(--rule); background: none; font: inherit; color: inherit; text-align: right; cursor: pointer; min-width: 92px; }
-.ticker { min-width: 112px; opacity: 0.85; }
+.masthead-tools { position: relative; z-index: 1; display: flex; align-items: center; justify-content: flex-end; gap: 0; min-width: 0; flex: 1 1 0; }
+.rotator {
+  padding: 2px 0 2px 14px; margin-left: 14px; border: 0; border-left: 1px solid var(--rule);
+  background: none; font: inherit; color: inherit; text-align: right; cursor: pointer; min-width: 0;
+}
+.masthead-tools .rotator:first-child { margin-left: 0; padding-left: 0; border-left: 0; }
+.ticker { opacity: 0.9; }
 .wc-face { display: block; transition: opacity 0.25s ease; }
 .rotator.is-switching .wc-face { opacity: 0; }
 .tk-up { color: #13804a; font-weight: 700; }
 .tk-down { color: var(--high); font-weight: 700; }
 .tk-flat { font-weight: 700; }
-.wc-city { display: block; color: var(--blue); font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
-.wc-time { display: block; color: var(--navy); font-family: var(--serif); font-size: 1.5rem; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
-.wc-meta { display: block; color: var(--muted); font-size: 0.68rem; white-space: nowrap; }
+.wc-city { display: block; color: var(--blue); font-size: 0.66rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+.wc-time { display: block; color: var(--navy); font-family: var(--serif); font-size: 1.28rem; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.wc-meta { display: block; color: var(--muted); font-size: 0.66rem; white-space: nowrap; }
 @media (prefers-reduced-motion: reduce) { .wc-face { transition: none; } }
-/* Ticker and clock don't fit beside the brand on a phone: they share a slim row beneath it. */
+@media (max-width: 899px) {
+  .brand-badges { display: none; }
+  .brand-word { height: 36px; }
+  .brand-mark { width: 42px; height: 42px; }
+  .wc-time { font-size: 1.15rem; }
+}
 @media (max-width: 599px) {
-  .masthead .wrap { flex-wrap: wrap; }
-  .masthead-tools { flex: 1 1 100%; justify-content: space-between; margin: 8px 0 0; padding-top: 6px; border-top: 1px solid var(--rule-soft); }
-  .edition-age { margin: 0; padding: 0; border: 0; font-size: 0.62rem; order: -1; flex: 1 1 100%; margin-bottom: 4px; }
-  .rotator { min-width: 0; margin: 0; padding: 0; border: 0; }
+  .masthead .wrap { flex-wrap: wrap; gap: 10px 12px; }
+  .brand-mark-link {
+    position: static; transform: none; order: -1; flex: none;
+  }
+  .masthead-lead { flex: 1 1 0; }
+  .masthead-tools {
+    flex: 1 1 100%; justify-content: space-between;
+    padding-top: 8px; border-top: 1px solid var(--rule-soft);
+  }
+  .brand-mark { width: 36px; height: 36px; }
+  .brand-text { gap: 6px; }
+  .brand-word { height: 32px; max-width: 100%; }
+  .edition-age { margin-top: 3px; font-size: 0.6rem; }
+  .rotator { margin: 0; padding: 0; border: 0; }
   .ticker { text-align: left; }
   .rotator .wc-face { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
   .rotator .wc-city { font-size: 0.66rem; }
