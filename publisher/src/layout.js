@@ -26,6 +26,7 @@ function marketTicker(markets = []) {
 export function layout({ title, description, path, body, ctx, active = '' }) {
   const { snapshot, site, assets } = ctx;
   const generated = Date.parse(snapshot.generatedAt);
+  const breaking = snapshot.live?.[0];
   const fullTitle = title ? `${title} · SENTINEL` : 'SENTINEL · Global Incident & Threat Monitor';
   const canonical = site.url.replace(/\/$/, '') + path;
   // Browsers keep favicons in a cache of their own, keyed by URL, so a changed icon gets a new URL.
@@ -52,6 +53,7 @@ export function layout({ title, description, path, body, ctx, active = '' }) {
 <meta property="og:image:alt" content="SENTINEL logo">
 <meta name="twitter:card" content="summary">
 <meta name="sentinel-generated" content="${esc(snapshot.generatedAt)}">
+${breaking ? `<meta name="sentinel-breaking" content="${esc(breaking.id)}">` : ''}
 <link rel="icon" href="/favicon.ico${iconV}" sizes="16x16 32x32 48x48">
 <link rel="icon" href="/favicon-32.png${iconV}" type="image/png" sizes="32x32">
 <link rel="icon" href="/favicon.svg${iconV}" type="image/svg+xml">
@@ -74,6 +76,17 @@ ${marketTicker(snapshot.markets)}
 </div></header>
 <nav class="nav" aria-label="Sections"><div class="wrap"><ul>${nav}</ul></div></nav>
 <div class="update-banner" role="status" hidden><a href="" data-reload><span data-banner-text>New updates published</span> · Refresh</a></div>
+<div class="breaking-flash" data-breaking-flash hidden role="dialog" aria-modal="true" aria-labelledby="breaking-flash-title">
+<div class="bf-bars" aria-hidden="true"><span></span><span></span><span></span></div>
+<div class="bf-panel">
+<p class="bf-kicker">Breaking</p>
+<h2 id="breaking-flash-title" data-bf-title></h2>
+<div class="bf-actions">
+<a class="bf-go" data-bf-link href="/">Follow live coverage</a>
+<button type="button" class="bf-dismiss" data-bf-dismiss>Dismiss</button>
+</div>
+</div>
+</div>
 <main id="content">
 ${body}
 </main>

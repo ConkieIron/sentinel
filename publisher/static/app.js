@@ -590,25 +590,75 @@
   }
 
   // Notify when a newer static edition has been published. Live pages check every minute and
-  // count the new updates on their story.
+  // count the new updates on their story. A brand-new Breaking lead also gets a full-screen flash.
   const generated = document.querySelector('meta[name="sentinel-generated"]')?.content;
+  const pageBreaking = document.querySelector('meta[name="sentinel-breaking"]')?.content || '';
   const banner = document.querySelector('.update-banner');
   const bannerText = banner?.querySelector('[data-banner-text]');
   const feed = document.querySelector('.live-feed[data-live-id]');
+  const flash = $('[data-breaking-flash]');
+  const SEEN_BREAKING = 'sentinel-breaking-seen';
+  try {
+    // Seed so an already-open Breaking story does not flash on the next poll.
+    if (pageBreaking && !sessionStorage.getItem(SEEN_BREAKING)) sessionStorage.setItem(SEEN_BREAKING, pageBreaking);
+  } catch {}
+
+  let flashTimer = 0;
+  function hideBreakingFlash() {
+    if (!flash) return;
+    flash.hidden = true;
+    document.documentElement.style.overflow = '';
+    clearTimeout(flashTimer);
+  }
+  function showBreakingFlash(story) {
+    if (!flash || !story?.id || !story.title) return;
+    const title = $('[data-bf-title]', flash);
+    const link = $('[data-bf-link]', flash);
+    if (title) title.textContent = story.title.length > 160 ? story.title.slice(0, 159).replace(/\s+\S*$/, '') + '…' : story.title;
+    if (link) {
+      link.href = story.path || `/live/${story.id}/`;
+      link.focus();
+    }
+    flash.hidden = false;
+    document.documentElement.style.overflow = 'hidden';
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(hideBreakingFlash, 10000);
+    try {
+      sessionStorage.setItem(SEEN_BREAKING, story.id);
+    } catch {}
+  }
+  flash?.querySelector('[data-bf-dismiss]')?.addEventListener('click', hideBreakingFlash);
+  flash?.addEventListener('click', (e) => {
+    if (e.target === flash) hideBreakingFlash();
+  });
+  addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && flash && !flash.hidden) hideBreakingFlash();
+  });
+
   async function checkEdition() {
-    if (document.hidden || !generated || !banner) return;
+    if (document.hidden || !generated) return;
     try {
       const res = await fetch('/data/meta.json', { cache: 'no-store' });
       if (!res.ok) return;
       const meta = await res.json();
       if (!meta.generatedAt || meta.generatedAt === generated) return;
-      if (feed && bannerText) {
-        const live = await (await fetch('/data/live.json', { cache: 'no-store' })).json();
+
+      let live = null;
+      try {
+        live = await (await fetch('/data/live.json', { cache: 'no-store' })).json();
+      } catch {}
+      if (feed && bannerText && live) {
         const story = (live.stories || []).find((s) => s.id === feed.dataset.liveId);
         const fresh = story ? story.times.filter((t) => t > Number(feed.dataset.latest)).length : 0;
         if (fresh) bannerText.textContent = `${fresh} new update${fresh === 1 ? '' : 's'}`;
       }
-      banner.hidden = false;
+      const lead = (live?.stories || []).find((s) => s.breaking) || live?.stories?.[0];
+      let seen = '';
+      try {
+        seen = sessionStorage.getItem(SEEN_BREAKING) || '';
+      } catch {}
+      if (lead?.id && lead.id !== seen) showBreakingFlash(lead);
+      if (banner) banner.hidden = false;
     } catch {}
   }
   banner?.querySelector('[data-reload]')?.addEventListener('click', (e) => {

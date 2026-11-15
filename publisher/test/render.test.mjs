@@ -165,6 +165,8 @@ test('live stories get a front-page teaser and a page listing every update, newe
   assert.match(home, /class="live-box"/);
   assert.match(home, /href="\/live\/abc123\/"/);
   assert.match(home, /<span class="live-pill">Breaking<\/span>/);
+  assert.match(home, /name="sentinel-breaking" content="abc123"/);
+  assert.match(home, /data-breaking-flash/);
   assert.doesNotMatch(home, /class="breaking"/);
   const page = livePage(ctx, ctx.snapshot.live[0]);
   const order = ['www.bbc.co.uk/news/ground-stop', 'www.reuters.com/x', 'edition.cnn.com/y'].map((u) => page.indexOf(u));

@@ -199,7 +199,7 @@ await writePage(
   'data/live.json',
   JSON.stringify({
     generatedAt: snapshot.generatedAt,
-    stories: live.map((s) => ({
+    stories: live.map((s, i) => ({
       id: s.id,
       title: s.title,
       path: `/live/${s.id}/`,
@@ -207,6 +207,7 @@ await writePage(
       reportCount: s.reportCount,
       times: s.updates.map((u) => u.time),
       topics: s.topics,
+      breaking: i === 0,
     })),
   }),
 );
