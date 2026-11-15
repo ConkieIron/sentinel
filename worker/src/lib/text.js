@@ -103,3 +103,61 @@ export function parseTime(s) {
   const t = Date.parse(String(s || '').trim());
   return Number.isFinite(t) ? t : null;
 }
+
+const MONTH_INDEX = {
+  jan: 0, january: 0, feb: 1, february: 1, mar: 2, march: 2, apr: 3, april: 3, may: 4,
+  jun: 5, june: 5, jul: 6, july: 6, aug: 7, august: 7, sep: 8, sept: 8, september: 8,
+  oct: 9, october: 9, nov: 10, november: 10, dec: 11, december: 11,
+};
+const MONTH = 'Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?';
+
+/**
+ * Calendar date named in a headline ("on Nov. 13", "13 November"). Used so a fresh re-post of
+ * an older event is stamped with the event day, not the feed item's publish time.
+ * @returns {number|null} UTC noon on that day, or null
+ */
+export function eventTimeFromTitle(title, now = Date.now()) {
+  const t = String(title || '');
+  // Prefer "on <date>" so "since Oct. 7" / open-ended ranges are ignored.
+  const m =
+    t.match(new RegExp(`\\bon\\s+(${MONTH})\\.\\s*(\\d{1,2})(?:,?\\s*(\\d{4}))?\\b`, 'i')) ||
+    t.match(new RegExp(`\\bon\\s+(\\d{1,2})\\s+(${MONTH})\\.?(?:,?\\s*(\\d{4}))?\\b`, 'i')) ||
+    t.match(new RegExp(`\\b(${MONTH})\\.\\s*(\\d{1,2})(?:,\\s*(\\d{4}))?(?=\\s*[.!]?(?:\\s|$|:))`, 'i'));
+  if (!m) return null;
+
+  let monthName;
+  let day;
+  let year;
+  if (/^\d/.test(m[1])) {
+    day = Number(m[1]);
+    monthName = m[2];
+    year = m[3] ? Number(m[3]) : null;
+  } else {
+    monthName = m[1];
+    day = Number(m[2]);
+    year = m[3] ? Number(m[3]) : null;
+  }
+  const month = MONTH_INDEX[monthName.toLowerCase().replace(/\.$/, '')];
+  if (month === undefined || !day || day < 1 || day > 31) return null;
+
+  const nowDate = new Date(now);
+  let y = year ?? nowDate.getUTCFullYear();
+  let ts = Date.UTC(y, month, day, 12, 0, 0);
+  // Undated month/day that would land in the future is last year (e.g. "on Dec. 20" in January).
+  if (!year && ts > now + 12 * 3600000) {
+    y -= 1;
+    ts = Date.UTC(y, month, day, 12, 0, 0);
+  }
+  if (ts > now + 12 * 3600000) return null;
+  return ts;
+}
+
+/** Prefer a headline's event day when the feed item is a later re-report of that day. */
+export function effectiveItemTime(title, publishedAt, now = Date.now()) {
+  const published = Number(publishedAt);
+  if (!Number.isFinite(published)) return publishedAt;
+  const event = eventTimeFromTitle(title, now);
+  // Only rewrite when the named day is clearly older than the post (half a day+).
+  if (event != null && published - event >= 12 * 3600000) return event;
+  return published;
+}

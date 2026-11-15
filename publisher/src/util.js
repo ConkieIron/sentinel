@@ -32,6 +32,55 @@ export function timeTag(ts, now) {
   return `<time datetime="${iso}" title="${esc(fmtUtc(ts, { withYear: true }))}" data-rel>${esc(ago(ts, now))}</time>`;
 }
 
+const MONTH_INDEX = {
+  jan: 0, january: 0, feb: 1, february: 1, mar: 2, march: 2, apr: 3, april: 3, may: 4,
+  jun: 5, june: 5, jul: 6, july: 6, aug: 7, august: 7, sep: 8, sept: 8, september: 8,
+  oct: 9, october: 9, nov: 10, november: 10, dec: 11, december: 11,
+};
+const MONTH = 'Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:t(?:ember)?)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?';
+
+/** Calendar day named in a headline ("on Nov. 13") — matches worker eventTimeFromTitle. */
+export function eventTimeFromTitle(title, now = Date.now()) {
+  const t = String(title || '');
+  const m =
+    t.match(new RegExp(`\\bon\\s+(${MONTH})\\.\\s*(\\d{1,2})(?:,?\\s*(\\d{4}))?\\b`, 'i')) ||
+    t.match(new RegExp(`\\bon\\s+(\\d{1,2})\\s+(${MONTH})\\.?(?:,?\\s*(\\d{4}))?\\b`, 'i')) ||
+    t.match(new RegExp(`\\b(${MONTH})\\.\\s*(\\d{1,2})(?:,\\s*(\\d{4}))?(?=\\s*[.!]?(?:\\s|$|:))`, 'i'));
+  if (!m) return null;
+  let monthName;
+  let day;
+  let year;
+  if (/^\d/.test(m[1])) {
+    day = Number(m[1]);
+    monthName = m[2];
+    year = m[3] ? Number(m[3]) : null;
+  } else {
+    monthName = m[1];
+    day = Number(m[2]);
+    year = m[3] ? Number(m[3]) : null;
+  }
+  const month = MONTH_INDEX[monthName.toLowerCase().replace(/\.$/, '')];
+  if (month === undefined || !day || day < 1 || day > 31) return null;
+  const nowDate = new Date(now);
+  let y = year ?? nowDate.getUTCFullYear();
+  let ts = Date.UTC(y, month, day, 12, 0, 0);
+  if (!year && ts > now + 12 * 3600000) {
+    y -= 1;
+    ts = Date.UTC(y, month, day, 12, 0, 0);
+  }
+  if (ts > now + 12 * 3600000) return null;
+  return ts;
+}
+
+/** Card timestamp: use the headline's event day when the feed post is a later rehash. */
+export function displayTime(inc, now = Date.now()) {
+  const published = Number(inc?.time);
+  if (!Number.isFinite(published)) return published;
+  const event = eventTimeFromTitle(inc.title, now);
+  if (event != null && published - event >= 12 * 3600000) return event;
+  return published;
+}
+
 /** Clock time ("14:05", UTC in the HTML; the script switches it to the reader's time zone). */
 export function clockTag(ts) {
   const d = new Date(ts);

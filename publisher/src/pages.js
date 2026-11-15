@@ -16,7 +16,7 @@ import {
   storyFigure,
 } from './components.js';
 import { leanCaveat } from './lean.js';
-import { esc, safeHref, timeTag, fmtUtc, ago, LEVEL_LABEL, isReportedTerror, filterCategory, inLatest, bySeriousness, compactHeadline } from './util.js';
+import { esc, safeHref, timeTag, fmtUtc, ago, LEVEL_LABEL, isReportedTerror, filterCategory, inLatest, bySeriousness, compactHeadline, displayTime } from './util.js';
 import { countriesOf, countryPath, adviceChangedAt, adviceChanges } from './countries.js';
 
 const OFFICIAL_LINKS = [
@@ -68,7 +68,7 @@ function homePanels(ctx, serious) {
 <ol class="ranked">${serious
     .map(
       (i) =>
-        `<li><a href="${esc(safeHref(i.url))}" target="_blank" rel="noopener noreferrer">${esc(compactHeadline(i.title))}</a><span class="muted small">${esc(i.location?.country || 'Location unclear')} · ${timeTag(i.time, now)}</span></li>`,
+        `<li><a href="${esc(safeHref(i.url))}" target="_blank" rel="noopener noreferrer">${esc(compactHeadline(i.title))}</a><span class="muted small">${esc(i.location?.country || 'Location unclear')} · ${timeTag(displayTime(i, now), now)}</span></li>`,
     )
     .join('')}</ol>
 </section>`;

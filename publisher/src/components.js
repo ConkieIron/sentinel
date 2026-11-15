@@ -1,4 +1,4 @@
-import { esc, safeHref, timeTag, clockTag, trim, compactHeadline, usefulUpdateDek, fmtUtc, filterCategory, LEVEL_LABEL, TREND, EVIDENCE } from './util.js';
+import { esc, safeHref, timeTag, clockTag, trim, compactHeadline, usefulUpdateDek, fmtUtc, displayTime, filterCategory, LEVEL_LABEL, TREND, EVIDENCE } from './util.js';
 import { countriesOf, countryPath } from './countries.js';
 import { leanTag } from './lean.js';
 
@@ -87,7 +87,7 @@ export function incidentCard(inc, ctx, { variant = 'item', anchor = true, classN
 
   const meta = [
     live ? `<a class="live-link" href="/live/${esc(live.id)}/">${livePill(live, ctx)} Follow coverage</a>` : '',
-    variant === 'row' ? '' : timeTag(inc.time, now),
+    variant === 'row' ? '' : timeTag(displayTime(inc, now), now),
     src ? `<span class="src">${esc(src.name)}</span>${leanTag(src.lean || src.name, snapshot)}` : '',
     showSev ? `<span class="sev sev-${inc.severity}" title="Severity ${inc.severity} of 5">Severity ${inc.severity}/5</span>` : '',
     showEv && evidenceLabel ? `<span class="ev ev-${esc(inc.evidence)}">${esc(evidenceLabel)}</span>` : '',
@@ -102,7 +102,7 @@ ${dekHtml}
 ${showSources ? `<details class="sources"><summary>${sourceSummary(inc.sources)}</summary><ul>${sources}</ul></details>` : ''}`;
 
   return `<article class="story story-${variant}${className ? ` ${esc(className)}` : ''}"${anchor ? ` id="i-${esc(inc.id)}"` : ''} data-cat="${esc(filterCategory(inc))}" data-ev="${esc(inc.evidence)}">
-${variant === 'row' ? `<div class="row-time">${timeTag(inc.time, now)}</div><div class="row-body">${body}</div>` : body}
+${variant === 'row' ? `<div class="row-time">${timeTag(displayTime(inc, now), now)}</div><div class="row-body">${body}</div>` : body}
 </article>`;
 }
 

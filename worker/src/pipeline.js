@@ -11,6 +11,7 @@ import { clusterItems } from './analysis/cluster.js';
 import { leanFor, LEAN } from './data/mediaLean.js';
 import { incidentWeight, scoreRegions, pickBreaking, isReportedTerror } from './analysis/threat.js';
 import { findLiveStories } from './analysis/live.js';
+import { effectiveItemTime } from './lib/text.js';
 
 export const SCHEMA_VERSION = 1;
 
@@ -100,7 +101,9 @@ export async function runPipeline(env = {}, { now = Date.now(), history = [] } =
       if (!cls) continue;
       const loc = locateItem(item);
       if (item.type === 'social' && (!loc || cls.severity < 2)) continue;
-      enriched.push({ ...item, cls, loc });
+      // A fresh re-post that names an older calendar day (e.g. "on Nov. 13") keeps that event time.
+      const time = effectiveItemTime(item.title, item.time, now);
+      enriched.push({ ...item, time, cls, loc });
     }
   }
 
