@@ -1,6 +1,6 @@
 import { esc, safeHref, timeTag, clockTag, trim, usefulUpdateDek, fmtUtc, filterCategory, LEVEL_LABEL, TREND, EVIDENCE } from './util.js';
 import { countriesOf, countryPath } from './countries.js';
-import { leanTag, leanSpread } from './lean.js';
+import { leanTag } from './lean.js';
 
 export function levelBadge(level) {
   return `<span class="lvl lvl-${esc(level)}">${esc(LEVEL_LABEL[level])}</span>`;
@@ -82,13 +82,11 @@ export function incidentCard(inc, ctx, { variant = 'item', anchor = true, classN
       : inc.summary && dekLen
         ? `<p class="dek">${esc(trim(inc.summary, dekLen))}</p>`
         : '';
-  const spread = inc.evidence === 'multi' ? leanSpread(inc.sources, snapshot) : '';
 
   const meta = [
     live ? `<a class="live-link" href="/live/${esc(live.id)}/">${livePill(live, ctx)} Follow coverage</a>` : '',
     variant === 'row' ? '' : timeTag(inc.time, now),
     src ? `<span class="src">${esc(src.name)}</span>${leanTag(src.lean || src.name, snapshot)}` : '',
-    spread,
     showSev ? `<span class="sev sev-${inc.severity}" title="Severity ${inc.severity} of 5">Severity ${inc.severity}/5</span>` : '',
     showEv ? `<span class="ev ev-${esc(inc.evidence)}">${esc(evidenceLabel)}</span>` : '',
     casualtyText(inc.casualties, inc.evidence),

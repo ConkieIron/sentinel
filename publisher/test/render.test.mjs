@@ -148,19 +148,6 @@ test('masthead shows Beta and version badges', () => {
   assert.match(html, /class="brand-badge brand-version"[^>]*>v1\.0\.0</);
 });
 
-test('multi-outlet cards can show a lean span', () => {
-  const snapshot = structuredClone(fixture);
-  const inc = snapshot.incidents.find((i) => i.sources?.length >= 1);
-  assert.ok(inc);
-  inc.evidence = 'multi';
-  inc.sourceCount = 2;
-  inc.sources = [
-    { name: 'The Guardian', lean: 'left', url: 'https://example.com/a', type: 'publisher', time: Date.parse(snapshot.generatedAt) },
-    { name: 'Fox News', lean: 'right', url: 'https://example.com/b', type: 'publisher', time: Date.parse(snapshot.generatedAt) },
-  ];
-  assert.match(homePage(context(snapshot)), /lean-spread[^>]*>Left–Right</);
-});
-
 test('live stories get a front-page teaser and a page listing every update, newest first', () => {
   const ctx = context(withLiveStory(fixture));
   const home = homePage(ctx);
