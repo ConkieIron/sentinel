@@ -14,8 +14,9 @@ import { createHash } from 'node:crypto';
 import { cp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage, livePage, countryPage, countriesIndexPage, localPage } from './src/pages.js';
+import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage, livePage, countryPage, countriesIndexPage, localPage, localCardsByIso } from './src/pages.js';
 import { countriesOf, adviceChanges } from './src/countries.js';
+import { liveUpdate } from './src/components.js';
 import { COUNTRIES as GEO_COUNTRIES } from '../worker/src/data/countries.js';
 import { CATCH_KM, DEFAULT_CATCH_KM } from './src/localGeo.js';
 import { bumpPatch, fetchLiveVersion } from './src/version.js';
@@ -194,7 +195,7 @@ await writePage(
     fingerprint: editionFingerprint(snapshot, await codeVersion()),
   }),
 );
-// Read by open live pages (new-update count) and by the breaking-news watcher (topic matching).
+// Read by open live pages (soft-refresh + update count) and by the breaking-news watcher (topics).
 await writePage(
   'data/live.json',
   JSON.stringify({
@@ -206,11 +207,18 @@ await writePage(
       updatedAt: s.updatedAt,
       reportCount: s.reportCount,
       times: s.updates.map((u) => u.time),
+      updates: s.updates.map((u) => ({ time: u.time, html: liveUpdate(u, ctx.now, snapshot) })),
       topics: s.topics,
       breaking: i === 0,
     })),
   }),
 );
+
+// Local page loads one country at a time instead of shipping every incident as hidden HTML.
+await mkdir(join(dist, 'data/local'), { recursive: true });
+for (const [iso3, html] of localCardsByIso(ctx)) {
+  await writePage(`data/local/${iso3}.json`, JSON.stringify({ iso3, count: (html.match(/<article\b/g) || []).length, html }));
+}
 
 const urls = [
   '/',

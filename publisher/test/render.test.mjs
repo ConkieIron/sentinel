@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { esc, safeHref, ago, bySeriousness } from '../src/util.js';
-import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage, livePage, countryPage, countriesIndexPage, localPage, headlineIncidents } from '../src/pages.js';
+import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage, livePage, countryPage, countriesIndexPage, localPage, localCardsByIso, headlineIncidents } from '../src/pages.js';
 import { buildCountries } from '../src/countries.js';
 import { project, MAP_WIDTH, MAP_HEIGHT } from '../src/projection.js';
 
@@ -149,14 +149,20 @@ test('masthead shows Beta and version badges', () => {
   assert.match(html, /class="brand-badge brand-version"[^>]*>v1\.1\.0</);
 });
 
-test('Local incidents page asks for location and lists country-tagged cards', () => {
+test('Local incidents page asks for location and loads country cards on demand', () => {
   const html = localPage(context(fixture));
   assert.match(html, /aria-current="page">Local</);
   assert.match(html, /data-local-locate/);
-  assert.match(html, /Your location is used only on this device/);
-  assert.match(html, /data-local-list/);
+  assert.match(html, /Incidents in your country/);
+  assert.match(html, /Your location stays on this device/);
+  assert.match(html, /class="headlines" data-local-list/);
+  assert.doesNotMatch(html, /story-tile local-item/);
+  const cards = localCardsByIso(context(fixture));
   const located = fixture.incidents.filter((i) => i.location?.iso3 && i.evidence !== 'social' && !i.retrospective);
-  if (located[0]) assert.match(html, new RegExp(`data-iso3="${located[0].location.iso3}"`));
+  if (located[0]) {
+    const iso = located[0].location.iso3;
+    assert.ok(cards.get(iso)?.includes(`data-iso3="${iso}"`));
+  }
 });
 
 test('live stories get a front-page teaser and a page listing every update, newest first', () => {
@@ -167,6 +173,9 @@ test('live stories get a front-page teaser and a page listing every update, newe
   assert.match(home, /<span class="live-pill">Breaking<\/span>/);
   assert.match(home, /name="sentinel-breaking" content="abc123"/);
   assert.match(home, /data-breaking-flash/);
+  assert.match(home, /data-breaking-kicker/);
+  assert.match(home, /data-edition-age/);
+  assert.match(home, /ts-breaking/);
   assert.doesNotMatch(home, /class="breaking"/);
   const page = livePage(ctx, ctx.snapshot.live[0]);
   const order = ['www.bbc.co.uk/news/ground-stop', 'www.reuters.com/x', 'edition.cnn.com/y'].map((u) => page.indexOf(u));
@@ -294,16 +303,21 @@ test('the main live story shows its picture, credited and linked to the source',
   assert.ok(!/href="javascript:/i.test(badLink));
 });
 
-test('the masthead ticker shows each index, the first visible without JavaScript', () => {
+test('the masthead ticker shows open indexes only, the first visible without JavaScript', () => {
   const snapshot = structuredClone(fixture);
   const at = Date.parse(snapshot.generatedAt);
   snapshot.markets = [
     { id: 'ftse', name: 'FTSE 100', price: 10902.56, changePct: 0.36, time: at, open: true },
     { id: 'dow', name: 'Dow Jones', price: 52347.55, changePct: -0.4, time: at - 86400000, open: false },
+    { id: 'nikkei', name: 'Nikkei 225', price: 50200.1, changePct: 0.12, time: at, open: true },
   ];
   const home = homePage(context(snapshot));
   assert.match(home, /data-ticker-item><span class="wc-city">FTSE 100<\/span><span class="wc-time">10,902\.56<\/span><span class="wc-meta"><span class="tk-up">▲ 0\.36%<\/span><span class="tk-status"> · <time/);
-  assert.match(home, /data-ticker-item hidden><span class="wc-city">Dow Jones<\/span>.*▼ 0\.40%<\/span><span class="tk-status"> · Closed/);
+  assert.match(home, /data-ticker-item hidden><span class="wc-city">Nikkei 225<\/span>/);
+  assert.doesNotMatch(home, /Dow Jones/, 'closed indexes stay out of the masthead');
+  assert.match(home, /data-edition-age/);
+  snapshot.markets = [{ id: 'dow', name: 'Dow Jones', price: 52347.55, changePct: -0.4, time: at - 86400000, open: false }];
+  assert.doesNotMatch(homePage(context(snapshot)), /data-ticker/, 'all closed, no ticker');
   delete snapshot.markets;
   assert.doesNotMatch(homePage(context(snapshot)), /data-ticker/, 'no market data, no ticker');
 });

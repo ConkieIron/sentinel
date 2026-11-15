@@ -118,7 +118,9 @@ appears once, prefers live-blog-shaped feed items (titles/URLs with “live”, 
 and treats a standfirst that adds new facts as a new take even when the headline is unchanged.
 Each story gets a BBC-style page at `/live/<id>/` with those updates, newest first, each linking
 to the original article. The front page shows these stories at the top, above the headlines. The
-leading one is tagged "Breaking" and the others "Live"; there is no separate breaking-news banner.
+leading one is tagged "Breaking" and the others "Live". A new Breaking lead gets a one-shot
+  full-screen notice, then a persistent Breaking strip under the nav; open live pages soft-append
+  new updates from `live.json` without a full reload.
 SENTINEL reads RSS and Bluesky feeds only; it does not scrape outlets' live-blog HTML pages.
 
 A story's title is the newest straight news headline from the last two hours, preferring major
@@ -278,10 +280,10 @@ run `npm run pages:deploy` locally after `npm run build`.
 
 GitHub's 5-minute schedule is a minimum and is often late. `watcher/` is a separate Worker that
 runs every minute on the Workers Free plan. It reads the latest Reuters, AP and CNN posts on Bluesky
-every minute, plus two of AFP, NBC News, The Guardian, The New York Times, The Washington Post,
-Sky News and Al Jazeera in rotation (each every 3–4 minutes, which keeps a run within the free
-plan's 10ms CPU limit), and USGS earthquakes from the last hour. Any new headline goes through the
-shared classifier.
+every minute, plus AFP, NBC News, The Guardian, The New York Times, The Washington Post, Sky News,
+Al Jazeera and the WSJ in rotation (two per run normally, four while the site has live stories so
+follow-ups land about every two minutes), and USGS earthquakes from the last hour. Any new headline
+goes through the shared classifier.
 When something rates severity 4 or above (`BREAKING_MIN_SEVERITY`), it starts the publish workflow
 straight away through GitHub's `workflow_dispatch` API, so major news is live in about 2 minutes.
 It does the same when a new wire post matches a story the site is covering live. It reads those

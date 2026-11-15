@@ -1,7 +1,8 @@
 // SENTINEL breaking-news watcher (Cloudflare Worker, free plan).
 //
 // Every minute it polls the fastest sources (the Bluesky accounts of the wire services, a rotating
-// pair of other major outlets, and USGS earthquakes). It asks GitHub Actions to run the publish workflow immediately when a new
+// set of other major outlets — four at a time while the site has live stories, otherwise two —
+// and USGS earthquakes). It asks GitHub Actions to run the publish workflow immediately when a new
 // severity 4–5 incident appears, or when a wire posts an update on a story the site is covering
 // live (topics read from the site's /data/live.json). Every NUDGE_MINUTES it also starts a
 // routine publish, because GitHub's own schedule is frequently delayed. Every HEALTH_MINUTES it
@@ -47,7 +48,8 @@ for (const sample of WARM_UP) topicMatches(topicFeatures(sample), warmTopic);
 
 const APPVIEW = 'https://public.api.bsky.app';
 // Each request costs about 1ms of the 10ms CPU allowance, so the wires are polled every minute
-// and the other outlets in rotation, ROTATE_PER_RUN at a time (each every 3–4 minutes).
+// and the other outlets in rotation. While the site has live stories, rotate faster so follow-ups
+// from Sky/Guardian/etc. are not stuck behind a 3–4 minute slot.
 const WIRES = [
   { handle: 'reuters.com', name: 'Reuters' },
   { handle: 'apnews.com', name: 'Associated Press' },
@@ -70,12 +72,14 @@ const FOX_RSS = {
   url: 'https://moxie.foxnews.com/google-publisher/world.xml',
 };
 const ROTATE_PER_RUN = 2;
+const ROTATE_PER_RUN_LIVE = 4;
 // live.json only changes when the site is published, so it is re-read every few minutes.
 const LIVE_TTL_MS = 3 * 60000;
 
-export function accountsFor(now) {
-  const start = (Math.floor(now / 60000) * ROTATE_PER_RUN) % ROTATING.length;
-  return [...WIRES, ...Array.from({ length: ROTATE_PER_RUN }, (_, i) => ROTATING[(start + i) % ROTATING.length])];
+export function accountsFor(now, { liveCount = 0 } = {}) {
+  const perRun = liveCount > 0 ? ROTATE_PER_RUN_LIVE : ROTATE_PER_RUN;
+  const start = (Math.floor(now / 60000) * perRun) % ROTATING.length;
+  return [...WIRES, ...Array.from({ length: perRun }, (_, i) => ROTATING[(start + i) % ROTATING.length])];
 }
 const USGS_HOUR = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_hour.geojson';
 const WIRE_MAX_AGE_MS = 30 * 60000;
@@ -166,9 +170,12 @@ async function fetchLive(siteUrl, now) {
 }
 
 export async function fetchSources(env = {}, now = Date.now()) {
+  // Use the cached live count (if any) so the first parallel fetch already widens rotation when
+  // stories are live; then refresh live.json alongside the wires.
+  const cachedLive = now - liveCache.at < LIVE_TTL_MS ? liveCache.stories.length : 0;
   const [live, ...results] = await Promise.allSettled([
     fetchLive(env.SITE_URL, now),
-    ...accountsFor(now).map((w) => fetchWire(w)),
+    ...accountsFor(now, { liveCount: cachedLive }).map((w) => fetchWire(w)),
     fetchQuakes(),
     fetchFoxRss(),
   ]);

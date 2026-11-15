@@ -11,16 +11,31 @@ const NAV = [
 
 const price = new Intl.NumberFormat('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-/** Masthead ticker: one index at a time, rotated by app.js. Hidden when there is no market data. */
+/** Masthead ticker: open markets only (closed indexes stay out of the way of threat signals). */
 function marketTicker(markets = []) {
-  if (!markets.length) return '';
-  const items = markets.map((m, i) => {
+  const open = (markets || []).filter((m) => m.open && Number.isFinite(m.price));
+  if (!open.length) return '';
+  const items = open.map((m, i) => {
     const dir = m.changePct > 0 ? 'up' : m.changePct < 0 ? 'down' : 'flat';
     const change = m.changePct === null ? '' : `<span class="tk-${dir}">${dir === 'up' ? '▲' : dir === 'down' ? '▼' : '■'} ${Math.abs(m.changePct).toFixed(2)}%</span>`;
-    const status = `<span class="tk-status">${change ? ' · ' : ''}${m.open ? clockTag(m.time) : 'Closed'}</span>`;
+    const status = `<span class="tk-status">${change ? ' · ' : ''}${clockTag(m.time)}</span>`;
     return `<span class="wc-face" data-ticker-item${i ? ' hidden' : ''}><span class="wc-city">${esc(m.name)}</span><span class="wc-time">${price.format(m.price)}</span><span class="wc-meta">${change}${status}</span></span>`;
   });
   return `<button type="button" class="ticker rotator" data-ticker aria-label="Stock markets, show the next index">${items.join('')}</button>`;
+}
+
+function editionAge(generated) {
+  if (!Number.isFinite(generated)) return '';
+  return `<span class="edition-age" data-edition-age datetime="${esc(new Date(generated).toISOString())}" title="Edition generated ${esc(fmtUtc(generated, { withYear: true }))}">As of …</span>`;
+}
+
+/** Persistent Breaking strip; the full-screen flash is the first hit for a brand-new lead. */
+function breakingKicker(breaking) {
+  if (!breaking) return '';
+  return `<div class="breaking-kicker" data-breaking-kicker role="status">
+<a class="bk-link" data-bk-link href="/live/${esc(breaking.id)}/"><span class="bk-label">Breaking</span> <span data-bk-title>${esc(breaking.title)}</span></a>
+<button type="button" class="bk-dismiss" data-bk-dismiss aria-label="Dismiss breaking alert">Dismiss</button>
+</div>`;
 }
 
 export function layout({ title, description, path, body, ctx, active = '' }) {
@@ -70,11 +85,13 @@ ${breaking ? `<meta name="sentinel-breaking" content="${esc(breaking.id)}">` : '
 <span class="brand-text"><span class="brand-row"><img class="brand-word" src="/sentinel-wordmark.png${iconV}" alt="SENTINEL" width="320" height="34"><span class="brand-badges" aria-label="Release status"><span class="brand-badge brand-beta">Beta</span>${site.version ? `<span class="brand-badge brand-version">v${esc(site.version)}</span>` : ''}</span></span><small>Global Incident &amp; Threat Monitor</small></span>
 </a>
 <div class="masthead-tools">
+${editionAge(generated)}
 ${marketTicker(snapshot.markets)}
 <button type="button" class="world-clock rotator" data-world-clock hidden aria-label="World clock, show the next city"><span class="wc-face"><span class="wc-city"></span><span class="wc-time"></span><span class="wc-meta"></span></span></button>
 </div>
 </div></header>
 <nav class="nav" aria-label="Sections"><div class="wrap"><ul>${nav}</ul></div></nav>
+${breakingKicker(breaking)}
 <div class="update-banner" role="status" hidden><a href="" data-reload><span data-banner-text>New updates published</span> · Refresh</a></div>
 <div class="breaking-flash" data-breaking-flash hidden role="dialog" aria-modal="true" aria-labelledby="breaking-flash-title">
 <div class="bf-bars" aria-hidden="true"><span></span><span></span><span></span></div>

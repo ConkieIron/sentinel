@@ -33,9 +33,14 @@ function threatStrip(snapshot) {
   const items = raised.length
     ? raised.map((r) => `<li><a href="/region/${esc(r.id)}/"><span class="dot lvl-${esc(r.level)}" aria-hidden="true"></span>${esc(r.name)}<span class="vh"> (${esc(LEVEL_LABEL[r.level])})</span></a></li>`).join('')
     : '<li>No region above Low</li>';
+  const lead = snapshot.live?.[0];
+  const breaking = lead
+    ? `<a class="ts-breaking" href="/live/${esc(lead.id)}/"><span class="ts-break-label">Breaking</span> ${esc(compactHeadline(lead.title))}</a>`
+    : '';
   return `<section class="threat-strip" aria-label="Regional threat levels"><div class="wrap">
 <span class="ts-label">Threat levels</span>
 <ul>${items}</ul>
+${breaking}
 <a class="ts-map" href="#map">Map ↓</a>
 </div></section>`;
 }
@@ -135,7 +140,7 @@ ${
 }
 <section class="panel">
 <h2 class="panel-title">About live coverage</h2>
-<p>A story gets live coverage when at least three outlets are reporting it and it is still developing. The leading one is marked Breaking. Updates from major wire services and outlets on Bluesky can publish within a few minutes; others appear within about five.</p>
+<p>A story gets live coverage when at least three outlets are reporting it and it is still developing. The leading one is marked Breaking. Wire updates usually reach the site within a couple of minutes of the watcher seeing them; other major outlets are checked every few minutes while a story is live.</p>
 <p><a href="/">Back to the latest briefing →</a></p>
 </section>
 </aside>
@@ -519,22 +524,16 @@ ${countrySearch(ctx)}
 }
 
 /**
- * Local Incidents: a shell page. The browser's GPS is matched to a country centroid client-side
- * (coordinates never leave the device); matching cards below are then shown.
+ * Local Incidents: a shell page. GPS is matched to a country on-device; cards for that ISO3 are
+ * loaded from /data/local/{iso3}.json so the page does not ship the whole world as hidden HTML.
  */
 export function localPage(ctx) {
   const { snapshot } = ctx;
-  const located = snapshot.incidents
-    .filter((i) => i.location?.iso3 && i.evidence !== 'social' && !i.retrospective)
-    .sort((a, b) => b.time - a.time);
-  const cards = located
-    .map((i) => incidentCard(i, ctx, { variant: 'item', className: 'local-item' }).replace('<article ', '<article hidden '))
-    .join('');
   const body = `<div class="wrap">
 <section class="hero hero-small">
 <p class="eyebrow">Local incidents</p>
-<h1>Incidents near you</h1>
-<p class="hero-dek">Headlines for the country you are in right now. Your location is used only on this device to pick a country — it is never sent to SENTINEL.</p>
+<h1>Incidents in your country</h1>
+<p class="hero-dek">Verified headlines for the country you are in. Your location stays on this device and is only used to pick a country — it is never sent to SENTINEL.</p>
 </section>
 <section class="local-panel" data-local>
 <div class="local-status" data-local-status>
@@ -552,10 +551,10 @@ export function localPage(ctx) {
 ${countrySearch(ctx)}
 </div>
 </section>
-<section class="section">
-${sectionHead('Incidents in your country')}
+<section class="section section-first">
+${sectionHead('Latest headlines')}
 <p class="empty" data-local-empty>Use your location above to load local headlines.</p>
-<div class="story-list" data-local-list data-page-size="40">${cards}</div>
+<div class="headlines" data-local-list></div>
 </section>
 </div>`;
   return layout({
@@ -566,6 +565,26 @@ ${sectionHead('Incidents in your country')}
     ctx,
     active: 'local',
   });
+}
+
+/** Per-country headline HTML for the Local page (written to /data/local/{iso3}.json). */
+export function localCardsByIso(ctx) {
+  const byIso = new Map();
+  for (const i of ctx.snapshot.incidents) {
+    const iso = i.location?.iso3;
+    if (!iso || i.evidence === 'social' || i.retrospective) continue;
+    if (!byIso.has(iso)) byIso.set(iso, []);
+    byIso.get(iso).push(i);
+  }
+  const out = new Map();
+  for (const [iso3, list] of byIso) {
+    list.sort((a, b) => b.time - a.time);
+    out.set(
+      iso3,
+      list.map((i) => incidentCard(i, ctx, { variant: 'tile', className: 'local-item' })).join(''),
+    );
+  }
+  return out;
 }
 
 export function terrorismPage(ctx) {
@@ -625,22 +644,23 @@ export function aboutPage(ctx) {
 <section class="hero hero-small">
 <p class="eyebrow">Methodology &amp; sources</p>
 <h1>How SENTINEL builds each edition</h1>
-<p class="hero-dek">SENTINEL is a static site. Every few minutes an automated job gathers public reporting, scores it and compiles the result into plain HTML pages. There is no database behind these pages.</p>
+<p class="hero-dek">SENTINEL is a static site. An automated job gathers public reporting, scores it and compiles the result into plain HTML pages. There is no database behind these pages.</p>
 </section>
 
 <article class="prose">
 <h2>1. Collection and publishing</h2>
-<p>Every five minutes SENTINEL reads ${snapshot.sources.length} sources: news feeds from ${rss.length} publishers (${esc(listNames(rss))}), the official Bluesky accounts of ${bskyPublishers.length} news organisations (${esc(listNames(bskyPublishers))}), public Bluesky posts matching incident keywords, USGS earthquake data and GDACS disaster alerts. Only items from the last ${snapshot.windowHours} hours are used.</p>
+<p>Each edition reads ${snapshot.sources.length} sources: news feeds from ${rss.length} publishers (${esc(listNames(rss))}), the official Bluesky accounts of ${bskyPublishers.length} news organisations (${esc(listNames(bskyPublishers))}), public Bluesky posts matching incident keywords, USGS earthquake data and GDACS disaster alerts. Only items from the last ${snapshot.windowHours} hours are used.</p>
+<p>The free publishing path gathers and rebuilds about every five minutes via GitHub Actions (GitHub's minimum schedule; busy periods can delay runs). A Cloudflare Worker gatherer, if used instead, refreshes its snapshot every 15 minutes. A new edition is uploaded whenever something a reader would notice has changed, and at least once an hour as a heartbeat.</p>
+<p>Separately, a watcher checks the wire services every minute and other major outlets on a short rotation (faster while a story is live). When one reports major breaking news or a new development in a live story, it starts a rebuild straight away — typically within a couple of minutes of the watcher seeing the post, plus the time GitHub takes to run the build.</p>
 <p>Each outlet is tagged with an approximate <strong>editorial lean</strong> (Left, Centre-left, Centre, Centre-right, Right, Wire, State-funded or Official). These labels are a transparency aid drawn from commonly cited media-bias placements and public-broadcaster status. They are <em>not</em> accuracy ratings, and contested outlets are labelled conservatively. BBC is rated Centre as a charter public broadcaster; DW, France 24, RFI, ABC Australia and CNA are marked State-funded as government international services.</p>
-<p>A new edition is published whenever something a reader would notice has changed, and at least once an hour. Separately, a watcher checks the wire services and other major outlets every minute. When one reports major breaking news or a new development in a story covered live, it starts a rebuild straight away, so these usually appear within two or three minutes.</p>
-<p>Stock market figures in the masthead come from Yahoo Finance and can be delayed by up to 15 minutes.</p>
+<p>Stock market figures in the masthead come from Yahoo Finance and can be delayed by up to 15 minutes. Only indexes that are open appear there.</p>
 
 <h2>2. Classification</h2>
 <p>Each headline and standfirst is matched against an explainable rule set that assigns a category, extracts reported casualty figures and sets a <strong>severity from 1 to 5</strong>. Retrospective items (anniversaries, trials, sentencing) are capped at severity 1. Commentary, sport and business stories are excluded. <strong>Strategic development</strong> covers significant space and science milestones (for example catching a returning booster) but not routine satellite launches or funding news. Public social posts that read as jokes or satire are dropped.</p>
 <p>Suspected terrorism counts, the Global terror list and the diamond markers on the maps include only reports from news outlets and official sources. Unverified social posts, and coverage of past attacks such as anniversaries and trials, are listed separately at the foot of the Global terror page.</p>
 <div class="table-wrap"><table><thead><tr><th>Category</th><th class="num">Weight</th><th class="num">In Latest now</th></tr></thead><tbody>${catRows}</tbody></table></div>
 <p class="muted small">Latest headlines are the newest verified reports of severity 3–5. <strong>Most serious right now</strong> ranks by severity, so a grave but older story still surfaces there. The Latest updates list shows other severity-2+ reports, newest first, and never repeats a headline story. Long lede-style titles pasted into a feed (common on Bluesky cards) are shortened to a compact headline. Unverified social posts and look-backs that read as terrorism stay in Latest but are not counted as suspected terrorism.</p>
-<p class="muted small"><strong>Local</strong> uses the browser's location on your device to pick the nearest country centroid, then shows that country's verified incidents. Coordinates are not sent to SENTINEL.</p>
+<p class="muted small"><strong>Local</strong> uses the browser's location on your device to pick a country (microstate catchments and regional hubs, not a single world centroid), then loads that country's verified incidents. Coordinates are not sent to SENTINEL.</p>
 
 <h2>3. Location</h2>
 <p>Places named in the report are matched against a gazetteer of every country plus key cities and conflict hotspots. USGS and GDACS markers use exact coordinates; others sit on the city or country centre and are approximate. Cloud and IT failures described as worldwide or a global outage are labelled <strong>Global</strong> rather than pinned to a headquarters country. National aviation ground stops (for example an FAA halt) stay with that country.</p>
@@ -649,7 +669,7 @@ export function aboutPage(ctx) {
 <p>Reports about the same event (same country, compatible category, within 36 hours, overlapping key terms) are merged into one incident. Independent coverage by several outlets raises confidence; social posts alone never do.</p>
 
 <h2>5. Breaking and live coverage</h2>
-<p>A story gets its own live page when coverage is <strong>developing</strong>: at least three outlets, four reports, and at least two distinct headline takes (not the same announcement restated). At least two outlets must have reported it in the last three hours (three, once a story is more than 12 hours old). After 12 hours, late re-reports of an old take — for example another “services restored” — do not keep it live; only a new development does. Reports are matched by their distinctive words and phrases, so follow-ups such as “flights resume” join the story even when they don't repeat its first headline. A report that shares only a couple of words with a story is added only if it appeared within a few hours of the story's main coverage. The most widely reported live story is marked <strong>Breaking</strong> and the others <strong>Live</strong>. If a new Breaking lead appears while the site is open, a full-screen notice offers a link to the live coverage.</p>
+<p>A story gets its own live page when coverage is <strong>developing</strong>: at least three outlets, four reports, and at least two distinct headline takes (not the same announcement restated). At least two outlets must have reported it in the last three hours (three, once a story is more than 12 hours old). After 12 hours, late re-reports of an old take — for example another “services restored” — do not keep it live; only a new development does. Reports are matched by their distinctive words and phrases, so follow-ups such as “flights resume” join the story even when they don't repeat its first headline. A report that shares only a couple of words with a story is added only if it appeared within a few hours of the story's main coverage. The most widely reported live story is marked <strong>Breaking</strong> and the others <strong>Live</strong>. If a new Breaking lead appears while the site is open, a full-screen notice fires once, then a persistent Breaking strip under the nav keeps the link visible. Open live pages pull new updates into the timeline without a full reload.</p>
 <p>A live story's title is the newest straight news headline from the last two hours, preferring major outlets, so it follows events rather than the first report. Explainers, questions and video teasers are never used as the title. The updates timeline collapses near-identical headlines so each development appears once, prefers feed items that look like live blogs, and treats a standfirst that adds new facts (for example a rising death toll) as a new update even when the headline is unchanged. Every row links to the outlet's original report. SENTINEL reads public RSS and Bluesky feeds, not the outlets' live-blog HTML pages.</p>
 
 <h2>6. Regional threat index</h2>

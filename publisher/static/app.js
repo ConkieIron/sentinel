@@ -57,13 +57,28 @@
       t.title = local.format(ts);
     }
   }
-  refreshTimes();
-  setInterval(refreshTimes, 60000);
-  const clock = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
-  for (const t of $$('time[data-clock]')) {
-    const ts = Date.parse(t.getAttribute('datetime'));
-    if (Number.isFinite(ts)) t.textContent = clock.format(ts);
+  const clockFmt = new Intl.DateTimeFormat(undefined, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  function refreshClocks(root = document) {
+    for (const t of $$('time[data-clock]', root)) {
+      const ts = Date.parse(t.getAttribute('datetime'));
+      if (Number.isFinite(ts)) t.textContent = clockFmt.format(ts);
+    }
   }
+  function refreshEditionAge() {
+    const el = $('[data-edition-age]');
+    if (!el) return;
+    const ts = Date.parse(el.getAttribute('datetime'));
+    if (!Number.isFinite(ts)) return;
+    const mins = Math.max(0, Math.round((Date.now() - ts) / 60000));
+    el.textContent = mins < 1 ? 'As of just now' : mins < 60 ? `As of ${mins} min ago` : `As of ${Math.floor(mins / 60)} hr ago`;
+  }
+  refreshTimes();
+  refreshClocks();
+  refreshEditionAge();
+  setInterval(() => {
+    refreshTimes();
+    refreshEditionAge();
+  }, 60000);
 
   // Masthead rotators (stock markets, world clock): fade to the next item every 5 seconds. Tap for
   // the next one. Taps on touch screens leave focus and a synthetic hover behind, so only a real
@@ -336,7 +351,7 @@
     });
   }
 
-  // Local Incidents: match GPS to a country centroid on-device, then reveal that country's cards.
+  // Local Incidents: match GPS to a country on-device, then load that country's cards from JSON.
   const localRoot = $('[data-local]');
   if (localRoot) {
     const status = $('[data-local-status]', localRoot);
@@ -351,10 +366,45 @@
     const list = $('[data-local-list]');
     const locateBtn = $('[data-local-locate]', localRoot);
     const retryBtn = $('[data-local-retry]', localRoot);
-    const items = list ? $$('[data-iso3]', list) : [];
     // v2: catchment scoring replaced pure nearest-centroid (which mis-labelled UK as Jersey).
     const CACHE_KEY = 'sentinel-local-iso3-v2';
     let geo = null;
+    const localCache = new Map();
+
+    const renderLocalCards = (html) => {
+      if (!list) return 0;
+      list.innerHTML = html || '';
+      const cards = $$('.local-item', list);
+      cards.forEach((el, i) => {
+        el.hidden = false;
+        el.classList.remove('story-lead');
+        el.classList.add('story-tile');
+        if (i === 0) {
+          el.classList.remove('story-tile');
+          el.classList.add('story-lead');
+        }
+      });
+      refreshTimes();
+      refreshClocks(list);
+      return cards.length;
+    };
+
+    const loadLocalCards = async (iso3) => {
+      if (localCache.has(iso3)) return localCache.get(iso3);
+      try {
+        const res = await fetch(`/data/local/${encodeURIComponent(iso3)}.json`, { cache: 'no-store' });
+        if (!res.ok) {
+          localCache.set(iso3, { count: 0, html: '' });
+          return localCache.get(iso3);
+        }
+        const data = await res.json();
+        localCache.set(iso3, { count: data.count || 0, html: data.html || '' });
+        return localCache.get(iso3);
+      } catch {
+        localCache.set(iso3, { count: 0, html: '' });
+        return localCache.get(iso3);
+      }
+    };
 
     // Same rules as publisher/src/localGeo.js: microstate catchments + regional hubs for large
     // countries (so Brighton → UK, not Belgium/Jersey).
@@ -457,7 +507,10 @@
     const setMessage = (text) => {
       if (message) message.textContent = text;
     };
-    const showCountry = (country) => {
+    const clearCards = () => {
+      if (list) list.innerHTML = '';
+    };
+    const showCountry = async (country) => {
       try {
         sessionStorage.setItem(CACHE_KEY, country.iso3);
       } catch {}
@@ -466,12 +519,13 @@
       if (fallback) fallback.hidden = true;
       if (labelEl) labelEl.textContent = 'Your location';
       if (countryEl) countryEl.textContent = country.name;
-      let shown = 0;
-      for (const el of items) {
-        const match = el.dataset.iso3 === country.iso3;
-        el.hidden = !match;
-        if (match) shown++;
+      if (metaEl) metaEl.textContent = 'Loading headlines…';
+      if (empty) {
+        empty.hidden = true;
+        empty.textContent = '';
       }
+      const data = await loadLocalCards(country.iso3);
+      const shown = renderLocalCards(data.html);
       if (metaEl) {
         metaEl.textContent = shown
           ? `${shown} verified incident${shown === 1 ? '' : 's'} in this edition`
@@ -502,7 +556,7 @@
         locateBtn.textContent = 'Try again';
       }
       if (fallback) fallback.hidden = !showFallback;
-      for (const el of items) el.hidden = true;
+      clearCards();
       if (empty) {
         empty.hidden = false;
         empty.textContent = 'Use your location above to load local headlines.';
@@ -559,6 +613,7 @@
       } catch {}
       if (status) status.hidden = false;
       if (result) result.hidden = true;
+      clearCards();
       setMessage('Share your location to see verified incidents reported in your country.');
       if (locateBtn) {
         locateBtn.disabled = false;
@@ -589,18 +644,60 @@
     })();
   }
 
-  // Notify when a newer static edition has been published. Live pages check every minute and
-  // count the new updates on their story. A brand-new Breaking lead also gets a full-screen flash.
-  const generated = document.querySelector('meta[name="sentinel-generated"]')?.content;
+  // Newer editions: live pages soft-append updates; a new Breaking lead gets a full-screen flash
+  // once, then a persistent kicker under the nav.
+  let editionAt = document.querySelector('meta[name="sentinel-generated"]')?.content || '';
   const pageBreaking = document.querySelector('meta[name="sentinel-breaking"]')?.content || '';
   const banner = document.querySelector('.update-banner');
   const bannerText = banner?.querySelector('[data-banner-text]');
   const feed = document.querySelector('.live-feed[data-live-id]');
   const flash = $('[data-breaking-flash]');
+  const kicker = $('[data-breaking-kicker]');
   const SEEN_BREAKING = 'sentinel-breaking-seen';
+  const KICKER_DISMISS = 'sentinel-breaking-kicker-dismissed';
   try {
     // Seed so an already-open Breaking story does not flash on the next poll.
     if (pageBreaking && !sessionStorage.getItem(SEEN_BREAKING)) sessionStorage.setItem(SEEN_BREAKING, pageBreaking);
+  } catch {}
+
+  function truncateTitle(title, max = 160) {
+    const t = String(title || '');
+    return t.length > max ? t.slice(0, max - 1).replace(/\s+\S*$/, '') + '…' : t;
+  }
+  function showBreakingKicker(story) {
+    if (!kicker || !story?.id || !story.title) return;
+    let dismissed = '';
+    try {
+      dismissed = sessionStorage.getItem(KICKER_DISMISS) || '';
+    } catch {}
+    if (dismissed === story.id) {
+      kicker.hidden = true;
+      return;
+    }
+    const title = $('[data-bk-title]', kicker);
+    const link = $('[data-bk-link]', kicker);
+    if (title) title.textContent = truncateTitle(story.title, 140);
+    if (link) link.href = story.path || `/live/${story.id}/`;
+    kicker.hidden = false;
+  }
+  function hideBreakingKicker(id) {
+    if (!kicker) return;
+    kicker.hidden = true;
+    if (id) {
+      try {
+        sessionStorage.setItem(KICKER_DISMISS, id);
+      } catch {}
+    }
+  }
+  kicker?.querySelector('[data-bk-dismiss]')?.addEventListener('click', () => {
+    let id = pageBreaking;
+    try {
+      id = id || sessionStorage.getItem(SEEN_BREAKING) || '';
+    } catch {}
+    hideBreakingKicker(id);
+  });
+  try {
+    if (pageBreaking && sessionStorage.getItem(KICKER_DISMISS) === pageBreaking && kicker) kicker.hidden = true;
   } catch {}
 
   let flashTimer = 0;
@@ -611,10 +708,12 @@
     clearTimeout(flashTimer);
   }
   function showBreakingFlash(story) {
-    if (!flash || !story?.id || !story.title) return;
+    if (!story?.id || !story.title) return;
+    showBreakingKicker(story);
+    if (!flash) return;
     const title = $('[data-bf-title]', flash);
     const link = $('[data-bf-link]', flash);
-    if (title) title.textContent = story.title.length > 160 ? story.title.slice(0, 159).replace(/\s+\S*$/, '') + '…' : story.title;
+    if (title) title.textContent = truncateTitle(story.title);
     if (link) {
       link.href = story.path || `/live/${story.id}/`;
       link.focus();
@@ -625,6 +724,7 @@
     flashTimer = setTimeout(hideBreakingFlash, 10000);
     try {
       sessionStorage.setItem(SEEN_BREAKING, story.id);
+      if (sessionStorage.getItem(KICKER_DISMISS) !== story.id) sessionStorage.removeItem(KICKER_DISMISS);
     } catch {}
   }
   flash?.querySelector('[data-bf-dismiss]')?.addEventListener('click', hideBreakingFlash);
@@ -635,30 +735,69 @@
     if (e.key === 'Escape' && flash && !flash.hidden) hideBreakingFlash();
   });
 
+  /** Prepend new live updates from live.json; returns how many were injected. */
+  function softRefreshLive(live) {
+    if (!feed || !live) return 0;
+    const story = (live.stories || []).find((s) => s.id === feed.dataset.liveId);
+    if (!story?.updates?.length) return 0;
+    const latest = Number(feed.dataset.latest) || 0;
+    const fresh = story.updates.filter((u) => u.time > latest && u.html).sort((a, b) => b.time - a.time);
+    if (!fresh.length) return 0;
+    const wrap = document.createElement('div');
+    wrap.innerHTML = fresh.map((u) => u.html).join('');
+    const nodes = [...wrap.children];
+    for (const node of nodes.reverse()) {
+      node.classList.add('is-new');
+      feed.insertBefore(node, feed.firstChild);
+    }
+    feed.dataset.latest = String(Math.max(...fresh.map((u) => u.time), latest));
+    refreshTimes();
+    refreshClocks(feed);
+    return fresh.length;
+  }
+
   async function checkEdition() {
-    if (document.hidden || !generated) return;
+    if (document.hidden || !editionAt) return;
     try {
       const res = await fetch('/data/meta.json', { cache: 'no-store' });
       if (!res.ok) return;
       const meta = await res.json();
-      if (!meta.generatedAt || meta.generatedAt === generated) return;
+      if (!meta.generatedAt || meta.generatedAt === editionAt) return;
 
       let live = null;
       try {
         live = await (await fetch('/data/live.json', { cache: 'no-store' })).json();
       } catch {}
-      if (feed && bannerText && live) {
-        const story = (live.stories || []).find((s) => s.id === feed.dataset.liveId);
-        const fresh = story ? story.times.filter((t) => t > Number(feed.dataset.latest)).length : 0;
-        if (fresh) bannerText.textContent = `${fresh} new update${fresh === 1 ? '' : 's'}`;
+
+      const injected = softRefreshLive(live);
+      if (injected) {
+        // Live timeline caught up without a reload — advance the watermark and freshness label.
+        editionAt = meta.generatedAt;
+        const age = $('[data-edition-age]');
+        if (age) {
+          age.setAttribute('datetime', meta.generatedAt);
+          refreshEditionAge();
+        }
+        if (banner) banner.hidden = true;
+      } else if (banner) {
+        // Other pages (and live pages that could not soft-refresh) still need a reload.
+        if (bannerText && feed && live) {
+          const story = (live.stories || []).find((s) => s.id === feed.dataset.liveId);
+          const fresh = story ? (story.times || []).filter((t) => t > Number(feed.dataset.latest)).length : 0;
+          bannerText.textContent = fresh
+            ? `${fresh} new update${fresh === 1 ? '' : 's'}`
+            : 'New updates published';
+        }
+        banner.hidden = false;
       }
+
       const lead = (live?.stories || []).find((s) => s.breaking) || live?.stories?.[0];
       let seen = '';
       try {
         seen = sessionStorage.getItem(SEEN_BREAKING) || '';
       } catch {}
       if (lead?.id && lead.id !== seen) showBreakingFlash(lead);
-      if (banner) banner.hidden = false;
+      else if (lead?.id) showBreakingKicker(lead);
     } catch {}
   }
   banner?.querySelector('[data-reload]')?.addEventListener('click', (e) => {

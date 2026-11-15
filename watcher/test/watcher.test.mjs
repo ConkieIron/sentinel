@@ -15,6 +15,20 @@ test('wires are polled every minute and every other outlet within four minutes',
   }
 });
 
+test('while stories are live, rotating outlets are polled twice as often', () => {
+  const start = Date.parse('2026-11-14T15:00:00Z');
+  const idle = accountsFor(start, { liveCount: 0 });
+  const live = accountsFor(start, { liveCount: 1 });
+  assert.equal(idle.length, 5);
+  assert.equal(live.length, 7); // 3 wires + 4 rotating
+  const coveredInTwoMins = new Set(
+    [0, 1].flatMap((m) => accountsFor(start + m * 60000, { liveCount: 1 }).map((a) => a.handle)),
+  );
+  for (const h of ['afp.com', 'nbcnews.com', 'theguardian.com', 'nytimes.com', 'washingtonpost.com', 'news.sky.com', 'aljazeera.com', 'wsj.com']) {
+    assert.ok(coveredInTwoMins.has(h), h);
+  }
+});
+
 const NOW = Date.parse('2026-11-14T13:47:00Z');
 const MIN = 60000;
 
