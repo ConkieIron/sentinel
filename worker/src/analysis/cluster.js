@@ -116,8 +116,13 @@ function toIncident({ members }) {
   const hard = members.filter((m) => m.type !== 'social');
   const pool = hard.length ? hard : members;
   const maxSev = Math.max(...pool.map((m) => m.cls.severity));
+  // Prefer a short headline over a pasted lede when type and severity match.
   const lead = [...pool].sort(
-    (a, b) => TYPE_RANK[b.type] - TYPE_RANK[a.type] || b.cls.severity - a.cls.severity || b.time - a.time,
+    (a, b) =>
+      TYPE_RANK[b.type] - TYPE_RANK[a.type] ||
+      b.cls.severity - a.cls.severity ||
+      a.title.length - b.title.length ||
+      b.time - a.time,
   )[0];
 
   const terrorVotes = pool.filter((m) => m.cls.category === 'terrorism').length;

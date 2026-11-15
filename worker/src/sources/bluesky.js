@@ -4,7 +4,7 @@
 //    requires auth, falls back to an app-password session (BSKY_HANDLE / BSKY_APP_PASSWORD).
 
 import { fetchWithTimeout } from '../lib/http.js';
-import { safeUrl, parseTime, truncate } from '../lib/text.js';
+import { safeUrl, parseTime, truncate, compactHeadline } from '../lib/text.js';
 
 const PUBLIC_APPVIEW = 'https://public.api.bsky.app';
 
@@ -42,7 +42,7 @@ export async function fetchPublisherFeed(account, { now, windowMs, maxItems }) {
       sourceId: account.id,
       sourceName: account.name,
       type: 'publisher',
-      title: truncate(title, 220),
+      title: compactHeadline(title),
       summary: truncate(cleanPostText(external?.description || (external ? record.text : '')), 400),
       url: safeUrl(external?.uri) || postUrl(post),
       time: Math.min(time, now),
@@ -136,7 +136,7 @@ export async function fetchSocialSearch(queries, env, { now, windowMs, excludeHa
         sourceId: 'bsky-search',
         sourceName: `Bluesky · @${post.author?.handle || 'unknown'}`,
         type: 'social',
-        title: truncate(firstSentence.split(/\s*[•|]\s*/)[0], 160),
+        title: compactHeadline(firstSentence.split(/\s*[•|]\s*/)[0], 110),
         summary: truncate(text, 400),
         url: postUrl(post),
         time: Math.min(time, now),

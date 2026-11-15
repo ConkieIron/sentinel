@@ -43,6 +43,38 @@ export function trim(s, max) {
   return t.length <= max ? t : t.slice(0, max - 1).replace(/\s+\S*$/, '') + '…';
 }
 
+const WIRE_TAIL =
+  /\s*[:\-–—|]\s*(?:Reuters|AP|AFP|PA|UPI|Bloomberg|BBC(?:\s+News)?|CNN|Fox News|USA Today|The Guardian|Sky News|NPR)\s*[.…]*$/i;
+
+/** Shorten lede-style titles pasted into the title field (matches worker compactHeadline). */
+export function compactHeadline(title, max = 110) {
+  let t = String(title || '')
+    .replace(/\s+/g, ' ')
+    .replace(WIRE_TAIL, '')
+    .replace(/\s*[.…]+$/, '')
+    .trim();
+  if (!t) return '';
+  if (t.length <= max) return t;
+
+  const buried = t.match(
+    /\b((?:the\s+)?(?:[A-Z][\w'’.-]+(?:\s+(?:the|of|and|for|to|a|an|[A-Z][\w'’.-]+)){0,10})\s+(?:to\s+)?(?:declare|announc\w*|say|says|said|lift\w*|ground\w*|kill\w*|hit|hits|strike\w*|restor\w*|halt\w*|order\w*|sentence\w*|detain\w*|arrest\w*|confirm\w*|warn\w*|block\w*|shut\w*)\b(?:[^.!?]|\.(?=\s*[a-z0-9])){0,90})/,
+  );
+  if (buried) {
+    let clause = buried[1].replace(/^\s*the\s+/i, '').replace(/[,;:\s]+$/, '').trim();
+    if (clause.length >= 36) return clause.length <= max ? clause : trim(clause, max);
+  }
+
+  const first = t.match(/^(.+?[.!?])(?:\s|$)/);
+  if (first && first[1].length >= 40 && first[1].length <= max) {
+    return first[1].replace(/[.!?]$/, '').trim();
+  }
+
+  const soft = t.slice(0, max + 1).match(/^(.{40,}?)\s+(?:after|as|when|because|amid|following|that|which|who)\b/i);
+  if (soft) return soft[1].replace(/[,;:]\s*$/, '') + '…';
+
+  return trim(t, max);
+}
+
 /** Standfirst for a live update only when it adds facts the headline does not already carry. */
 export function usefulUpdateDek(u, max = 220) {
   const title = String(u?.title || '').trim();

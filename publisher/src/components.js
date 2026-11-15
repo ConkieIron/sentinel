@@ -1,4 +1,4 @@
-import { esc, safeHref, timeTag, clockTag, trim, usefulUpdateDek, fmtUtc, filterCategory, LEVEL_LABEL, TREND, EVIDENCE } from './util.js';
+import { esc, safeHref, timeTag, clockTag, trim, compactHeadline, usefulUpdateDek, fmtUtc, filterCategory, LEVEL_LABEL, TREND, EVIDENCE } from './util.js';
 import { countriesOf, countryPath } from './countries.js';
 import { leanTag } from './lean.js';
 
@@ -49,7 +49,8 @@ export function primarySource(inc) {
 // card opens the original article.
 function headline(inc, tag) {
   const via = primarySource(inc)?.name || 'the original article';
-  return `<${tag} class="headline"><a href="${esc(safeHref(inc.url))}" target="_blank" rel="noopener noreferrer">${esc(inc.title)}<span class="vh"> (opens ${esc(via)} in a new tab)</span></a></${tag}>`;
+  const title = compactHeadline(inc.title);
+  return `<${tag} class="headline"><a href="${esc(safeHref(inc.url))}" target="_blank" rel="noopener noreferrer">${esc(title)}<span class="vh"> (opens ${esc(via)} in a new tab)</span></a></${tag}>`;
 }
 
 // Dek length per variant; 0 hides the summary. Latest rows use usefulUpdateDek for sev ≥ 3.
@@ -112,7 +113,7 @@ export function livePill(story, ctx) {
 }
 
 function liveHeadline(u) {
-  return `<a href="${esc(safeHref(u.url))}" target="_blank" rel="noopener noreferrer">${esc(u.title)}<span class="vh"> (opens ${esc(u.source)} in a new tab)</span></a>`;
+  return `<a href="${esc(safeHref(u.url))}" target="_blank" rel="noopener noreferrer">${esc(compactHeadline(u.title))}<span class="vh"> (opens ${esc(u.source)} in a new tab)</span></a>`;
 }
 
 /**
@@ -136,14 +137,14 @@ export function storyFigure(story, { href, className = '' } = {}) {
 export function liveTeaser(story, ctx, { main = false } = {}) {
   const kicker = `<p class="live-kicker">${livePill(story, ctx)}<span>${story.outlets.length} outlets · updated ${timeTag(story.updatedAt, ctx.now)}</span></p>`;
   if (!main) {
-    return `<article class="live-teaser live-teaser-more">${kicker}<h3 class="live-title"><a href="/live/${esc(story.id)}/">${esc(story.title)}</a></h3></article>`;
+    return `<article class="live-teaser live-teaser-more">${kicker}<h3 class="live-title"><a href="/live/${esc(story.id)}/">${esc(compactHeadline(story.title))}</a></h3></article>`;
   }
   const figure = storyFigure(story, { href: `/live/${story.id}/`, className: 'live-teaser-figure' });
   return `<article class="live-teaser live-teaser-main${figure ? ' has-figure' : ''}">
 ${figure}
 <div class="live-teaser-body">
 ${kicker}
-<h3 class="live-title"><a href="/live/${esc(story.id)}/">${esc(story.title)}</a></h3>
+<h3 class="live-title"><a href="/live/${esc(story.id)}/">${esc(compactHeadline(story.title))}</a></h3>
 <ul class="live-latest">${story.updates
     .slice(0, 2)
     .map((u) => `<li>${clockTag(u.time)}<span class="src">${esc(u.source)}</span>${leanTag(u.lean || u.source, ctx.snapshot)}${liveHeadline(u)}</li>`)

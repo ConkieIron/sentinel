@@ -16,7 +16,7 @@ import {
   storyFigure,
 } from './components.js';
 import { leanCaveat } from './lean.js';
-import { esc, safeHref, timeTag, fmtUtc, ago, LEVEL_LABEL, isReportedTerror, filterCategory, inLatest, bySeriousness } from './util.js';
+import { esc, safeHref, timeTag, fmtUtc, ago, LEVEL_LABEL, isReportedTerror, filterCategory, inLatest, bySeriousness, compactHeadline } from './util.js';
 import { countriesOf, countryPath, adviceChangedAt, adviceChanges } from './countries.js';
 
 const OFFICIAL_LINKS = [
@@ -68,7 +68,7 @@ function homePanels(ctx, serious) {
 <ol class="ranked">${serious
     .map(
       (i) =>
-        `<li><a href="${esc(safeHref(i.url))}" target="_blank" rel="noopener noreferrer">${esc(i.title)}</a><span class="muted small">${esc(i.location?.country || 'Location unclear')} · ${timeTag(i.time, now)}</span></li>`,
+        `<li><a href="${esc(safeHref(i.url))}" target="_blank" rel="noopener noreferrer">${esc(compactHeadline(i.title))}</a><span class="muted small">${esc(i.location?.country || 'Location unclear')} · ${timeTag(i.time, now)}</span></li>`,
     )
     .join('')}</ol>
 </section>`;
@@ -95,7 +95,7 @@ export function livePage(ctx, story) {
 <p class="eyebrow">${livePill(story, ctx)} <span class="cat cat-${esc(story.category)}">${esc(snapshot.categories[story.category] || '')}</span>${
     region ? ` · <a href="/region/${esc(loc.region)}/">${esc(region)}</a>` : ''
   }</p>
-<h1>${esc(story.title)}</h1>
+<h1>${esc(compactHeadline(story.title))}</h1>
 ${story.summary ? `<p class="hero-dek">${esc(story.summary)}</p>` : ''}
 ${storyFigure(story, { className: 'live-hero-figure' })}
 <ul class="facts">
@@ -589,7 +589,7 @@ export function aboutPage(ctx) {
 <p>Each headline and standfirst is matched against an explainable rule set that assigns a category, extracts reported casualty figures and sets a <strong>severity from 1 to 5</strong>. Retrospective items (anniversaries, trials, sentencing) are capped at severity 1. Commentary, sport and business stories are excluded. <strong>Strategic development</strong> covers significant space and science milestones (for example catching a returning booster) but not routine satellite launches or funding news. Public social posts that read as jokes or satire are dropped.</p>
 <p>Suspected terrorism counts, the Global terror list and the diamond markers on the maps include only reports from news outlets and official sources. Unverified social posts, and coverage of past attacks such as anniversaries and trials, are listed separately at the foot of the Global terror page.</p>
 <div class="table-wrap"><table><thead><tr><th>Category</th><th class="num">Weight</th><th class="num">In Latest now</th></tr></thead><tbody>${catRows}</tbody></table></div>
-<p class="muted small">Latest headlines are the newest verified reports of severity 3–5. <strong>Most serious right now</strong> ranks by severity, so a grave but older story still surfaces there. The Latest updates list shows other severity-2+ reports, newest first, and never repeats a headline story. Unverified social posts and look-backs that read as terrorism stay in Latest but are not counted as suspected terrorism.</p>
+<p class="muted small">Latest headlines are the newest verified reports of severity 3–5. <strong>Most serious right now</strong> ranks by severity, so a grave but older story still surfaces there. The Latest updates list shows other severity-2+ reports, newest first, and never repeats a headline story. Long lede-style titles pasted into a feed (common on Bluesky cards) are shortened to a compact headline. Unverified social posts and look-backs that read as terrorism stay in Latest but are not counted as suspected terrorism.</p>
 
 <h2>3. Location</h2>
 <p>Places named in the report are matched against a gazetteer of every country plus key cities and conflict hotspots. USGS and GDACS markers use exact coordinates; others sit on the city or country centre and are approximate. Cloud and IT failures described as worldwide or a global outage are labelled <strong>Global</strong> rather than pinned to a headquarters country. National aviation ground stops (for example an FAA halt) stay with that country.</p>

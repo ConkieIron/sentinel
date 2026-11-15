@@ -2,7 +2,7 @@
 // so a tolerant regex extractor is faster and dependency-free.
 
 import { fetchWithTimeout } from '../lib/http.js';
-import { stripHtml, safeUrl, parseTime, truncate, decodeEntities } from '../lib/text.js';
+import { stripHtml, safeUrl, parseTime, truncate, decodeEntities, compactHeadline } from '../lib/text.js';
 import { isGoogleNewsUrl, resolveGoogleNewsItems } from './googleNews.js';
 
 function tag(block, name) {
@@ -78,10 +78,11 @@ export function parseFeed(xml) {
 /** Google News (and some aggregators) append " - Outlet Name" to titles; strip for clustering. */
 function cleanFeedTitle(title, feedName) {
   let t = String(title || '').trim();
-  if (!feedName) return t;
-  const escaped = feedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  t = t.replace(new RegExp(`\\s*[-–—|]\\s*${escaped}\\s*$`, 'i'), '').trim();
-  return t || String(title || '').trim();
+  if (feedName) {
+    const escaped = feedName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    t = t.replace(new RegExp(`\\s*[-–—|]\\s*${escaped}\\s*$`, 'i'), '').trim() || t;
+  }
+  return compactHeadline(t);
 }
 
 export async function fetchRss(feed, { now, windowMs, maxItems }) {
