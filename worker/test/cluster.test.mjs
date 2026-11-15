@@ -69,3 +69,14 @@ test('cross-border reports of the same strike merge', () => {
   ]);
   assert.equal(incidents.length, 1);
 });
+
+test('a worldwide outage stays Global even if a sibling headline names the US', () => {
+  const incidents = clusterItems([
+    item('The Guardian', 'Microsoft global outage: services restored after worldwide disruption', { minutesAgo: 20 }),
+    item('CNN', 'Microsoft global outage hits US government agencies as services recover', { minutesAgo: 40 }),
+  ]);
+  assert.equal(incidents.length, 1);
+  assert.equal(incidents[0].location?.precision, 'global');
+  assert.equal(incidents[0].location?.country, 'Global');
+  assert.equal(incidents[0].location?.iso3, null);
+});

@@ -32,6 +32,22 @@ test('returns null when nothing is recognisable', () => {
   assert.equal(locate('Markets slide as investors weigh outlook'), null);
 });
 
+test('worldwide and global outages are Global, not a HQ country', () => {
+  const outage = locate('Microsoft says services fully restored after global outage hits governments');
+  assert.equal(outage?.precision, 'global');
+  assert.equal(outage?.country, 'Global');
+  assert.equal(outage?.iso3, null);
+  assert.equal(outage?.region, null);
+
+  const usCue = locate('US airlines disrupted as worldwide CrowdStrike outage grounds flights');
+  assert.equal(usCue?.precision, 'global');
+  assert.equal(usCue?.country, 'Global');
+
+  // Ordinary national news must not become Global just because "world" appears elsewhere.
+  assert.equal(locate('Floods displace thousands in Bangladesh')?.iso3, 'BGD');
+  assert.equal(locate('Protests spread across Iran')?.iso3, 'IRN');
+});
+
 test('nearestCountry resolves coordinates', () => {
   assert.equal(nearestCountry(35.68, 139.69)?.iso3, 'JPN');
   assert.equal(nearestCountry(-40, -140), null);

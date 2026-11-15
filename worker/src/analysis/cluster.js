@@ -126,7 +126,14 @@ function toIncident({ members }) {
   const evidence = members.some((m) => m.type === 'official') ? 'official' : sourceNames.size >= 2 ? 'multi' : hard.length ? 'publisher' : 'social';
 
   const byPrecision = (p) => members.find((m) => m.loc?.precision === p)?.loc;
-  const loc = byPrecision('exact') || byPrecision('city') || lead.loc || members.find((m) => m.loc)?.loc || null;
+  // Exact coords win; otherwise a worldwide report beats an HQ-country pin from a sibling headline.
+  const loc =
+    byPrecision('exact') ||
+    byPrecision('global') ||
+    byPrecision('city') ||
+    lead.loc ||
+    members.find((m) => m.loc)?.loc ||
+    null;
 
   const seen = new Set();
   const sources = [];

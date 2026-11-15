@@ -63,11 +63,30 @@ function scan(text, weight, scores, offset, leadBonus = 0) {
   }
 }
 
+/** Events that affect many countries at once (cloud outages, etc.), not a single nation. */
+const GLOBAL_SCOPE =
+  /\b(?:worldwide|world[\s-]?wide|globally|(?:across|around) the (?:globe|world)|global (?:outage|outages|it\b|cloud|internet|service|services|disruption|disruptions|blackout|blackouts|failure|failures|shutdown|shutdowns))\b/i;
+
+export const GLOBAL_LOCATION = {
+  iso3: null,
+  country: 'Global',
+  region: null,
+  precision: 'global',
+};
+
+export function isGlobalScope(title, summary = '') {
+  return GLOBAL_SCOPE.test(String(title || '')) || GLOBAL_SCOPE.test(String(summary || ''));
+}
+
 /**
  * Resolve the most likely country (and city if named) for a report.
- * @returns {null | {iso3:string, country:string, region:string, lat:number, lon:number, precision:'city'|'country', place?:string}}
+ * Worldwide/global-scope events return precision 'global' (country label "Global", no iso3).
+ * @returns {null | {iso3:string|null, country:string, region:string|null, lat?:number, lon?:number, precision:'city'|'country'|'global', place?:string}}
  */
 export function locate(title, summary = '', placeHint = '') {
+  // Prefer Global over a HQ-country pin when the report itself says worldwide / global outage.
+  if (isGlobalScope(title, summary)) return { ...GLOBAL_LOCATION };
+
   const scores = new Map();
   if (placeHint) scan(placeHint, 4, scores, 0);
   scan(title, 3, scores, 1000, 1);
