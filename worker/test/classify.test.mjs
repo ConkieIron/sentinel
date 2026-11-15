@@ -21,6 +21,13 @@ test('strategic developments cover space and science milestones, not routine lau
   assert.equal(classify('SpaceX raises $1.5 billion in new funding round'), null);
 });
 
+test('cyber and infrastructure are separate categories', () => {
+  assert.equal(classify('Hospital systems offline after ransomware cyber-attack').category, 'cyber');
+  assert.equal(classify('Hackers claim data breach at government ministry').category, 'cyber');
+  assert.equal(classify('Nationwide power outage leaves millions without electricity').category, 'infrastructure');
+  assert.equal(classify('Microsoft says services restored after global outage').category, 'infrastructure');
+});
+
 test('suspected terrorism needs terror language or a non-state actor', () => {
   assert.equal(classify('Suicide bomber kills 12 at market in Mogadishu').category, 'terrorism');
   assert.equal(classify('Islamic State claims attack on police post').category, 'terrorism');

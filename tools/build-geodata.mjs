@@ -18,7 +18,7 @@ const NE = 'https://raw.githubusercontent.com/nvkelso/natural-earth-vector/maste
 const CODE_FIXES = { SOL: 'SOM', CYN: 'CYP', KOS: 'XKX', PSX: 'PSE', SAH: 'ESH', SDS: 'SSD' };
 const SKIP = new Set(['ATA', 'IOA', 'ATC', 'KAS', 'ATF', 'HMD', 'SGS', 'BVT']);
 const MERGED_INTO_OTHERS = new Set(['SOL', 'CYN']);
-const DISPLAY_NAMES = { USA: 'United States', COD: 'DR Congo', COG: 'Republic of the Congo', PSE: 'Palestinian Territories', CZE: 'Czechia' };
+const DISPLAY_NAMES = { USA: 'United States', COD: 'DR Congo', COG: 'Republic of the Congo', PSE: 'Palestine', CZE: 'Czechia' };
 
 async function load(name) {
   await mkdir(cacheDir, { recursive: true });

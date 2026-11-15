@@ -171,7 +171,7 @@ export const COUNTRIES = [
   {"iso3":"PRK","name":"North Korea","region":"east-asia","lat":39.89,"lon":126.44,"names":["north korea"]},
   {"iso3":"PRT","name":"Portugal","region":"southern-europe","lat":39.61,"lon":-8.27,"names":["portugal"]},
   {"iso3":"PRY","name":"Paraguay","region":"south-america","lat":-21.67,"lon":-60.15,"names":["paraguay"]},
-  {"iso3":"PSE","name":"Palestinian Territories","region":"middle-east","lat":32.05,"lon":35.29,"names":["palestine","palestine west bank and gaza"]},
+  {"iso3":"PSE","name":"Palestine","region":"middle-east","lat":32.05,"lon":35.29,"names":["palestine","palestinian territories","palestine west bank and gaza"]},
   {"iso3":"PYF","name":"French Polynesia","region":"oceania","lat":-17.63,"lon":-149.46,"names":["french polynesia"]},
   {"iso3":"QAT","name":"Qatar","region":"middle-east","lat":25.24,"lon":51.14,"names":["qatar"]},
   {"iso3":"ROU","name":"Romania","region":"eastern-europe","lat":45.73,"lon":24.97,"names":["romania"]},

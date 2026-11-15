@@ -10,12 +10,12 @@ export const CATEGORIES = {
   conflict: 'Armed conflict',
   unrest: 'Civil unrest',
   disaster: 'Natural disaster',
-  infrastructure: 'Cyber & infrastructure',
+  cyber: 'Cyber',
+  infrastructure: 'Infrastructure',
   health: 'Health emergency',
   transport: 'Major accident',
-  // Significant non-military developments that still matter for global awareness (space
-  // milestones, major science breakthroughs) — not routine launches or product news.
-  strategic: 'Strategic development',
+  // Space and science milestones — not routine launches or product news.
+  strategic: 'STEM',
 };
 
 const STRONG_TERROR =
@@ -33,8 +33,10 @@ const UNREST =
   /\b(?:protests?|protesters?|demonstrat(?:ion|ions|ors)|riots?|rioting|unrest|coup|curfew|martial law|state of emergency|crackdown|tear gas|uprising|insurrection|looting|general strike|mutiny)\b/i;
 const DISASTER =
   /\b(?:earthquakes?|quake|tsunami|hurricane|typhoon|cyclone|tornado(?:es)?|floods?(?! of)|flooding|landslides?|mudslides?|wildfires?|bushfires?|forest fires?|volcan(?:o|ic)|eruption|heatwave|drought|avalanche|blizzard|storm (?:hits|batters|lashes|kills|makes landfall)|landfall)\b/i;
+const CYBER =
+  /\b(?:cyber ?-?attacks?|ransomware|hack(?:ed|ers|ing)|data breach|ddos|internet shutdown)\b/i;
 const INFRA =
-  /\b(?:cyber ?-?attacks?|ransomware|hack(?:ed|ers|ing)|data breach|ddos|blackouts?|power cuts?|power outages?|outages?|grid failure|sabotage|undersea cables?|gas leak|dam (?:collapse|burst)|internet shutdown)\b/i;
+  /\b(?:blackouts?|power cuts?|power outages?|outages?|grid failure|sabotage|undersea cables?|gas leak|dam (?:collapse|burst))\b/i;
 const HEALTH =
   /\b(?:outbreak|epidemic|pandemic|cholera|ebola|mpox|marburg|measles|dengue|bird flu|avian (?:flu|influenza)|h5n1|plague|anthrax|mass poisoning)\b/i;
 const TRANSPORT =
@@ -109,6 +111,7 @@ function pickCategory(text, casualties) {
   if (attack) return 'attack';
   if (UNREST.test(text)) return 'unrest';
   if (DISASTER.test(text)) return 'disaster';
+  if (CYBER.test(text)) return 'cyber';
   if (INFRA.test(text)) return 'infrastructure';
   if (HEALTH.test(text)) return 'health';
   if (TRANSPORT.test(text)) return 'transport';
@@ -122,6 +125,7 @@ const BASE_SEVERITY = {
   conflict: 2,
   unrest: 2,
   disaster: 2,
+  cyber: 2,
   infrastructure: 2,
   health: 2,
   transport: 2,

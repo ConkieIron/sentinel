@@ -23,6 +23,7 @@
    "attack": 1.3,
    "unrest": 1,
    "disaster": 0.9,
+   "cyber": 0.8,
    "infrastructure": 0.8,
    "health": 0.8,
    "transport": 0.6,
@@ -41,10 +42,11 @@
   "conflict": "Armed conflict",
   "unrest": "Civil unrest",
   "disaster": "Natural disaster",
-  "infrastructure": "Cyber & infrastructure",
+  "cyber": "Cyber",
+  "infrastructure": "Infrastructure",
   "health": "Health emergency",
   "transport": "Major accident",
-  "strategic": "Strategic development"
+  "strategic": "STEM"
  },
  "leans": {
   "left": "Left",
@@ -160,7 +162,7 @@
    "hotspots": [
     {
      "iso3": "PSE",
-     "name": "Palestinian Territories",
+     "name": "Palestine",
      "count": 2
     },
     {
@@ -847,7 +849,7 @@
    "firstSeen": 1794483120000,
    "location": {
     "iso3": "PSE",
-    "country": "Palestinian Territories",
+    "country": "Palestine",
     "region": "middle-east",
     "lat": 31.5,
     "lon": 34.47,
@@ -880,49 +882,49 @@
      "time": 1794505108000
     },
     {
-     "name": "Bluesky \u00b7 @worldimpactnews.bsky.social",
+     "name": "Bluesky · @worldimpactnews.bsky.social",
      "url": "https://bsky.app/profile/worldimpactnews.bsky.social/post/3n267exqp3d2x",
      "type": "social",
      "time": 1794546150797
     },
     {
-     "name": "Bluesky \u00b7 @mediaactive.bsky.social",
+     "name": "Bluesky · @mediaactive.bsky.social",
      "url": "https://bsky.app/profile/mediaactive.bsky.social/post/3n26c2ic6ac2a",
      "type": "social",
      "time": 1794549020366
     },
     {
-     "name": "Bluesky \u00b7 @palestineproject.bsky.social",
+     "name": "Bluesky · @palestineproject.bsky.social",
      "url": "https://bsky.app/profile/palestineproject.bsky.social/post/3n26g4vfov227",
      "type": "social",
      "time": 1794553396188
     },
     {
-     "name": "Bluesky \u00b7 @esmegrubb.bsky.social",
+     "name": "Bluesky · @esmegrubb.bsky.social",
      "url": "https://bsky.app/profile/esmegrubb.bsky.social/post/3n26wv63yls2b",
      "type": "social",
      "time": 1794571390483
     },
     {
-     "name": "Bluesky \u00b7 @amisharma64.bsky.social",
+     "name": "Bluesky · @amisharma64.bsky.social",
      "url": "https://bsky.app/profile/amisharma64.bsky.social/post/3n26z4zckdk2d",
      "type": "social",
      "time": 1794573801374
     },
     {
-     "name": "Bluesky \u00b7 @thenewarab.bsky.social",
+     "name": "Bluesky · @thenewarab.bsky.social",
      "url": "https://bsky.app/profile/thenewarab.bsky.social/post/3n275fyb5se2x",
      "type": "social",
      "time": 1794578397237
     },
     {
-     "name": "Bluesky \u00b7 @bigearthdata.ai",
+     "name": "Bluesky · @bigearthdata.ai",
      "url": "https://bsky.app/profile/bigearthdata.ai/post/3n27lomp3ma26",
      "type": "social",
      "time": 1794593719243
     },
     {
-     "name": "Bluesky \u00b7 @serenaribena.bsky.social",
+     "name": "Bluesky · @serenaribena.bsky.social",
      "url": "https://bsky.app/profile/serenaribena.bsky.social/post/3n27ohueyc22w",
      "type": "social",
      "time": 1794596713883
@@ -1047,19 +1049,19 @@
      "time": 1794604500000
     },
     {
-     "name": "Bluesky \u00b7 @hermesvector.bsky.social",
+     "name": "Bluesky · @hermesvector.bsky.social",
      "url": "https://bsky.app/profile/hermesvector.bsky.social/post/3n26cnibmya2j",
      "type": "social",
      "time": 1794549657690
     },
     {
-     "name": "Bluesky \u00b7 @borealissaves.bsky.social",
+     "name": "Bluesky · @borealissaves.bsky.social",
      "url": "https://bsky.app/profile/borealissaves.bsky.social/post/3n276cfsgws2w",
      "type": "social",
      "time": 1794579350960
     },
     {
-     "name": "Bluesky \u00b7 @sagire.online",
+     "name": "Bluesky · @sagire.online",
      "url": "https://bsky.app/profile/sagire.online/post/3n27kv4kcw624",
      "type": "social",
      "time": 1794592863493
@@ -1072,7 +1074,7 @@
   {
    "id": "1shrdki",
    "title": "Microsoft says services fully restored after global outage hits governments",
-   "summary": "Tech company says operations restored to all customers and regions affected by one of worst IT failures in years Microsoft has said its service has been fully restored after a massive outage that saw widespread disruption to governments, businesses and public services around the world. The technology company said on Saturday morning it had restored service to the remaining customers affected by\u2026",
+   "summary": "Tech company says operations restored to all customers and regions affected by one of worst IT failures in years Microsoft has said its service has been fully restored after a massive outage that saw widespread disruption to governments, businesses and public services around the world. The technology company said on Saturday morning it had restored service to the remaining customers affected by…",
    "url": "https://www.theguardian.com/technology/2026/nov/14/microsoft-says-services-fully-restored-after-global-outage",
    "category": "infrastructure",
    "severity": 3,
@@ -1149,7 +1151,7 @@
   {
    "id": "1aq6vln",
    "title": "Caught Between Killers: Ebola on One Side, Islamic State on the Other",
-   "summary": "The new epicenter of Congo\u2019s fast-spreading outbreak is a region scarred by rebel violence. Responders are struggling to help it.",
+   "summary": "The new epicenter of Congo’s fast-spreading outbreak is a region scarred by rebel violence. Responders are struggling to help it.",
    "url": "https://www.nytimes.com/2026/11/13/world/africa/ebola-congo-isis.html",
    "category": "terrorism",
    "severity": 3,
@@ -1303,7 +1305,7 @@
   },
   {
    "id": "1a9rzjl",
-   "title": "Trump falsely claims \u2018nobody\u2019s been killed\u2019 in Iran war \u2018in the last five months\u2019",
+   "title": "Trump falsely claims ‘nobody’s been killed’ in Iran war ‘in the last five months’",
    "summary": "In July, three soldiers died in an enemy attack on an air base in Jordan, another died at an air base in Iraq and a Navy captain died during an emergency landing in the Arabian Sea.",
    "url": "https://www.washingtonpost.com/politics/2026/11/13/trump-falsely-claims-nobodys-been-killed-iran-war-last-five-months/",
    "category": "conflict",
@@ -1339,7 +1341,7 @@
   {
    "id": "1uln38e",
    "title": "Inside Ethiopia's war: Rare access to a hospital treating victims of renewed fighting",
-   "summary": "Ethiopia's renewed conflict is taking an increasing toll on civilians, with humanitarian organisations reporting a rise in casualties. In the Amhara region, FRANCE 24\u2019s correspondent Tom Canetti was granted rare access to a civilian hospital where surgeons are struggling to treat the influx of wounded patients. But for many caught in the fighting, reaching medical care is a challenge in itself.\u2026",
+   "summary": "Ethiopia's renewed conflict is taking an increasing toll on civilians, with humanitarian organisations reporting a rise in casualties. In the Amhara region, FRANCE 24’s correspondent Tom Canetti was granted rare access to a civilian hospital where surgeons are struggling to treat the influx of wounded patients. But for many caught in the fighting, reaching medical care is a challenge in itself.…",
    "url": "https://www.france24.com/en/inside-ethiopia-s-war-rare-access-to-a-hospital-treating-victims-of-renewed-fighting",
    "category": "conflict",
    "severity": 2,
@@ -1404,7 +1406,7 @@
      "time": 1794500919000
     },
     {
-     "name": "Bluesky \u00b7 @jedgarnaut.bsky.social",
+     "name": "Bluesky · @jedgarnaut.bsky.social",
      "url": "https://bsky.app/profile/jedgarnaut.bsky.social/post/3n275hyvqq52u",
      "type": "social",
      "time": 1794578464930
@@ -1535,7 +1537,7 @@
   },
   {
    "id": "1c847tl",
-   "title": "Siege fuels disease fears in Yemen\u2019s Taiz",
+   "title": "Siege fuels disease fears in Yemen’s Taiz",
    "summary": "Health officials warn that falling numbers of recorded infections may conceal a worsening disease crisis in Taiz.",
    "url": "https://www.aljazeera.com/news/2026/11/14/siege-fuels-disease-fears-in-yemens-besieged-taiz?traffic_source=rss",
    "category": "conflict",
@@ -1570,7 +1572,7 @@
   },
   {
    "id": "10ewybf",
-   "title": "US Air Force personnel at the RAF Lakenheath base in Britain responded to \"suspected unauthorized drone activity\" on Friday evening, although no personnel, aircraft or infrastructure were affected, a US Air Force\u2026",
+   "title": "US Air Force personnel at the RAF Lakenheath base in Britain responded to \"suspected unauthorized drone activity\" on Friday evening, although no personnel, aircraft or infrastructure were affected, a US Air Force…",
    "summary": "",
    "url": "https://bsky.app/profile/cnn.com/post/3n27yvvzvfs24",
    "category": "conflict",
@@ -1613,7 +1615,7 @@
   {
    "id": "192pnr8",
    "title": "France protests for fifth Saturday against living costs and heavy-handed policing",
-   "summary": "Different causes are set to come together for one march in Paris this Saturday. Campaign groups, students and Yellow Vest protesters are due to join forces in the capital, bringing together demands on wages, education and civil liberties. But after weeks of demonstrations, union leaders warn that protest fatigue is setting in, while police officers are seeking better compensation for the risk of\u2026",
+   "summary": "Different causes are set to come together for one march in Paris this Saturday. Campaign groups, students and Yellow Vest protesters are due to join forces in the capital, bringing together demands on wages, education and civil liberties. But after weeks of demonstrations, union leaders warn that protest fatigue is setting in, while police officers are seeking better compensation for the risk of…",
    "url": "https://www.france24.com/en/france-protests-for-fifth-saturday-against-living-costs-and-heavy-handed-policing",
    "category": "unrest",
    "severity": 2,
@@ -1678,7 +1680,7 @@
      "time": 1794490440000
     },
     {
-     "name": "Bluesky \u00b7 @newtownaction.org",
+     "name": "Bluesky · @newtownaction.org",
      "url": "https://bsky.app/profile/newtownaction.org/post/3n27zo7czsc2l",
      "type": "social",
      "time": 1794608737841
@@ -1761,7 +1763,7 @@
   {
    "id": "12p6usw",
    "title": "Microsoft says all services 'fully recovered' after global outage",
-   "summary": "The tech giant confirmed on Saturday morning that all services have recovered \u2060across Teams, Outlook, Copilot and \u2060other applications, ending a global outage that crippled online communications across businesses and governments for over 24 hours. The US homeland security chief confirmed there was 'no Microsoft link' to the US air traffic stoppage.",
+   "summary": "The tech giant confirmed on Saturday morning that all services have recovered ⁠across Teams, Outlook, Copilot and ⁠other applications, ending a global outage that crippled online communications across businesses and governments for over 24 hours. The US homeland security chief confirmed there was 'no Microsoft link' to the US air traffic stoppage.",
    "url": "https://www.france24.com/en/technology/20261114-microsoft-says-consumer-products-fully-recovered-business-services-improving",
    "category": "infrastructure",
    "severity": 2,
@@ -1802,7 +1804,7 @@
   },
   {
    "id": "xjtxub",
-   "title": "M5.5 earthquake \u2014 northern Mid-Atlantic Ridge",
+   "title": "M5.5 earthquake — northern Mid-Atlantic Ridge",
    "summary": "USGS PAGER alert: green.",
    "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty84",
    "category": "disaster",
@@ -1838,7 +1840,7 @@
   },
   {
    "id": "1i71var",
-   "title": "A \u2018Generational Clash\u2019 Is Fueling Europe\u2019s Protests",
+   "title": "A ‘Generational Clash’ Is Fueling Europe’s Protests",
    "summary": "As retirees live longer, governments need to spend more on pensions. That makes it harder to fund other services, spurring protests like those planned this weekend in France.",
    "url": "https://www.nytimes.com/2026/11/14/world/europe/student-protests-pensions-generations.html",
    "category": "unrest",
@@ -1874,7 +1876,7 @@
   {
    "id": "qyrk8l",
    "title": "Health is wealth? Polymarket and Kalshi now host bets on measles and other US health crises",
-   "summary": "Experts warn of risks of platforms hosting bets tied to US public health \u2013 including vaccine mandates and drug trials The sign was pasted on a construction fence next to an elementary school in the Brooklyn borough of New York City. \u201cVaccines,\u201d it proclaimed in bold capital letters against a blue star-spangled background \u2013 appearing, at first glance, to be like any other public health message on\u2026",
+   "summary": "Experts warn of risks of platforms hosting bets tied to US public health – including vaccine mandates and drug trials The sign was pasted on a construction fence next to an elementary school in the Brooklyn borough of New York City. “Vaccines,” it proclaimed in bold capital letters against a blue star-spangled background – appearing, at first glance, to be like any other public health message on…",
    "url": "https://www.theguardian.com/world/2026/nov/14/measles-kalshi-polymarket-betting",
    "category": "health",
    "severity": 2,
@@ -1993,7 +1995,7 @@
   {
    "id": "19gdppp",
    "title": "Russian officer killed by car bomb in St Petersburg as murder investigation begins",
-   "summary": "Kyiv rarely claims responsibility for such attacks on Russian troops, but Ukrainian forces have previously used similar blasts to show that Russia\u2019s security services are vulnerable.",
+   "summary": "Kyiv rarely claims responsibility for such attacks on Russian troops, but Ukrainian forces have previously used similar blasts to show that Russia’s security services are vulnerable.",
    "url": "https://www.euronews.com/2026/11/12/russian-officer-killed-by-car-bomb-in-st-petersburg-as-murder-investigation-begins",
    "category": "terrorism",
    "severity": 3,
@@ -2029,7 +2031,7 @@
   {
    "id": "njhnzo",
    "title": "Iran says it targeted US military radar in Bahrain in retaliatory strike",
-   "summary": "First direct attack on US military installations for months was in response to US airstrike on communications tower Iran\u2019s Islamic Revolutionary Guard Corps says it has targeted and destroyed a US early-warning radar in Bahrain in response to a US airstrike on a communications tower in Sirik overlooking the strait of Hormuz. It is Iran\u2019s first direct attack on US military installations for\u2026",
+   "summary": "First direct attack on US military installations for months was in response to US airstrike on communications tower Iran’s Islamic Revolutionary Guard Corps says it has targeted and destroyed a US early-warning radar in Bahrain in response to a US airstrike on a communications tower in Sirik overlooking the strait of Hormuz. It is Iran’s first direct attack on US military installations for…",
    "url": "https://www.theguardian.com/world/2026/nov/13/iran-us-radar-bahrain-sirik-hormuz",
    "category": "conflict",
    "severity": 2,
@@ -2086,7 +2088,7 @@
    },
    "sources": [
     {
-     "name": "Bluesky \u00b7 @bigearthdata.ai",
+     "name": "Bluesky · @bigearthdata.ai",
      "url": "https://bsky.app/profile/bigearthdata.ai/post/3n2avfwwqdn2u",
      "type": "social",
      "time": 1794638525154
@@ -2169,7 +2171,7 @@
   {
    "id": "18238c9",
    "title": "US-bound flights out of Australia delayed after telecommunications outage grounded American planes",
-   "summary": "Sydney and Melbourne airports say flights were affected by now-lifted ban on departures in US US flight outage \u2013 live updates Get our breaking news email , free app or daily news podcast Some US-bound flights from Sydney airport were grounded or delayed on Saturday after American authorities halted departures and delayed landings at all US airports . Flights from Melbourne airport were also\u2026",
+   "summary": "Sydney and Melbourne airports say flights were affected by now-lifted ban on departures in US US flight outage – live updates Get our breaking news email , free app or daily news podcast Some US-bound flights from Sydney airport were grounded or delayed on Saturday after American authorities halted departures and delayed landings at all US airports . Flights from Melbourne airport were also…",
    "url": "https://www.theguardian.com/australia-news/2026/nov/14/us-bound-flights-out-of-australia-grounded-as-telecommunications-outage-affects-american-travel",
    "category": "infrastructure",
    "severity": 2,
@@ -2262,7 +2264,7 @@
    },
    "sources": [
     {
-     "name": "Bluesky \u00b7 @tandbnewsforuk.bsky.social",
+     "name": "Bluesky · @tandbnewsforuk.bsky.social",
      "url": "https://bsky.app/profile/tandbnewsforuk.bsky.social/post/3n2afc2n7622v",
      "type": "social",
      "time": 1794621215183
@@ -2274,7 +2276,7 @@
   },
   {
    "id": "1jwxr4m",
-   "title": "As deadly storms flood Gaza\u2019s tent cities, the displaced fear a worse winter",
+   "title": "As deadly storms flood Gaza’s tent cities, the displaced fear a worse winter",
    "summary": "At least four people were killed when weekend storms triggered a landslide onto tent shelters, which are exposed to risks during severe weather.",
    "url": "https://www.washingtonpost.com/world/2026/11/12/palestinians-fear-floods-other-storm-risks-tent-cities-gazas-displaced/",
    "category": "disaster",
@@ -2289,7 +2291,7 @@
    "firstSeen": 1794519996000,
    "location": {
     "iso3": "PSE",
-    "country": "Palestinian Territories",
+    "country": "Palestine",
     "region": "middle-east",
     "lat": 31.5,
     "lon": 34.47,
@@ -2310,8 +2312,8 @@
   },
   {
    "id": "1gefp9j",
-   "title": "Terrorist Michal Oksinski who murdered 6 in Krakow Poland was a fan of Norway\u2019s neo-Nazi terrorist Anders Breivik.",
-   "summary": "Terrorist Michal Oksinski who murdered 6 in Krakow Poland was a fan of Norway\u2019s neo-Nazi terrorist Anders Breivik. Breivik pushed the racist Great Replacement Theory aka MASS MIGRATION scaremongering. Media silent. #auspol #terrorism #OneNation #neoNazis www.",
+   "title": "Terrorist Michal Oksinski who murdered 6 in Krakow Poland was a fan of Norway’s neo-Nazi terrorist Anders Breivik.",
+   "summary": "Terrorist Michal Oksinski who murdered 6 in Krakow Poland was a fan of Norway’s neo-Nazi terrorist Anders Breivik. Breivik pushed the racist Great Replacement Theory aka MASS MIGRATION scaremongering. Media silent. #auspol #terrorism #OneNation #neoNazis www.",
    "url": "https://bsky.app/profile/mark-melbin.bsky.social/post/3n2ac2kttrk23",
    "category": "terrorism",
    "severity": 3,
@@ -2333,7 +2335,7 @@
    },
    "sources": [
     {
-     "name": "Bluesky \u00b7 @mark-melbin.bsky.social",
+     "name": "Bluesky · @mark-melbin.bsky.social",
      "url": "https://bsky.app/profile/mark-melbin.bsky.social/post/3n2ac2kttrk23",
      "type": "social",
      "time": 1794617742517
@@ -2368,7 +2370,7 @@
    },
    "sources": [
     {
-     "name": "Bluesky \u00b7 @korikaanders.bsky.social",
+     "name": "Bluesky · @korikaanders.bsky.social",
      "url": "https://bsky.app/profile/korikaanders.bsky.social/post/3n27ztrwegc2w",
      "type": "social",
      "time": 1794608925126
@@ -2380,7 +2382,7 @@
   },
   {
    "id": "178doye",
-   "title": "M5.8 earthquake \u2014 79 km WSW of Changuillo, Peru",
+   "title": "M5.8 earthquake — 79 km WSW of Changuillo, Peru",
    "summary": "USGS PAGER alert: green. Felt reports: 7.",
    "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty1a",
    "category": "disaster",
@@ -2502,7 +2504,7 @@
   {
    "id": "1nojfqa",
    "title": "Microsoft outage: company scrambles to fix global issue that took down Outlook and Teams",
-   "summary": "Tech firm says it is \u2018deeply sorry\u2019 for disruption that took services down and has now addressed the underlying issue What caused the outage and when will it be fixed? Microsoft outage hits UK hospitals, GPs, schools and police Tell us: have you been affected by the outage? Microsoft has said it is \u201cdeeply sorry\u201d for a widespread outage that caused disruption to millions of users, organisations\u2026",
+   "summary": "Tech firm says it is ‘deeply sorry’ for disruption that took services down and has now addressed the underlying issue What caused the outage and when will it be fixed? Microsoft outage hits UK hospitals, GPs, schools and police Tell us: have you been affected by the outage? Microsoft has said it is “deeply sorry” for a widespread outage that caused disruption to millions of users, organisations…",
    "url": "https://www.theguardian.com/technology/2026/nov/13/microsoft-outage-outlook-teams-word-excel-reports",
    "category": "infrastructure",
    "severity": 2,
@@ -2559,7 +2561,7 @@
    },
    "sources": [
     {
-     "name": "Bluesky \u00b7 @dhigby.bsky.social",
+     "name": "Bluesky · @dhigby.bsky.social",
      "url": "https://bsky.app/profile/dhigby.bsky.social/post/3n27hff3yhs2d",
      "type": "social",
      "time": 1794589114563
@@ -2571,7 +2573,7 @@
   },
   {
    "id": "1830c8c",
-   "title": "Kenyans brace for El Ni\u00f1o rains as flood survivors fear a repeat of 2024 devastation",
+   "title": "Kenyans brace for El Niño rains as flood survivors fear a repeat of 2024 devastation",
    "summary": "The warning comes as Nairobi continues to grapple with urban planning challenges, encroachment on wetlands and construction in flood-prone areas, factors that increase the city's vulnerability to flooding.",
    "url": "http://www.africanews.com/2026/11/13/kenyans-brace-for-el-nino-rains-as-flood-survivors-fear-a-repeat-of-2024-devastation/",
    "category": "disaster",
@@ -2631,7 +2633,7 @@
    },
    "sources": [
     {
-     "name": "Bluesky \u00b7 @loquentia.bsky.social",
+     "name": "Bluesky · @loquentia.bsky.social",
      "url": "https://bsky.app/profile/loquentia.bsky.social/post/3n27fe75nq22d",
      "type": "social",
      "time": 1794586927288
@@ -2751,7 +2753,7 @@
   {
    "id": "3r2xqy",
    "title": "Storm Charles causes floods and flight cancellations across southern Europe",
-   "summary": "Heavy rain and strong winds have also caused disruption across British Columbia, Canada, over the last week Storm Charles has brought destructive weather to the Iberian peninsula this week, particularly in Portugal and the far south of Spain. Heavy rain and strong south-westerly winds arrived first in the Portuguese island of Madeira, before the system headed towards the mainland on 11 November.\u2026",
+   "summary": "Heavy rain and strong winds have also caused disruption across British Columbia, Canada, over the last week Storm Charles has brought destructive weather to the Iberian peninsula this week, particularly in Portugal and the far south of Spain. Heavy rain and strong south-westerly winds arrived first in the Portuguese island of Madeira, before the system headed towards the mainland on 11 November.…",
    "url": "https://www.theguardian.com/environment/2026/nov/13/storm-charles-floods-flight-cancellations-southern-europe-weather",
    "category": "disaster",
    "severity": 2,
@@ -2821,7 +2823,7 @@
   },
   {
    "id": "ow1sc8",
-   "title": "M5.2 earthquake \u2014 State of Yap, Federated States of Micronesia",
+   "title": "M5.2 earthquake — State of Yap, Federated States of Micronesia",
    "summary": "",
    "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty7d",
    "category": "disaster",
@@ -2881,7 +2883,7 @@
    },
    "sources": [
     {
-     "name": "Bluesky \u00b7 @inidewihepuv.knight.cool",
+     "name": "Bluesky · @inidewihepuv.knight.cool",
      "url": "https://bsky.app/profile/inidewihepuv.knight.cool/post/3n26n444atv2m",
      "type": "social",
      "time": 1794560483000
@@ -2928,7 +2930,7 @@
   },
   {
    "id": "1ty54m1",
-   "title": "M5.2 earthquake \u2014 off the west coast of northern Sumatra",
+   "title": "M5.2 earthquake — off the west coast of northern Sumatra",
    "summary": "Felt reports: 1.",
    "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty6n",
    "category": "disaster",
@@ -2964,8 +2966,8 @@
   },
   {
    "id": "2i5dr6",
-   "title": "Microsoft \u2018deeply sorry\u2019 for global outage that could have billion-dollar impact on Australia",
-   "summary": "Experts say disruption exposes \u2018Australia\u2019s reliance on foreign technology\u2019 as software giant says services being restored Get our breaking news email , free app or daily news podcast The Microsoft outage could be a disaster for the Australian economy that forces some small businesses to close, with costs expected to run into the billions of dollars, experts have warned. The US software company\u2026",
+   "title": "Microsoft ‘deeply sorry’ for global outage that could have billion-dollar impact on Australia",
+   "summary": "Experts say disruption exposes ‘Australia’s reliance on foreign technology’ as software giant says services being restored Get our breaking news email , free app or daily news podcast The Microsoft outage could be a disaster for the Australian economy that forces some small businesses to close, with costs expected to run into the billions of dollars, experts have warned. The US software company…",
    "url": "https://www.theguardian.com/australia-news/2026/nov/14/microsoft-deeply-sorry-for-global-disruption-that-could-have-billion-dollar-impact-on-australia",
    "category": "infrastructure",
    "severity": 1,
@@ -3022,7 +3024,7 @@
    },
    "sources": [
     {
-     "name": "Bluesky \u00b7 @gareth-glynn.bsky.social",
+     "name": "Bluesky · @gareth-glynn.bsky.social",
      "url": "https://bsky.app/profile/gareth-glynn.bsky.social/post/3n26qu3xrek2n",
      "type": "social",
      "time": 1794564912242
@@ -3034,7 +3036,7 @@
   },
   {
    "id": "8crn2g",
-   "title": "M5.1 earthquake \u2014 153 km NW of Kavieng, Papua New Guinea",
+   "title": "M5.1 earthquake — 153 km NW of Kavieng, Papua New Guinea",
    "summary": "",
    "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty56",
    "category": "disaster",
@@ -3094,7 +3096,7 @@
    },
    "sources": [
     {
-     "name": "Bluesky \u00b7 @amplifyukraine.eu",
+     "name": "Bluesky · @amplifyukraine.eu",
      "url": "https://bsky.app/profile/amplifyukraine.eu/post/jjf3ammfrkulu",
      "type": "social",
      "time": 1794564320022
@@ -3130,7 +3132,7 @@
    },
    "sources": [
     {
-     "name": "Bluesky \u00b7 @connielingus123.bsky.social",
+     "name": "Bluesky · @connielingus123.bsky.social",
      "url": "https://bsky.app/profile/connielingus123.bsky.social/post/3n26lv4v3k22v",
      "type": "social",
      "time": 1794559578047
@@ -3142,7 +3144,7 @@
   },
   {
    "id": "112x73n",
-   "title": "M5.1 earthquake \u2014 South Sandwich Islands region",
+   "title": "M5.1 earthquake — South Sandwich Islands region",
    "summary": "",
    "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty3q",
    "category": "disaster",
@@ -3178,7 +3180,7 @@
   },
   {
    "id": "1myvz72",
-   "title": "M5.2 earthquake \u2014 79 km NE of Kuqa, China",
+   "title": "M5.2 earthquake — 79 km NE of Kuqa, China",
    "summary": "",
    "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty14",
    "category": "disaster",
@@ -3214,7 +3216,7 @@
   },
   {
    "id": "1mhss9a",
-   "title": "M5.2 earthquake \u2014 West Chile Rise",
+   "title": "M5.2 earthquake — West Chile Rise",
    "summary": "",
    "url": "https://earthquake.usgs.gov/earthquakes/eventpage/us7000ty0s",
    "category": "disaster",
@@ -3273,7 +3275,7 @@
    },
    "sources": [
     {
-     "name": "Bluesky \u00b7 @bigearthdata.ai",
+     "name": "Bluesky · @bigearthdata.ai",
      "url": "https://bsky.app/profile/bigearthdata.ai/post/3n25thcjp5u2o",
      "type": "social",
      "time": 1794533344165
@@ -3285,7 +3287,7 @@
   },
   {
    "id": "2hxde9",
-   "title": "Why Aid Isn\u2019t Reaching Ebola\u2019s Epicenter",
+   "title": "Why Aid Isn’t Reaching Ebola’s Epicenter",
    "summary": "The Ebola outbreak in the eastern Democratic Republic of the Congo has a new epicenter, one largely isolated from aid by an armed group that has killed and kidnapped aid workers. Declan Walsh, our chief Africa correspondent, reports from a town where health workers are struggling to contain the outbreak.",
    "url": "https://www.nytimes.com/video/world/africa/100000011257751/why-aid-isnt-reaching-ebolas-epicenter.html",
    "category": "health",
@@ -3349,7 +3351,7 @@
    },
    "sources": [
     {
-     "name": "Bluesky \u00b7 @jeffrudd.bsky.social",
+     "name": "Bluesky · @jeffrudd.bsky.social",
      "url": "https://bsky.app/profile/jeffrudd.bsky.social/post/3n27x75btyc2b",
      "type": "social",
      "time": 1794606084909
@@ -3419,7 +3421,7 @@
    },
    "sources": [
     {
-     "name": "Bluesky \u00b7 @bigearthdata.ai",
+     "name": "Bluesky · @bigearthdata.ai",
      "url": "https://bsky.app/profile/bigearthdata.ai/post/3n274ajfkoh2v",
      "type": "social",
      "time": 1794577139905
@@ -3489,7 +3491,7 @@
    },
    "sources": [
     {
-     "name": "Bluesky \u00b7 @allthingsrandomnet.bsky.social",
+     "name": "Bluesky · @allthingsrandomnet.bsky.social",
      "url": "https://bsky.app/profile/allthingsrandomnet.bsky.social/post/3n255rbptek2z",
      "type": "social",
      "time": 1794510056688
@@ -3502,7 +3504,7 @@
   {
    "id": "1t5adhm",
    "title": "Syrian soldier killed, 2 others injured in attack by unidentified gunmen in Deir ez-Zor Mohammad Sio 13 November 2026",
-   "summary": "Syrian soldier killed, 2 others injured in attack by unidentified gunmen in Deir ez-Zor Mohammad Sio 13 November 2026\u2022Update: 13 November 2026 A Syrian soldier was killed and two others were injured in an attack by unidentified assailants in the eastern province \u2026",
+   "summary": "Syrian soldier killed, 2 others injured in attack by unidentified gunmen in Deir ez-Zor Mohammad Sio 13 November 2026•Update: 13 November 2026 A Syrian soldier was killed and two others were injured in an attack by unidentified assailants in the eastern province …",
    "url": "https://bsky.app/profile/byteseu.bsky.social/post/3n27h25sdtd2f",
    "category": "attack",
    "severity": 2,
@@ -3525,13 +3527,13 @@
    },
    "sources": [
     {
-     "name": "Bluesky \u00b7 @levant24com.bsky.social",
+     "name": "Bluesky · @levant24com.bsky.social",
      "url": "https://bsky.app/profile/levant24com.bsky.social/post/3n277mwrye22e",
      "type": "social",
      "time": 1794580778033
     },
     {
-     "name": "Bluesky \u00b7 @byteseu.bsky.social",
+     "name": "Bluesky · @byteseu.bsky.social",
      "url": "https://bsky.app/profile/byteseu.bsky.social/post/3n27h25sdtd2f",
      "type": "social",
      "time": 1794588735000
@@ -3573,7 +3575,7 @@
      "time": 1794582528000
     },
     {
-     "name": "Bluesky \u00b7 @hyenari6296.bsky.social",
+     "name": "Bluesky · @hyenari6296.bsky.social",
      "url": "https://bsky.app/profile/hyenari6296.bsky.social/post/3n27o5tcbbk26",
      "type": "social",
      "time": 1794596377205
@@ -3586,7 +3588,7 @@
   {
    "id": "zke9rf",
    "title": "France requests arrest warrants for Iranian suspects over supermarket cyberattack",
-   "summary": "France has requested international arrest warrants for three Iranian men over October\u2019s cyberattack on supermarket fridges, while Tehran rejects the allegations as \u201cbaseless and malicious\u201d.",
+   "summary": "France has requested international arrest warrants for three Iranian men over October’s cyberattack on supermarket fridges, while Tehran rejects the allegations as “baseless and malicious”.",
    "url": "https://www.rfi.fr/en/france/20261111-france-requests-arrest-warrants-for-iranian-suspects-over-supermarket-cyberattack",
    "category": "infrastructure",
    "severity": 2,

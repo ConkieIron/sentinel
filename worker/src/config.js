@@ -98,6 +98,7 @@ export const MODEL = {
     attack: 1.3,
     unrest: 1.0,
     disaster: 0.9,
+    cyber: 0.8,
     infrastructure: 0.8,
     health: 0.8,
     transport: 0.6,

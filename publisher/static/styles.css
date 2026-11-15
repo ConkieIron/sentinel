@@ -147,6 +147,7 @@ code { background: var(--grey-bg); padding: 0.1em 0.35em; border-radius: 3px; fo
 .cat-terrorism { color: var(--high); }
 .cat-attack { color: #a3401b; }
 .cat-conflict { color: #7a2d55; }
+.cat-cyber { color: #2a4a7a; }
 .cat-strategic { color: #1a5f7a; }
 .sev, .ev { display: inline-block; font-size: 0.72rem; font-weight: 600; padding: 2px 7px; border-radius: 2px; background: var(--grey-bg); color: var(--body); border: 1px solid var(--rule); }
 .sev-4 { background: #fdf0e1; border-color: #f2cf9c; color: #7a4a00; }
