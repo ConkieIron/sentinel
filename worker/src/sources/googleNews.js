@@ -6,7 +6,7 @@ import { safeUrl } from '../lib/text.js';
 
 const BATCH_URL = 'https://news.google.com/_/DotsSplashUi/data/batchexecute';
 const BROWSER_UA =
-  'Mozilla/5.0 (compatible; SentinelGlobalNews/1.0; +https://sentinelglobalnews.pages.dev)';
+  'Mozilla/5.0 (compatible; SentinelGlobalNews/1.0; +https://globalsentinel.co.uk)';
 
 export function isGoogleNewsUrl(url) {
   return /news\.google\.com\/rss\/articles\//i.test(String(url || ''));

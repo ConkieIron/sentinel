@@ -126,7 +126,7 @@ await mkdir(dist, { recursive: true });
 await cp(join(here, 'static/public'), dist, { recursive: true });
 
 const rootPkg = JSON.parse(await readFile(join(here, '../package.json'), 'utf8'));
-const siteUrl = process.env.SITE_URL || 'https://sentinelglobalnews.pages.dev';
+const siteUrl = process.env.SITE_URL || 'https://globalsentinel.co.uk';
 // The badge advances 0.0.1 only when BUMP_VERSION=1 (set on pushes of site changes).
 // Scheduled / watcher republishes keep the current live version. Local builds use package.json.
 const pkgVersion = rootPkg.version || '0.0.0';

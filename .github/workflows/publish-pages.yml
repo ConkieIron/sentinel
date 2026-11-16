@@ -13,7 +13,7 @@
 # Repository variables (all optional):
 #   SNAPSHOT_URL            build from a deployed gatherer Worker instead of gathering here
 #   PAGES_PROJECT           defaults to sentinelglobalnews
-#   SITE_URL                defaults to https://sentinelglobalnews.pages.dev
+#   SITE_URL                defaults to https://globalsentinel.co.uk
 #   HEARTBEAT_MINUTES       republish an unchanged edition after this long (default 60)
 
 name: Publish static site
@@ -48,7 +48,7 @@ jobs:
     timeout-minutes: 8
     env:
       SNAPSHOT_URL: ${{ vars.SNAPSHOT_URL }}
-      SITE_URL: ${{ vars.SITE_URL || 'https://sentinelglobalnews.pages.dev' }}
+      SITE_URL: ${{ vars.SITE_URL || 'https://globalsentinel.co.uk' }}
       PAGES_PROJECT: ${{ vars.PAGES_PROJECT || 'sentinelglobalnews' }}
       HEARTBEAT_MINUTES: ${{ vars.HEARTBEAT_MINUTES || '60' }}
       PUBLISH_INTERVAL_MINUTES: '5'

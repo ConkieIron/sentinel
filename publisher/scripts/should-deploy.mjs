@@ -10,7 +10,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const siteUrl = (process.env.SITE_URL || 'https://sentinelglobalnews.pages.dev').replace(/\/$/, '');
+const siteUrl = (process.env.SITE_URL || 'https://globalsentinel.co.uk').replace(/\/$/, '');
 const heartbeatMs = Number(process.env.HEARTBEAT_MINUTES || 60) * 60000;
 
 const local = JSON.parse(await readFile(join(here, '../dist/data/meta.json'), 'utf8'));

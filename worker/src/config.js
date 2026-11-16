@@ -118,4 +118,4 @@ export const MODEL = {
   historyHours: 24 * 7,
 };
 
-export const USER_AGENT = 'SentinelGlobalNews/1.0 (+https://sentinelglobalnews.pages.dev; public incident monitor)';
+export const USER_AGENT = 'SentinelGlobalNews/1.0 (+https://globalsentinel.co.uk; public incident monitor)';
