@@ -35,7 +35,7 @@ function allPages(ctx) {
   ];
 }
 
-function withLiveStory(snapshot, { title = 'US flights resume after nationwide ground stop', url = 'https://www.bbc.co.uk/news/ground-stop', image } = {}) {
+function withLiveStory(snapshot, { title = 'US flights resume after nationwide ground stop', url = 'https://www.bbc.co.uk/news/ground-stop', image, breaking = true, startedHoursAgo = 1 } = {}) {
   const now = Date.parse(snapshot.generatedAt);
   const copy = structuredClone(snapshot);
   copy.live = [
@@ -47,15 +47,16 @@ function withLiveStory(snapshot, { title = 'US flights resume after nationwide g
       category: 'infrastructure',
       severity: 3,
       location: null,
-      startedAt: now - 10 * 3600000,
+      startedAt: now - startedHoursAgo * 3600000,
       updatedAt: now - 600000,
+      breaking: !!breaking,
       outlets: ['BBC News', 'Reuters', 'CNN'],
       reportCount: 3,
       topics: [],
       updates: [
         { title, summary: 'What we know.', url, source: 'BBC News', time: now - 600000 },
         { title: 'FAA lifts ground stop', summary: '', url: 'https://www.reuters.com/x', source: 'Reuters', via: 'Bluesky', time: now - 3600000 },
-        { title: 'All US flights grounded', summary: '', url: 'https://edition.cnn.com/y', source: 'CNN', time: now - 10 * 3600000 },
+        { title: 'All US flights grounded', summary: '', url: 'https://edition.cnn.com/y', source: 'CNN', time: now - startedHoursAgo * 3600000 },
       ],
     },
   ];
@@ -228,6 +229,11 @@ test('live stories get a front-page teaser and a page listing every update, newe
   assert.match(home, /href="\/live\/abc123\/"/);
   assert.match(home, /<span class="live-pill">Breaking<\/span>/);
   assert.match(home, /name="sentinel-breaking" content="abc123"/);
+
+  const oldOnly = context(withLiveStory(fixture, { breaking: false, startedHoursAgo: 10 }));
+  assert.doesNotMatch(homePage(oldOnly), /name="sentinel-breaking"/);
+  assert.match(livePage(oldOnly, oldOnly.snapshot.live[0]), /<span class="live-pill">Live<\/span>/);
+  assert.doesNotMatch(homePage(oldOnly), /ts-break-label">Breaking/);
   assert.match(home, /data-breaking-flash/);
   assert.match(home, /data-breaking-kicker/);
   assert.match(home, /data-edition-age/);

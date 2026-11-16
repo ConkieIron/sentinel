@@ -1,6 +1,6 @@
-import { esc, safeHref, timeTag, clockTag, trim, compactHeadline, usefulUpdateDek, fmtUtc, displayTime, isUpdatedIncident, filterCategory, LEVEL_LABEL, TREND, EVIDENCE } from './util.js';
+import { esc, safeHref, timeTag, clockTag, trim, compactHeadline, usefulUpdateDek, fmtUtc, publishedTime, filterCategory, LEVEL_LABEL, TREND } from './util.js';
 import { countriesOf, countryPath } from './countries.js';
-import { leanTag } from './lean.js';
+import { leanTag, leanKey, leanLabel } from './lean.js';
 
 export function levelBadge(level) {
   return `<span class="lvl lvl-${esc(level)}">${esc(LEVEL_LABEL[level])}</span>`;
@@ -15,21 +15,14 @@ export function trendTag(trend) {
   return `<span class="trend trend-${esc(trend)}" title="Compared with the same time yesterday"><span aria-hidden="true">${icon}</span> ${esc(label)}</span>`;
 }
 
-function casualtyText(c, evidence) {
-  if (!c || evidence === 'social') return '';
-  const parts = [];
-  if (c.killed) parts.push(`${c.killed.toLocaleString('en-GB')} killed`);
-  if (c.injured) parts.push(`${c.injured.toLocaleString('en-GB')} injured`);
-  return parts.length ? `<span class="toll">${parts.join(', ')} reported</span>` : '';
-}
-
-function regionLink(inc, ctx) {
+function regionLink(inc, ctx, { withPlace = true } = {}) {
   const loc = inc.location;
-  if (!loc) return '<span>Location unclear</span>';
+  if (!loc) return '<span class="k-loc">Location unclear</span>';
   const href = countryPath(ctx, loc.iso3);
   const country = href ? `<a href="${esc(href)}">${esc(loc.country)}</a>` : esc(loc.country);
   // Country (and city/place when known) only — readers do not need the SENTINEL region name here.
-  return `<span>${loc.place ? `<span class="k-place">${esc(loc.place)}, </span>` : ''}${country}</span>`;
+  const place = withPlace && loc.place ? `<span class="k-place">${esc(loc.place)}, </span>` : '';
+  return `<span class="k-loc">${place}${country}</span>`;
 }
 
 function sourceSummary(sources) {
@@ -53,8 +46,8 @@ function headline(inc, tag) {
   return `<${tag} class="headline"><a href="${esc(safeHref(inc.url))}" target="_blank" rel="noopener noreferrer">${esc(title)}<span class="vh"> (opens ${esc(via)} in a new tab)</span></a></${tag}>`;
 }
 
-// Dek length per variant; 0 hides the summary. Latest rows use usefulUpdateDek for sev ≥ 3.
-const DEK = { lead: 320, tile: 150, item: 200, row: 0, compact: 0 };
+// Enough copy for ~2 CSS lines; clamp handles the visual max.
+const DEK = { lead: 280, tile: 220, item: 240, row: 180, compact: 0 };
 
 /**
  * Variants: lead (front-page splash), tile (headline grid), row (latest-updates feed),
@@ -68,16 +61,11 @@ export function incidentCard(inc, ctx, { variant = 'item', anchor = true, classN
         `<li><a href="${esc(safeHref(s.url))}" target="_blank" rel="noopener noreferrer">${esc(s.name)}</a>${leanTag(s.lean || s.name, snapshot)}${s.via ? ` <span class="muted">via ${esc(s.via)}</span>` : ''} · ${esc(fmtUtc(s.time))}</li>`,
     )
     .join('');
-  const evidenceLabel = EVIDENCE[inc.evidence];
-  const brief = variant === 'tile' || variant === 'row';
-  const showSev = !brief || inc.severity >= (variant === 'tile' ? 4 : 3);
-  // Skip "Multiple outlets" on cards — the source list already shows corroboration.
-  const showEv = inc.evidence !== 'multi' && (!brief || inc.evidence !== 'publisher');
-  const showSources = variant !== 'tile' && inc.sources.length > 1;
+  const showSources = variant === 'item' && inc.sources.length > 1;
   const src = primarySource(inc);
   const dekLen = DEK[variant] ?? 200;
   const live = ctx.liveFor?.(inc);
-  const rowDek = variant === 'row' && inc.severity >= 3 ? usefulUpdateDek(inc, 180) : '';
+  const rowDek = variant === 'row' ? usefulUpdateDek(inc, dekLen) : '';
   const dekHtml =
     rowDek
       ? `<p class="dek">${esc(rowDek)}</p>`
@@ -85,21 +73,34 @@ export function incidentCard(inc, ctx, { variant = 'item', anchor = true, classN
         ? `<p class="dek">${esc(trim(inc.summary, dekLen))}</p>`
         : '';
 
-  const when = timeTag(displayTime(inc, now), now, { updated: isUpdatedIncident(inc, now) });
-  const meta = [
+  const when = timeTag(publishedTime(inc, now), now);
+  const catLabel = snapshot.categories[inc.category] || inc.category;
+  const withPlace = variant === 'item' || variant === 'lead';
+  const lean = src ? leanKey(src.lean || src.name) : null;
+  const leanText = lean ? leanLabel(lean, snapshot) : '';
+  const byline = src
+    ? `<div class="story-byline"><span class="src">${esc(src.name)}</span>${
+        leanText
+          ? `<span class="lean lean-${esc(lean)}" title="Approximate editorial lean of the outlet, not an accuracy rating">${esc(leanText)}</span>`
+          : ''
+      }</div>`
+    : '';
+
+  const footLeft = [
+    variant === 'row' ? '' : `<span class="story-times">${when}</span>`,
     live ? `<a class="live-link" href="/live/${esc(live.id)}/">${livePill(live, ctx)} Follow coverage</a>` : '',
-    variant === 'row' ? '' : when,
-    src ? `<span class="src">${esc(src.name)}</span>${leanTag(src.lean || src.name, snapshot)}` : '',
-    showSev ? `<span class="sev sev-${inc.severity}" title="Severity ${inc.severity} of 5">Severity ${inc.severity}/5</span>` : '',
-    showEv && evidenceLabel ? `<span class="ev ev-${esc(inc.evidence)}">${esc(evidenceLabel)}</span>` : '',
-    casualtyText(inc.casualties, inc.evidence),
-    inc.retrospective ? '<span class="muted">Background / retrospective</span>' : '',
   ].join('');
 
-  const body = `<div class="kicker"><span class="cat cat-${esc(inc.category)}">${esc(snapshot.categories[inc.category])}</span>${regionLink(inc, ctx)}</div>
+  const body = `<div class="story-main">
+${byline}
+<div class="kicker" data-fit-kicker><span class="kicker-fit">${regionLink(inc, ctx, { withPlace })}</span></div>
 ${headline(inc, 'h3')}
 ${dekHtml}
-<div class="meta">${meta}</div>
+</div>
+<div class="story-foot">
+<div class="story-foot-left">${footLeft}</div>
+<div class="story-foot-right"><span class="cat cat-${esc(inc.category)}">${esc(catLabel)}</span></div>
+</div>
 ${showSources ? `<details class="sources"><summary>${sourceSummary(inc.sources)}</summary><ul>${sources}</ul></details>` : ''}`;
 
   const iso = inc.location?.iso3 || '';
@@ -108,9 +109,10 @@ ${variant === 'row' ? `<div class="row-time">${when}</div><div class="row-body">
 </article>`;
 }
 
-/** The leading developing story is tagged Breaking; the others are Live. */
+/** Only a still-fresh developing story is tagged Breaking; older live coverage stays Live. */
 export function livePill(story, ctx) {
-  const label = ctx.snapshot.live?.[0]?.id === story.id ? 'Breaking' : 'Live';
+  const lead = (ctx.snapshot.live || []).find((s) => s.breaking);
+  const label = lead?.id === story.id || story.breaking ? 'Breaking' : 'Live';
   return `<span class="live-pill">${label}</span>`;
 }
 
@@ -142,6 +144,12 @@ export function liveTeaser(story, ctx, { main = false } = {}) {
     return `<article class="live-teaser live-teaser-more">${kicker}<h3 class="live-title"><a href="/live/${esc(story.id)}/">${esc(compactHeadline(story.title))}</a></h3></article>`;
   }
   const figure = storyFigure(story, { href: `/live/${story.id}/`, className: 'live-teaser-figure' });
+  // Count timeline rows readers will see (after dedupe), not every matched report.
+  const updateCount = story.updates?.length || 0;
+  const more =
+    updateCount > 0
+      ? `Follow live coverage: ${updateCount} update${updateCount === 1 ? '' : 's'} →`
+      : 'Open live coverage →';
   return `<article class="live-teaser live-teaser-main${figure ? ' has-figure' : ''}">
 ${figure}
 <div class="live-teaser-body">
@@ -151,7 +159,7 @@ ${kicker}
     .slice(0, 2)
     .map((u) => `<li>${clockTag(u.time)}<span class="src">${esc(u.source)}</span>${leanTag(u.lean || u.source, ctx.snapshot)}${liveHeadline(u)}</li>`)
     .join('')}</ul>
-<a class="live-more" href="/live/${esc(story.id)}/">Follow live coverage: ${story.reportCount} update${story.reportCount === 1 ? '' : 's'} →</a>
+<a class="live-more" href="/live/${esc(story.id)}/">${more}</a>
 </div>
 </article>`;
 }
@@ -203,7 +211,7 @@ export function adviceRow(change, ctx) {
   const region = country && ctx.regionNames[country.region];
   const gov = change.gov === 'us' ? 'US State Department' : 'UK Foreign Office';
   return `<article class="story story-row story-advice${change.raised ? ' advice-raised' : ''}" data-cat="advice" data-ev="official">
-<div class="row-time">${timeTag(change.time, ctx.now)}</div><div class="row-body"><div class="kicker"><span class="cat cat-advice">Travel advice</span>${region ? `<a href="/region/${esc(country.region)}/">${esc(region)}</a> · ` : ''}${country ? `<a href="${esc(country.path)}">${esc(country.name)}</a>` : ''}</div>
+<div class="row-time">${timeTag(change.time, ctx.now)}</div><div class="row-body"><div class="kicker" data-fit-kicker><span class="kicker-fit"><span class="k-loc">${region ? `<a href="/region/${esc(country.region)}/">${esc(region)}</a> · ` : ''}${country ? `<a href="${esc(country.path)}">${esc(country.name)}</a>` : esc('—')}</span><span class="k-sep" aria-hidden="true"> · </span><span class="cat cat-advice">Travel advice</span></span></div>
 <h3 class="headline"><a href="${esc(safeHref(change.url))}" target="_blank" rel="noopener noreferrer">${esc(change.title)}<span class="vh"> (opens the ${esc(gov)} in a new tab)</span></a></h3>
 <div class="meta"><span class="src">${esc(gov)}</span>${change.summary ? `<span class="muted">${esc(trim(change.summary, 160))}</span>` : ''}</div>
 </div>

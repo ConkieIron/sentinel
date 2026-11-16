@@ -12,7 +12,7 @@
 // feature published a day later is not news about the airbase drones.
 
 import { STOP } from './cluster.js';
-import { truncate, hashId } from '../lib/text.js';
+import { truncate, hashId, decodeEntities } from '../lib/text.js';
 import { COUNTRIES } from '../data/countries.js';
 import { ALIASES, DEMONYMS, PLACES } from '../data/aliases.js';
 import { leanFor } from '../data/mediaLean.js';
@@ -32,6 +32,9 @@ export const LIVE = {
   activeOutlets: 2,
   matureHours: 12,
   matureOutlets: 3,
+  // Breaking is for news that is happening now: first report within this window. An older live
+  // story that only picks up late syndication stays Live, not Breaking.
+  breakingHours: 4,
   // Title paraphrase (Jaccard on take-tokens): close wording variants collapse. When verbs differ
   // ("intercepted strikes" vs "radar attacked"), the place+event skeleton fallback still merges.
   // A standfirst only splits a take when headlines are near-identical and the dek adds a figure.
@@ -194,6 +197,8 @@ for (const [phrase, iso] of PLACES) {
 }
 PLACE_STEM.set('us', 'usa');
 PLACE_STEM.set('uk', 'gbr');
+// Kerch Bridge is the crossing to Crimea; treat as the same place family.
+PLACE_STEM.set('kerch', 'ukr');
 const PLACE_ISOS = new Set(PLACE_STEM.values());
 
 /** Stem a verb the same way takeTokens does, so families match truncated tokens. */
@@ -370,6 +375,106 @@ export function dedupeTakes(reports) {
   return out;
 }
 
+/** Strip short wire kickers so "Ukraine war latest: …" compares as the news clause. */
+function bareHeadline(t) {
+  let s = decodeEntities(String(t || '')).replace(/\s+/g, ' ').trim();
+  const m = s.match(/^([A-Z][^:]{0,40}):\s+(.+)$/u);
+  if (m && (m[1].length <= 28 || /\b(?:live|latest|update|breaking|blog)\b/i.test(m[1]))) {
+    s = m[2];
+  }
+  return s.replace(/\b(?:live(?:\s+blog)?|latest)\s*[:\-–—]?\s*/gi, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function asTitle(x) {
+  return typeof x === 'string' ? x : x?.title || '';
+}
+
+/** Collapse hit/strike/attack so soft-repeat sees the same development. */
+const SOFT_EVENT = new Map(
+  'attack strike strikes struck target bomb raid shell missile rocket drone hit hits shoot shooting shot'
+    .split(/\s+/)
+    .map((w) => [stemWord(w), 'attack']),
+);
+
+function softTokens(text) {
+  return new Set([...tokenSet(text)].map((t) => SOFT_EVENT.get(t) || t));
+}
+
+/** True when the shorter headline's words are mostly already in the longer one. */
+function softRepeat(a, b) {
+  const variants = (x) => {
+    const raw = asTitle(x);
+    return [softTokens(raw), softTokens(bareHeadline(raw))];
+  };
+  for (const titleA of variants(a)) {
+    for (const titleB of variants(b)) {
+      if (titleA.size < 3 || titleB.size < 3) continue;
+      const shared = sharedCount(titleA, titleB);
+      const shorter = Math.min(titleA.size, titleB.size);
+      const ratio = shared / shorter;
+      // Drop clear restatements ("What to know about … ground stop") without collapsing
+      // earlier opposite beats ("flights … grounded" vs "lifts … ground stop").
+      if (shared >= 3 && ratio >= 0.55) return true;
+      // Same attack-family development at a slightly looser bar (bridge hit ≈ drone strike).
+      if (shared >= 3 && ratio >= 0.5 && titleA.has('attack') && titleB.has('attack')) return true;
+    }
+  }
+  return false;
+}
+
+function repeatsPrior(prior, row) {
+  return (
+    sameTake(prior, row) ||
+    sameTake(asTitle(prior), asTitle(row)) ||
+    softRepeat(prior, row)
+  );
+}
+
+/** Tokens that mark a follow-up fact the lead added on top of an earlier beat. */
+const LEAD_FOLLOWUP = new Set(
+  takeTokens(
+    'damaged damage kill killed killing dead death toll injured wounded cause caused blame blames lift lifts lifted resume resumed restore restored halt halted grounded grounde arrest arrested sentence sentenced',
+  ),
+);
+
+function leadAddsFollowUp(leadText, rowText) {
+  const leadTok = softTokens(leadText);
+  const rowTok = softTokens(rowText);
+  return [...leadTok].some((t) => LEAD_FOLLOWUP.has(t) && !rowTok.has(t));
+}
+
+function repeatsLead(leadPrior, row, { contemporaneous }) {
+  if (sameTake(leadPrior, row) || sameTake(asTitle(leadPrior), asTitle(row))) return true;
+  if (!softRepeat(leadPrior, row)) return false;
+  // Newer/same-time soft copy of the lead is noise. An older soft match stays only when the
+  // lead added a follow-up fact (damage/toll/cause) the earlier beat did not have.
+  if (contemporaneous) return true;
+  return !leadAddsFollowUp(asTitle(leadPrior), asTitle(row));
+}
+
+/**
+ * Timeline rows: drop paraphrases of the story headline and of anything already listed,
+ * including softer restatements that sameTake alone would keep.
+ */
+export function novelTimelineTakes(takes, leadTitle, leadTime = Number.POSITIVE_INFINITY) {
+  const kept = [];
+  const leadPriors = leadTitle ? [{ title: leadTitle }, { title: bareHeadline(leadTitle) }] : [];
+  const priors = [];
+  const leadWindow = 5 * 60000;
+  for (const r of takes) {
+    const row = { title: r.title, summary: r.summary };
+    const bare = { title: bareHeadline(r.title), summary: r.summary };
+    const contemporaneous = !Number.isFinite(r.time) || r.time >= leadTime - leadWindow;
+    if (leadPriors.some((p) => repeatsLead(p, row, { contemporaneous }) || repeatsLead(p, bare, { contemporaneous }))) {
+      continue;
+    }
+    if (priors.some((p) => repeatsPrior(p, row) || repeatsPrior(p, bare))) continue;
+    kept.push({ ...r, title: decodeEntities(r.title), summary: decodeEntities(r.summary || '') });
+    priors.push(row, bare);
+  }
+  return kept;
+}
+
 /** Reports on a topic; two-word matches count only near a strong one. */
 function matchReports(pool, topic) {
   const hits = [];
@@ -533,8 +638,8 @@ export function findLiveStories(incidents, reports, now) {
       return {
         // Keyed on the earliest report, so the page address survives a change of lead headline.
         id: hashId(all[all.length - 1].url),
-        title: lead.title,
-        summary: leadSummary(all, lead, inc),
+        title: decodeEntities(lead.title),
+        summary: decodeEntities(leadSummary(all, lead, inc) || ''),
         image: storyImage(all, lead),
         category: inc.category,
         severity: inc.severity,
@@ -545,8 +650,10 @@ export function findLiveStories(incidents, reports, now) {
         reportCount: all.length,
         takeCount: takes.length,
         topics: topics.slice(0, 4),
-        // Timeline shows each development once; outlet count still reflects full coverage.
-        updates: takes.slice(0, LIVE.maxUpdates).map((r) => {
+        // Timeline shows each development once; skip restatements of the lead and of earlier rows.
+        updates: novelTimelineTakes(takes, lead.title, lead.time)
+          .slice(0, LIVE.maxUpdates)
+          .map((r) => {
           const lean = leanFor(r.sourceName);
           return {
             title: r.title,
@@ -565,6 +672,8 @@ export function findLiveStories(incidents, reports, now) {
     })
     .filter((s) => {
       if (s.outlets.length < LIVE.minOutlets || s.reportCount < LIVE.minReports || s.takeCount < LIVE.minTakes) return false;
+      // No live page without a timeline: lead restatements alone are not coverage to follow.
+      if (!s.updates.length) return false;
       const mature = now - s.startedAt >= LIVE.matureHours * 3600000;
       const needOutlets = mature ? LIVE.matureOutlets : LIVE.activeOutlets;
       if (s._recentOutlets < needOutlets) return false;
@@ -573,12 +682,21 @@ export function findLiveStories(incidents, reports, now) {
       return true;
     })
     .map(({ _recentOutlets, _novelRecentTakes, ...s }) => s)
-    // Prefer stories that have real live-blog ticks when outlet counts are close.
+    // Happening-now first (fresh start / fresh updates), then outlet breadth as a tie-breaker.
     .sort(
       (a, b) =>
+        Number(isBreakingEligible(b, now)) - Number(isBreakingEligible(a, now)) ||
+        b.updatedAt - a.updatedAt ||
+        b.startedAt - a.startedAt ||
         b.outlets.length - a.outlets.length ||
-        (b.updates.filter((u) => u.liveBlog).length || 0) - (a.updates.filter((u) => u.liveBlog).length || 0) ||
-        b.updatedAt - a.updatedAt,
+        (b.updates.filter((u) => u.liveBlog).length || 0) - (a.updates.filter((u) => u.liveBlog).length || 0),
     )
-    .slice(0, LIVE.maxStories);
+    .slice(0, LIVE.maxStories)
+    .map((s, i, list) => ({ ...s, breaking: i === 0 && isBreakingEligible(s, now) }));
+}
+
+/** First reports within breakingHours — late pile-on coverage of a morning story is not Breaking. */
+export function isBreakingEligible(story, now = Date.now()) {
+  if (!story || !Number.isFinite(story.startedAt)) return false;
+  return now - story.startedAt <= LIVE.breakingHours * 3600000;
 }

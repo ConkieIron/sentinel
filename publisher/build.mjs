@@ -212,7 +212,7 @@ await writePage(
       times: s.updates.map((u) => u.time),
       updates: s.updates.map((u) => ({ time: u.time, html: liveUpdate(u, ctx.now, snapshot) })),
       topics: s.topics,
-      breaking: i === 0,
+      breaking: !!s.breaking,
     })),
   }),
 );

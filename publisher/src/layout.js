@@ -43,7 +43,7 @@ function breakingKicker(breaking) {
 export function layout({ title, description, path, body, ctx, active = '', breadcrumbs, live, pageType = 'WebPage' }) {
   const { snapshot, site, assets } = ctx;
   const generated = Date.parse(snapshot.generatedAt);
-  const breaking = snapshot.live?.[0];
+  const breaking = (snapshot.live || []).find((s) => s.breaking);
   const fullTitle = title ? `${title} · SENTINEL` : 'SENTINEL · Global Incident & Threat Monitor';
   const canonical = site.url.replace(/\/$/, '') + path;
   // Browsers keep favicons in a cache of their own, keyed by URL, so a changed icon gets a new URL.

@@ -33,7 +33,7 @@ function threatStrip(snapshot) {
   const items = raised.length
     ? raised.map((r) => `<li><a href="/region/${esc(r.id)}/"><span class="dot lvl-${esc(r.level)}" aria-hidden="true"></span>${esc(r.name)}<span class="vh"> (${esc(LEVEL_LABEL[r.level])})</span></a></li>`).join('')
     : '<li>No region above Low</li>';
-  const lead = snapshot.live?.[0];
+  const lead = (snapshot.live || []).find((s) => s.breaking);
   const breaking = lead
     ? `<a class="ts-breaking" href="/live/${esc(lead.id)}/"><span class="ts-break-label">Breaking</span> ${esc(compactHeadline(lead.title))}</a>`
     : '';
@@ -148,14 +148,14 @@ ${
 }
 <section class="panel">
 <h2 class="panel-title">About live coverage</h2>
-<p>A story gets live coverage when at least three outlets are reporting it and it is still developing. The leading one is marked Breaking. Wire updates usually reach the site within a couple of minutes of the watcher seeing them; other major outlets are checked every few minutes while a story is live.</p>
+<p>A story gets live coverage when at least three outlets are reporting it and it is still developing. Only a story that started within the last few hours is marked Breaking — later pile-on coverage of an older event stays Live. Wire updates usually reach the site within a couple of minutes of the watcher seeing them; other major outlets are checked every few minutes while a story is live.</p>
 <p><a href="/">Back to the latest briefing →</a></p>
 </section>
 </aside>
 </div>
 </div>`;
   return layout({
-    title: `${snapshot.live?.[0]?.id === story.id ? 'Breaking' : 'Live'}: ${story.title}`,
+    title: `${story.breaking || (snapshot.live || []).find((s) => s.breaking)?.id === story.id ? 'Breaking' : 'Live'}: ${story.title}`,
     description: `Live coverage from ${story.outlets.length} outlets: ${story.title}`,
     path: `/live/${story.id}/`,
     body,
@@ -729,7 +729,7 @@ export function aboutPage(ctx) {
 <p>Reports about the same event are merged into one incident. Independent coverage by several outlets raises confidence. Social posts on their own do not.</p>
 
 <h2>Breaking and live coverage</h2>
-<p>A story several outlets are still developing gets its own page. The leading one is marked <strong>Breaking</strong> and the others <strong>Live</strong>. The title follows the newest straight news headline, and each update links to the outlet’s original report.</p>
+<p>A story several outlets are still developing gets its own page. Coverage that started in the last few hours can be marked <strong>Breaking</strong>; older developing stories stay <strong>Live</strong>. The title follows the newest straight news headline, and each update links to the outlet’s original report.</p>
 
 <h2>Regional threat levels</h2>
 <p>A region’s level reflects how severe its recent incidents are, how widely they were reported, and how fresh they are. A few severe events count for more than a large number of minor ones. Levels are <strong>relative</strong>: they compare regions with each other in this edition.</p>

@@ -7,7 +7,9 @@ import {
   storyImage,
   sameTake,
   dedupeTakes,
+  novelTimelineTakes,
   isLiveBlogItem,
+  isBreakingEligible,
   takeText,
   takeTokens,
 } from '../src/analysis/live.js';
@@ -81,9 +83,49 @@ test('a developing story collects every outlet, including headlines without its 
   assert.ok(story.outlets.length >= 7);
   assert.ok(story.updates.some((u) => u.title.startsWith('What we know about the ground stop')));
   assert.ok(story.updates.some((u) => u.title.startsWith('All flights in the United States are grounded')));
-  assert.equal(story.updates[0].title, 'What to know about flights after the US nationwide ground stop', 'newest first');
+  // Soft restatements of the lead ("What to know about … ground stop") stay off the timeline.
+  assert.ok(!story.updates.some((u) => /^What to know about flights/i.test(u.title)));
+  assert.equal(
+    story.updates[0].title,
+    'United States nationwide ground stop lifted after longest shutdown since 2001',
+    'newest retained take first',
+  );
   assert.equal(story.title, 'U.S. flights resume after hours-long outage as FAA lifts nationwide ground stop', 'explainers never become the title');
   for (const u of story.updates) assert.ok(!/Storm Charles|Airline profits|salt mine/.test(u.title), u.title);
+  // First report was ~16h ago — still Live coverage, but not Breaking.
+  assert.equal(story.breaking, false);
+  assert.equal(isBreakingEligible(story, NOW), false);
+});
+
+test('Breaking is the fresh story, not an older one with more outlets', () => {
+  const morning = [
+    report('CNN', 'Deadly apartment collapse in Brooklyn kills eight residents', 10),
+    report('Reuters', 'Brooklyn building collapse leaves eight dead, dozens injured', 9.5),
+    report('BBC News', 'Eight killed after Brooklyn apartment building collapses', 9),
+    report('Associated Press', 'Search continues after deadly Brooklyn building collapse', 8.5),
+    report('The Guardian', 'Brooklyn collapse: rescuers search rubble for more survivors', 2),
+    report('Al Jazeera', 'Death toll rises after Brooklyn apartment building collapse', 1.5),
+    report('France 24', 'Investigators probe cause of deadly Brooklyn building collapse', 0.8),
+  ];
+  const united = [
+    report('CNN', 'United Airlines grounds flights after nationwide IT outage', 0.9),
+    report('Reuters', 'United Airlines suspends departures amid computer systems failure', 0.7),
+    report('Associated Press', 'United Airlines outage grounds flights across the United States', 0.5),
+    report('BBC News', 'United Airlines says IT outage causing delays and cancellations', 0.3),
+  ];
+  const incidents = [
+    incident('United Airlines grounds flights after nationwide IT outage', 0.9),
+    incident('Deadly apartment collapse in Brooklyn kills eight residents', 10),
+  ];
+  const stories = findLiveStories(incidents, [...morning, ...united, ...BACKGROUND], NOW);
+  assert.ok(stories.length >= 2, `expected both live stories, got ${stories.map((s) => s.title).join(' | ')}`);
+  const lead = stories.find((s) => s.breaking);
+  assert.ok(lead, 'a fresh story should be Breaking');
+  assert.match(lead.title, /United Airlines/i);
+  const older = stories.find((s) => /Brooklyn|collapse/i.test(s.title));
+  assert.ok(older, 'older story can still be Live');
+  assert.equal(older.breaking, false);
+  assert.ok(stories[0].breaking, 'Breaking story is listed first');
 });
 
 test('the story is titled with the newest straight headline, preferring major outlets', () => {
@@ -207,6 +249,33 @@ test('a story that has ended is not kept live by a couple of late re-reports', (
     report('CNN', 'Microsoft blames configuration change for worldwide outage after services restored', 0.8),
   ];
   assert.equal(findLiveStories(incidents, [...moving, ...background], NOW).length, 1);
+});
+
+test('novelTimelineTakes drops the lead headline and soft restatements', () => {
+  const lead = 'Ukraine hits Crimea Bridge halting traffic on key crossing to Russia';
+  const takes = [
+    report('BBC News', lead, 0.1),
+    report('Sky News', 'Ukraine war latest: Crimean Bridge hit in reported attack, traffic restrictions imposed', 0.2),
+    report('Reuters', 'Ukraine hits Kerch bridge between Russia and occupied Crimea', 0.3),
+    report('AFP', 'Rescue teams reach flood survivors in Spain after dam break', 0.4),
+  ];
+  const kept = novelTimelineTakes(takes, lead, NOW - 0.1 * H);
+  assert.equal(kept.length, 1);
+  assert.match(kept[0].title, /Spain|flood|dam/i);
+});
+
+test('a story whose every headline restates the lead is not live', () => {
+  const lead = 'Ukraine hits Crimea Bridgehalting traffic on key crossing to Russia';
+  const incidents = [incident(lead, 1, { category: 'armed_conflict', severity: 4 })];
+  const reports = [
+    report('BBC News', lead, 0.1),
+    report('Sky News', 'Ukraine war latest: Crimean Bridge hit in reported attack, traffic restrictions imposed', 0.2),
+    report('Reuters', 'Ukraine hits Kerch bridge between Russia and occupied Crimea', 0.3),
+    report('AFP', 'Ukraine strikes Crimea bridge linking peninsula to Russia', 0.4),
+    report('CNN', 'Traffic halted on Crimea bridge after Ukrainian strike', 0.5),
+    ...BACKGROUND,
+  ];
+  assert.deepEqual(findLiveStories(incidents, reports, NOW), []);
 });
 
 test('the same announcement from many outlets is not a live story', () => {
