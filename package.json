@@ -1,6 +1,6 @@
 {
   "name": "sentinel",
-  "version": "1.1.240",
+  "version": "1.1.241",
   "private": true,
   "description": "SENTINEL Global Incident & Threat Monitor: a Cloudflare Worker data gatherer and a static Cloudflare Pages publisher.",
   "type": "module",
