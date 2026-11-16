@@ -118,8 +118,9 @@ appears once, prefers live-blog-shaped feed items (titles/URLs with “live”, 
 and treats a standfirst that adds new facts as a new take even when the headline is unchanged.
 Each story gets a BBC-style page at `/live/<id>/` with those updates, newest first, each linking
 to the original article. The front page shows these stories at the top, above the headlines. The
-leading one is tagged "Breaking" and the others "Live". A new Breaking lead gets a one-shot
-  full-screen notice, then a persistent Breaking strip under the nav; open live pages soft-append
+leading one is tagged "Breaking" and the others "Live". A Breaking story gets a full-screen
+  notice once per browser session, then a persistent Breaking strip under the nav; swapping which
+  live story is on top does not re-flash ones already seen. Open live pages soft-append
   new updates from `live.json` without a full reload.
 SENTINEL reads RSS and Bluesky feeds only; it does not scrape outlets' live-blog HTML pages.
 

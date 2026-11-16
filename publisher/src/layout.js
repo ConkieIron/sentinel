@@ -30,7 +30,7 @@ function editionAge(generated) {
   return `<span class="edition-age" data-edition-age datetime="${esc(new Date(generated).toISOString())}" title="Edition generated ${esc(fmtUtc(generated, { withYear: true }))}">As of …</span>`;
 }
 
-/** Persistent Breaking strip; the full-screen flash is the first hit for a brand-new lead. */
+/** Persistent Breaking strip; the full-screen flash fires once per story per browser session. */
 function breakingKicker(breaking) {
   if (!breaking) return '';
   return `<div class="breaking-kicker" data-breaking-kicker role="status">

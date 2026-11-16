@@ -645,7 +645,8 @@
   }
 
   // Newer editions: live pages soft-append updates; a new Breaking lead gets a full-screen flash
-  // once, then a persistent kicker under the nav.
+  // once per story per session, then a persistent kicker under the nav. Swapping which live
+  // story is on top must not re-flash ones the reader has already seen.
   let editionAt = document.querySelector('meta[name="sentinel-generated"]')?.content || '';
   const pageBreaking = document.querySelector('meta[name="sentinel-breaking"]')?.content || '';
   const banner = document.querySelector('.update-banner');
@@ -653,12 +654,32 @@
   const feed = document.querySelector('.live-feed[data-live-id]');
   const flash = $('[data-breaking-flash]');
   const kicker = $('[data-breaking-kicker]');
-  const SEEN_BREAKING = 'sentinel-breaking-seen';
+  const SEEN_BREAKING = 'sentinel-breaking-seen'; // last lead id (kicker dismiss fallback)
+  const SEEN_BREAKING_IDS = 'sentinel-breaking-seen-ids'; // every id already flashed this session
   const KICKER_DISMISS = 'sentinel-breaking-kicker-dismissed';
-  try {
-    // Seed so an already-open Breaking story does not flash on the next poll.
-    if (pageBreaking && !sessionStorage.getItem(SEEN_BREAKING)) sessionStorage.setItem(SEEN_BREAKING, pageBreaking);
-  } catch {}
+  function readSeenBreakingIds() {
+    try {
+      const raw = sessionStorage.getItem(SEEN_BREAKING_IDS);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return new Set(parsed.filter(Boolean));
+      }
+      const legacy = sessionStorage.getItem(SEEN_BREAKING);
+      if (legacy) return new Set([legacy]);
+    } catch {}
+    return new Set();
+  }
+  function markSeenBreaking(id) {
+    if (!id) return;
+    const seen = readSeenBreakingIds();
+    seen.add(id);
+    try {
+      sessionStorage.setItem(SEEN_BREAKING_IDS, JSON.stringify([...seen]));
+      sessionStorage.setItem(SEEN_BREAKING, id);
+    } catch {}
+  }
+  // Seed so an already-open Breaking story does not flash on the next poll.
+  if (pageBreaking) markSeenBreaking(pageBreaking);
 
   function truncateTitle(title, max = 160) {
     const t = String(title || '');
@@ -710,6 +731,10 @@
   function showBreakingFlash(story) {
     if (!story?.id || !story.title) return;
     showBreakingKicker(story);
+    markSeenBreaking(story.id);
+    try {
+      if (sessionStorage.getItem(KICKER_DISMISS) !== story.id) sessionStorage.removeItem(KICKER_DISMISS);
+    } catch {}
     if (!flash) return;
     const title = $('[data-bf-title]', flash);
     const link = $('[data-bf-link]', flash);
@@ -722,10 +747,6 @@
     document.documentElement.style.overflow = 'hidden';
     clearTimeout(flashTimer);
     flashTimer = setTimeout(hideBreakingFlash, 10000);
-    try {
-      sessionStorage.setItem(SEEN_BREAKING, story.id);
-      if (sessionStorage.getItem(KICKER_DISMISS) !== story.id) sessionStorage.removeItem(KICKER_DISMISS);
-    } catch {}
   }
   flash?.querySelector('[data-bf-dismiss]')?.addEventListener('click', hideBreakingFlash);
   flash?.addEventListener('click', (e) => {
@@ -792,11 +813,7 @@
       }
 
       const lead = (live?.stories || []).find((s) => s.breaking) || live?.stories?.[0];
-      let seen = '';
-      try {
-        seen = sessionStorage.getItem(SEEN_BREAKING) || '';
-      } catch {}
-      if (lead?.id && lead.id !== seen) showBreakingFlash(lead);
+      if (lead?.id && !readSeenBreakingIds().has(lead.id)) showBreakingFlash(lead);
       else if (lead?.id) showBreakingKicker(lead);
     } catch {}
   }
