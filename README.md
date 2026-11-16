@@ -215,8 +215,13 @@ cd worker
 npx wrangler login
 npx wrangler kv namespace create SENTINEL_KV   # paste the id into wrangler.toml
 npx wrangler secret put RUN_TOKEN              # any long random string
-npm run deploy
+npm run deploy                                # includes the Workers AI binding for paraphrasing
 ```
+
+After classify/cluster, the gatherer rewrites headlines and standfirsts with **Workers AI**
+(`@cf/meta/llama-3.1-8b-instruct-fp8-fast`) and caches them in KV so the public snapshot does not
+ship publisher wording. Cards still link to the original reports. If AI is unavailable, neutral
+templates from category/location are used instead.
 
 **Plan:** the gatherer parses about 600 reports every run. That needs a few hundred
 milliseconds of CPU, well above the Workers Free limit of 10 ms per invocation. Use **Workers
@@ -273,6 +278,7 @@ To use it:
 2. Set the variable `SNAPSHOT_URL` to build from the Worker.
 3. Or leave `SNAPSHOT_URL` unset to run the gatherer inside the Action ("gather here" mode).
    This needs no Worker at all, and the trend history is kept in the Actions cache.
+   For paraphrasing in that mode, `CLOUDFLARE_API_TOKEN` must also allow **Workers AI: Run**.
 4. Optionally set `PAGES_PROJECT` and `SITE_URL`.
 
 This works with both Direct Upload and Git-connected Pages projects. If your project is
@@ -339,7 +345,7 @@ Never commit secrets. `worker/.dev.vars` and `watcher/.dev.vars` are git-ignored
 | `RUN_TOKEN` | Worker secret | Protects `POST /run`. |
 | `PAGES_DEPLOY_HOOK` | Worker secret | Triggers a Pages rebuild. |
 | `BSKY_HANDLE`, `BSKY_APP_PASSWORD` | Worker secret (optional) | Only needed if Bluesky public search starts requiring auth. Use an app password, not your main password. |
-| `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | GitHub secrets | Only for the GitHub Action. |
+| `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` | GitHub secrets | Pages deploy, and (when gather-here is used) Workers AI paraphrase. The token needs **Cloudflare Pages: Edit** and **Workers AI: Run**. |
 | `GITHUB_TOKEN` | Watcher secret | Fine-grained token, "Actions: Read and write" on this repo only. Starts the publish workflow. |
 | `NTFY_TOPIC` | Watcher secret | Private ntfy.sh topic for site health alerts. Anyone who knows it can read the alerts, so keep it unguessable. |
 | `ALERT_EMAIL` | Watcher secret (optional) | Also sends each alert to this address by email. |

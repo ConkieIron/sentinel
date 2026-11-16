@@ -38,6 +38,9 @@ const env = {
   BSKY_APPVIEW: process.env.BSKY_APPVIEW || 'https://api.bsky.app',
   BSKY_HANDLE: process.env.BSKY_HANDLE,
   BSKY_APP_PASSWORD: process.env.BSKY_APP_PASSWORD,
+  // Optional: paraphrase via Workers AI REST (token needs Workers AI permission).
+  CLOUDFLARE_ACCOUNT_ID: process.env.CLOUDFLARE_ACCOUNT_ID,
+  CLOUDFLARE_API_TOKEN: process.env.CLOUDFLARE_API_TOKEN,
 };
 
 const started = Date.now();
@@ -51,6 +54,11 @@ for (const src of snapshot.sources) {
   console.log(`  ${src.ok ? '✓' : '✗'} ${src.name.padEnd(32)} ${String(src.items).padStart(3)} items${src.error ? '  — ' + src.error : ''}`);
 }
 console.log(`Reports scanned: ${s.reportsScanned} · incident reports: ${s.incidentReports} · incidents: ${s.incidents} · suspected terrorism: ${s.terrorism}`);
+if (s.paraphrased != null) {
+  console.log(
+    `Paraphrase: ${s.paraphrased} rewritten · cache hits ${s.paraphraseCacheHits || 0} · AI calls ${s.paraphraseCalls || 0} · errors ${s.paraphraseErrors || 0} · skipped ${s.paraphraseSkipped || 0}`,
+  );
+}
 console.log('Regional threat index:');
 for (const r of snapshot.regions) {
   console.log(`  ${r.level.toUpperCase().padEnd(6)} ${String(r.index).padStart(3)}  ${r.name.padEnd(28)} score ${r.score} · ${r.incidents} incidents`);

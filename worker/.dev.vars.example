@@ -3,3 +3,6 @@ RUN_TOKEN=local-dev-token
 # PAGES_DEPLOY_HOOK=https://api.cloudflare.com/client/v4/pages/webhooks/deploy_hooks/xxxxxxxx
 # BSKY_HANDLE=yourname.bsky.social
 # BSKY_APP_PASSWORD=xxxx-xxxx-xxxx-xxxx
+# For `node scripts/gather-local.mjs` paraphrase via Workers AI REST (wrangler dev uses the [ai] binding instead):
+# CLOUDFLARE_ACCOUNT_ID=your-account-id
+# CLOUDFLARE_API_TOKEN=token-with-workers-ai

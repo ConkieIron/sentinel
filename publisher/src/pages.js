@@ -648,6 +648,7 @@ export function aboutPage(ctx) {
 
 <h2>How reports are read</h2>
 <p>Each report is placed in a category and given a <strong>severity from 1 to 5</strong>, based on the headline and standfirst, including any casualties they cite. Commentary, sport and routine business coverage are left out. Look-backs such as anniversaries and trials stay in the record as background.</p>
+<p>Headlines and standfirsts on the site are rewritten into SENTINEL’s own briefing wording. Each card still links to the publisher’s original report.</p>
 <p>Suspected terrorism counts, the Global terror list and the diamond markers on the maps include only reports from news outlets and official sources. Unverified social posts, and coverage of past attacks, are listed separately at the foot of the Global terror page.</p>
 <div class="table-wrap"><table><thead><tr><th>Category</th><th class="num">In Latest now</th></tr></thead><tbody>${catRows}</tbody></table></div>
 <p class="muted small">Latest headlines are the newest verified reports of severity 3–5. <strong>Most serious right now</strong> ranks by severity, so a grave but older story still surfaces there. Other notable reports appear under Latest updates and do not repeat a headline story.</p>

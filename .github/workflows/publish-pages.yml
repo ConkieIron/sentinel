@@ -71,6 +71,10 @@ jobs:
       - name: Gather feeds
         if: env.SNAPSHOT_URL == ''
         run: node worker/scripts/gather-local.mjs
+        env:
+          # Workers AI REST paraphrase (token needs Workers AI). Falls back to neutral templates if unset.
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
       - name: Build static site
         run: node publisher/build.mjs

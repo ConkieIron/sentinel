@@ -11,7 +11,10 @@ crons = ["*/15 * * * *"]
 # then paste the returned id below. Local `wrangler dev` uses a simulated namespace.
 [[kv_namespaces]]
 binding = "SENTINEL_KV"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "87bce9da227e4eb9946e44951cfb4591"
+
+[ai]
+binding = "AI"
 
 [vars]
 SITE_URL = "https://sentinelglobalnews.pages.dev"
@@ -26,6 +29,8 @@ BREAKING_PUBLISH_MINUTES = "20"
 #   RUN_TOKEN           Bearer token protecting POST /run
 #   BSKY_HANDLE         Optional: Bluesky handle, only needed if public search starts requiring auth
 #   BSKY_APP_PASSWORD   Optional: Bluesky app password (Settings → App passwords)
+# Local Node gather (scripts/gather-local.mjs) can also use Workers AI via REST:
+#   CLOUDFLARE_ACCOUNT_ID + CLOUDFLARE_API_TOKEN (token needs Workers AI)
 
 [observability]
 enabled = true

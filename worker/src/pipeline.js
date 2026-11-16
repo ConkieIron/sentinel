@@ -11,6 +11,7 @@ import { clusterItems } from './analysis/cluster.js';
 import { leanFor, LEAN } from './data/mediaLean.js';
 import { incidentWeight, scoreRegions, pickBreaking, isReportedTerror } from './analysis/threat.js';
 import { findLiveStories } from './analysis/live.js';
+import { paraphraseSnapshot } from './analysis/paraphrase.js';
 import { effectiveItemTime } from './lib/text.js';
 
 export const SCHEMA_VERSION = 1;
@@ -119,7 +120,7 @@ export async function runPipeline(env = {}, { now = Date.now(), history = [] } =
   const sources = results.map((r) => r.meta);
   const categoryCounts = Object.fromEntries(Object.keys(CATEGORIES).map((c) => [c, incidents.filter((i) => i.category === c).length]));
 
-  return {
+  const snapshot = {
     schema: SCHEMA_VERSION,
     generatedAt: new Date(now).toISOString(),
     windowHours: MODEL.windowHours,
@@ -155,6 +156,11 @@ export async function runPipeline(env = {}, { now = Date.now(), history = [] } =
     incidents,
     sources,
   };
+
+  // Rewrite headlines/standfirsts after classify/cluster/live so public JSON never ships publisher copy.
+  const para = await paraphraseSnapshot(snapshot, env);
+  Object.assign(snapshot.stats, para);
+  return snapshot;
 }
 
 export function appendHistory(history, snapshot, now) {
