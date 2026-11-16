@@ -7,8 +7,10 @@
 import { CATEGORIES } from './classify.js';
 import { truncate } from '../lib/text.js';
 
-export const PARA_MODEL = '@cf/meta/llama-3.1-8b-instruct-fp8-fast';
-const MAX_NEW_CALLS = 40;
+// fp8-fast was removed from the Workers AI catalogue; use the current fp8 8B instruct model.
+export const PARA_MODEL = '@cf/meta/llama-3.1-8b-instruct-fp8';
+const CACHE_PREFIX = 'para2'; // bumped after bad template entries were cached under para:
+const MAX_NEW_CALLS = 60;
 const CONCURRENCY = 5;
 const TITLE_MAX = 110;
 const SUMMARY_MAX = 220;
@@ -16,8 +18,9 @@ const AI_TIMEOUT_MS = 20000;
 
 const SYSTEM = `You rewrite news headlines and standfirsts for SENTINEL, a public incident briefing.
 Rules:
-- Keep the same facts only. Do not invent places, numbers, names, or outcomes.
+- Keep the same facts only (who, what, where, casualties, actors). Do not invent places, numbers, names, or outcomes.
 - Use plain briefing English. Do not copy distinctive phrases from the input.
+- The headline must stay specific — include the place and the concrete event, not a bare category label like "Violent attack in X".
 - Headline: one line, max ${TITLE_MAX} characters.
 - Summary: at most two short sentences, max ${SUMMARY_MAX} characters. If the input summary is empty, return an empty summary.
 - No quotation marks around the whole headline. No hashtags. No "BREAKING".
@@ -27,7 +30,7 @@ async function shaKey(kind, title, summary) {
   const raw = `${kind}|${String(title || '')}|${String(summary || '')}`;
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
   const hex = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
-  return `para:${hex.slice(0, 24)}`;
+  return `${CACHE_PREFIX}:${hex.slice(0, 24)}`;
 }
 
 function cleanText(s, max) {
@@ -44,15 +47,25 @@ function parseModelJson(text) {
   const raw = String(text || '').trim();
   const start = raw.indexOf('{');
   const end = raw.lastIndexOf('}');
-  if (start < 0 || end <= start) return null;
-  try {
-    const obj = JSON.parse(raw.slice(start, end + 1));
-    const title = cleanText(obj.title, TITLE_MAX);
-    if (!title) return null;
-    return { title, summary: cleanText(obj.summary, SUMMARY_MAX) };
-  } catch {
-    return null;
+  if (start >= 0 && end > start) {
+    try {
+      const obj = JSON.parse(raw.slice(start, end + 1));
+      const title = cleanText(obj.title, TITLE_MAX);
+      if (title) return { title, summary: cleanText(obj.summary, SUMMARY_MAX) };
+    } catch {}
   }
+  // Some models ignore JSON and return "Title\n\nSummary".
+  const lines = raw.split(/\n+/).map((l) => l.trim()).filter(Boolean);
+  if (lines.length) {
+    const title = cleanText(lines[0].replace(/^title\s*:\s*/i, ''), TITLE_MAX);
+    if (title) {
+      return {
+        title,
+        summary: cleanText(lines.slice(1).join(' ').replace(/^summary\s*:\s*/i, ''), SUMMARY_MAX),
+      };
+    }
+  }
+  return null;
 }
 
 /** Neutral copy when AI is unavailable — never reuse the publisher summary. */
@@ -89,10 +102,15 @@ async function writeCache(env, key, value) {
 
 function extractAiText(result) {
   if (!result) return '';
+  if (typeof result === 'string') return result;
   if (typeof result.response === 'string') return result.response;
   if (typeof result.result?.response === 'string') return result.result.response;
+  if (typeof result.result === 'string') return result.result;
+  if (Array.isArray(result.response)) {
+    return result.response.map((p) => (typeof p === 'string' ? p : p?.content || p?.text || '')).join('');
+  }
   if (Array.isArray(result)) {
-    return result.map((p) => p?.response || p?.text || '').join('');
+    return result.map((p) => p?.response || p?.text || p?.content || '').join('');
   }
   return '';
 }
@@ -241,17 +259,18 @@ export async function paraphraseSnapshot(snapshot, env = {}) {
         return;
       }
       throw new Error('empty paraphrase');
-    } catch {
+    } catch (err) {
       stats.paraphraseErrors++;
+      stats.paraphraseLastError = String(err?.message || err).slice(0, 200);
+      // Do not cache failures — the next gather should retry AI.
       const fb = job.fallback();
       job.target.title = fb.title;
       job.target.summary = fb.summary;
       stats.paraphrased++;
-      await writeCache(env, job.key, fb);
     }
   });
 
-  // Over the per-gather AI budget: template now, AI can fill the cache on a later run.
+  // Over the per-gather AI budget: template now (uncached), AI fills in on later runs.
   for (const job of deferred) {
     const fb = job.fallback();
     job.target.title = fb.title;

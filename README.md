@@ -219,7 +219,7 @@ npm run deploy                                # includes the Workers AI binding 
 ```
 
 After classify/cluster, the gatherer rewrites headlines and standfirsts with **Workers AI**
-(`@cf/meta/llama-3.1-8b-instruct-fp8-fast`) and caches them in KV so the public snapshot does not
+(`@cf/meta/llama-3.1-8b-instruct-fp8`) and caches them in KV so the public snapshot does not
 ship publisher wording. Cards still link to the original reports. If AI is unavailable, neutral
 templates from category/location are used instead.
 
