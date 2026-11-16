@@ -256,7 +256,9 @@ be delayed when GitHub is busy. Each run gathers and builds, then
 severity-3+ incidents, reports on live stories) with the live `/data/meta.json`. It uploads only when that
 changed, or when the live edition is older than `HEARTBEAT_MINUTES` (default 60). Uploads made with
 Wrangler don't count toward the Pages build limit. A build where fewer than half the sources
-answered is refused, so a network blip can't publish an empty site.
+answered is refused, so a network blip can't publish an empty site. The masthead version badge
+advances by one patch (`1.1.N` → `1.1.N+1`) only when you push site changes to `main`; scheduled
+and watcher republishes keep the same version.
 
 Use a public repository, where Actions minutes are unlimited; a private repo would use up its
 2,000 free minutes within days. GitHub turns off scheduled workflows after 60 days with no repo

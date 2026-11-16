@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// After a successful publish, copy dist/data/meta.json's version into the root package.json
-// so the repo keeps pace with the live badge.
+// After a successful versioned publish (push of site changes), copy dist/data/meta.json's
+// version into the root package.json so the repo keeps pace with the live badge.
 
 import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
