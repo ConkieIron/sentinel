@@ -1,4 +1,4 @@
-import { esc, safeHref, timeTag, clockTag, trim, compactHeadline, usefulUpdateDek, fmtUtc, displayTime, filterCategory, LEVEL_LABEL, TREND, EVIDENCE } from './util.js';
+import { esc, safeHref, timeTag, clockTag, trim, compactHeadline, usefulUpdateDek, fmtUtc, displayTime, isUpdatedIncident, filterCategory, LEVEL_LABEL, TREND, EVIDENCE } from './util.js';
 import { countriesOf, countryPath } from './countries.js';
 import { leanTag } from './lean.js';
 
@@ -85,9 +85,10 @@ export function incidentCard(inc, ctx, { variant = 'item', anchor = true, classN
         ? `<p class="dek">${esc(trim(inc.summary, dekLen))}</p>`
         : '';
 
+  const when = timeTag(displayTime(inc, now), now, { updated: isUpdatedIncident(inc, now) });
   const meta = [
     live ? `<a class="live-link" href="/live/${esc(live.id)}/">${livePill(live, ctx)} Follow coverage</a>` : '',
-    variant === 'row' ? '' : timeTag(displayTime(inc, now), now),
+    variant === 'row' ? '' : when,
     src ? `<span class="src">${esc(src.name)}</span>${leanTag(src.lean || src.name, snapshot)}` : '',
     showSev ? `<span class="sev sev-${inc.severity}" title="Severity ${inc.severity} of 5">Severity ${inc.severity}/5</span>` : '',
     showEv && evidenceLabel ? `<span class="ev ev-${esc(inc.evidence)}">${esc(evidenceLabel)}</span>` : '',
@@ -103,7 +104,7 @@ ${showSources ? `<details class="sources"><summary>${sourceSummary(inc.sources)}
 
   const iso = inc.location?.iso3 || '';
   return `<article class="story story-${variant}${className ? ` ${esc(className)}` : ''}"${anchor ? ` id="i-${esc(inc.id)}"` : ''} data-cat="${esc(filterCategory(inc))}" data-ev="${esc(inc.evidence)}"${iso ? ` data-iso3="${esc(iso)}"` : ''}>
-${variant === 'row' ? `<div class="row-time">${timeTag(displayTime(inc, now), now)}</div><div class="row-body">${body}</div>` : body}
+${variant === 'row' ? `<div class="row-time">${when}</div><div class="row-body">${body}</div>` : body}
 </article>`;
 }
 
@@ -136,7 +137,7 @@ export function storyFigure(story, { href, className = '' } = {}) {
 
 /** Front-page teaser for a live story: the newest updates, then a link to the full coverage. */
 export function liveTeaser(story, ctx, { main = false } = {}) {
-  const kicker = `<p class="live-kicker">${livePill(story, ctx)}<span>${story.outlets.length} outlets · updated ${timeTag(story.updatedAt, ctx.now)}</span></p>`;
+  const kicker = `<p class="live-kicker">${livePill(story, ctx)}<span>${story.outlets.length} outlets · ${timeTag(story.updatedAt, ctx.now, { updated: true })}</span></p>`;
   if (!main) {
     return `<article class="live-teaser live-teaser-more">${kicker}<h3 class="live-title"><a href="/live/${esc(story.id)}/">${esc(compactHeadline(story.title))}</a></h3></article>`;
   }

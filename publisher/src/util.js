@@ -27,9 +27,16 @@ export function ago(ts, now) {
   return `${d} day${d > 1 ? 's' : ''} ago`;
 }
 
-export function timeTag(ts, now) {
+/** Relative label; prefix "updated" when the timestamp is a revision rather than first publish. */
+export function timeLabel(ts, now, { updated = false } = {}) {
+  const rel = ago(ts, now);
+  if (!updated) return rel;
+  return rel === 'just now' ? 'updated just now' : `updated ${rel}`;
+}
+
+export function timeTag(ts, now, { updated = false } = {}) {
   const iso = new Date(ts).toISOString();
-  return `<time datetime="${iso}" title="${esc(fmtUtc(ts, { withYear: true }))}" data-rel>${esc(ago(ts, now))}</time>`;
+  return `<time datetime="${iso}" title="${esc(fmtUtc(ts, { withYear: true }))}" data-rel${updated ? ' data-updated="1"' : ''}>${esc(timeLabel(ts, now, { updated }))}</time>`;
 }
 
 const MONTH_INDEX = {
@@ -79,6 +86,19 @@ export function displayTime(inc, now = Date.now()) {
   const event = eventTimeFromTitle(inc.title, now);
   if (event != null && published - event >= 12 * 3600000) return event;
   return published;
+}
+
+/**
+ * True when the card time is a later update (feed revised flag, or firstSeen well before time),
+ * not the original publish / event day.
+ */
+export function isUpdatedIncident(inc, now = Date.now()) {
+  const shown = Number(displayTime(inc, now));
+  const raw = Number(inc?.time);
+  if (!Number.isFinite(shown) || !Number.isFinite(raw) || shown !== raw) return false;
+  if (inc?.revised) return true;
+  const first = Number(inc?.firstSeen);
+  return Number.isFinite(first) && raw - first >= 30 * 60000;
 }
 
 /** Clock time ("14:05", UTC in the HTML; the script switches it to the reader's time zone). */

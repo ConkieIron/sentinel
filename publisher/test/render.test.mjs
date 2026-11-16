@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { esc, safeHref, ago, bySeriousness } from '../src/util.js';
+import { esc, safeHref, ago, timeLabel, isUpdatedIncident, bySeriousness } from '../src/util.js';
 import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage, livePage, countryPage, countriesIndexPage, localPage, localCardsByIso, headlineIncidents } from '../src/pages.js';
 import { buildCountries } from '../src/countries.js';
 import { project, MAP_WIDTH, MAP_HEIGHT } from '../src/projection.js';
@@ -80,6 +80,24 @@ test('ago formats relative times', () => {
   assert.equal(ago(now - 5 * 60000, now), '5 min ago');
   assert.equal(ago(now - 3 * 3600000, now), '3 hr ago');
   assert.equal(ago(now - 50 * 3600000, now), '2 days ago');
+});
+
+test('timeLabel marks revisions as updated', () => {
+  const now = Date.parse('2026-11-14T12:00:00Z');
+  assert.equal(timeLabel(now - 5 * 60000, now), '5 min ago');
+  assert.equal(timeLabel(now - 5 * 60000, now, { updated: true }), 'updated 5 min ago');
+  assert.equal(timeLabel(now, now, { updated: true }), 'updated just now');
+});
+
+test('isUpdatedIncident is true for revised or late follow-up reports', () => {
+  const now = Date.parse('2026-11-14T12:00:00Z');
+  assert.equal(isUpdatedIncident({ title: 'Blast', time: now - 60000, firstSeen: now - 60000 }, now), false);
+  assert.equal(isUpdatedIncident({ title: 'Blast', time: now - 60000, firstSeen: now - 2 * 3600000 }, now), true);
+  assert.equal(isUpdatedIncident({ title: 'Blast', time: now - 60000, firstSeen: now - 60000, revised: true }, now), true);
+  assert.equal(
+    isUpdatedIncident({ title: 'Attack on Nov. 10 killed dozens', time: now - 60000, firstSeen: now - 2 * 3600000 }, now),
+    false,
+  );
 });
 
 test('projection keeps the visible world inside the map frame', () => {

@@ -16,7 +16,7 @@ import {
   storyFigure,
 } from './components.js';
 import { leanCaveat } from './lean.js';
-import { esc, safeHref, timeTag, fmtUtc, ago, LEVEL_LABEL, isReportedTerror, filterCategory, inLatest, bySeriousness, compactHeadline, displayTime } from './util.js';
+import { esc, safeHref, timeTag, fmtUtc, ago, LEVEL_LABEL, isReportedTerror, filterCategory, inLatest, bySeriousness, compactHeadline, displayTime, isUpdatedIncident } from './util.js';
 import { countriesOf, countryPath, adviceChangedAt, adviceChanges } from './countries.js';
 
 const OFFICIAL_LINKS = [
@@ -73,7 +73,7 @@ function homePanels(ctx, serious) {
 <ol class="ranked">${serious
     .map(
       (i) =>
-        `<li><a href="${esc(safeHref(i.url))}" target="_blank" rel="noopener noreferrer">${esc(compactHeadline(i.title))}</a><span class="muted small">${esc(i.location?.country || 'Location unclear')} · ${timeTag(displayTime(i, now), now)}</span></li>`,
+        `<li><a href="${esc(safeHref(i.url))}" target="_blank" rel="noopener noreferrer">${esc(compactHeadline(i.title))}</a><span class="muted small">${esc(i.location?.country || 'Location unclear')} · ${timeTag(displayTime(i, now), now, { updated: isUpdatedIncident(i, now) })}</span></li>`,
     )
     .join('')}</ol>
 </section>`;
@@ -106,7 +106,7 @@ ${storyFigure(story, { className: 'live-hero-figure' })}
 <ul class="facts">
 <li><strong>${story.reportCount}</strong> report${story.reportCount === 1 ? '' : 's'}</li>
 <li><strong>${story.outlets.length}</strong> outlets</li>
-<li>Latest ${timeTag(story.updatedAt, now)}</li>
+<li>Latest ${timeTag(story.updatedAt, now, { updated: true })}</li>
 <li>First report ${esc(fmtUtc(story.startedAt))}</li>
 </ul>
 </section>

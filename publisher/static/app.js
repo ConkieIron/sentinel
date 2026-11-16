@@ -53,7 +53,8 @@
     for (const t of $$('time[data-rel]')) {
       const ts = Date.parse(t.getAttribute('datetime'));
       if (!Number.isFinite(ts)) continue;
-      t.textContent = relative(ts);
+      const rel = relative(ts);
+      t.textContent = t.hasAttribute('data-updated') ? (/^(now|just now)$/i.test(rel) ? 'updated just now' : `updated ${rel}`) : rel;
       t.title = local.format(ts);
     }
   }

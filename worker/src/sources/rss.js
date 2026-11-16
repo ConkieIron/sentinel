@@ -58,11 +58,18 @@ export function parseFeed(xml) {
     const point = stripHtml(tag(b, 'georss:point')).split(/\s+/).map(Number);
     const lat = Number(stripHtml(tag(b, 'geo:lat'))) || (point.length === 2 ? point[0] : NaN);
     const lon = Number(stripHtml(tag(b, 'geo:long'))) || (point.length === 2 ? point[1] : NaN);
+    // Atom separates published (first availability) from updated (last significant edit).
+    // RSS usually only has pubDate; when both exist, prefer the freshest for ranking.
+    const published = parseTime(stripHtml(tag(b, 'pubDate') || tag(b, 'published') || tag(b, 'dc:date')));
+    const updated = parseTime(stripHtml(tag(b, 'updated')));
+    const times = [updated, published].filter((t) => Number.isFinite(t));
     return {
       title: stripHtml(tag(b, 'title')),
       url: safeUrl(rawLink),
       summary: truncate(stripHtml(tag(b, 'description') || tag(b, 'summary') || tag(b, 'content')), 400),
-      time: parseTime(stripHtml(tag(b, 'pubDate') || tag(b, 'published') || tag(b, 'updated') || tag(b, 'dc:date'))),
+      time: times.length ? Math.max(...times) : null,
+      published,
+      updated,
       coords: Number.isFinite(lat) && Number.isFinite(lon) && (lat || lon) ? [lat, lon] : null,
       image: feedImage(b),
       extra: {
@@ -96,6 +103,10 @@ export async function fetchRss(feed, { now, windowMs, maxItems }) {
     const time = p.time && p.time <= now + 3600000 ? Math.min(p.time, now) : null;
     if (time) newest = Math.max(newest, time);
     if (!time || now - time > windowMs) continue;
+    const published = Number.isFinite(p.published) ? Math.min(p.published, now) : null;
+    // Feed said this entry was edited well after it first appeared — label the card as updated.
+    const revised =
+      Number.isFinite(published) && Number.isFinite(p.updated) && p.updated - published >= 30 * 60000;
     items.push({
       sourceId: feed.id,
       sourceName: feed.name,
@@ -104,6 +115,8 @@ export async function fetchRss(feed, { now, windowMs, maxItems }) {
       summary: p.summary,
       url: p.url,
       time,
+      publishedAt: published || time,
+      revised: revised || undefined,
       image: p.image || undefined,
       via: feed.viaGoogleNews || isGoogleNewsUrl(p.url) ? 'Google News' : undefined,
     });

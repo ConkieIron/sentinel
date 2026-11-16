@@ -26,7 +26,23 @@ test('parses Atom entries and georss points', () => {
       <georss:point>12.5 80.25</georss:point></entry></feed>`;
   const [item] = parseFeed(xml);
   assert.equal(item.url, 'https://example.org/c');
+  assert.equal(item.time, Date.parse('2026-11-14T08:30:00Z'));
+  assert.equal(item.updated, Date.parse('2026-11-14T08:30:00Z'));
+  assert.equal(item.published, null);
   assert.deepEqual(item.coords, [12.5, 80.25]);
+});
+
+test('Atom published stays separate from a later updated time', () => {
+  const xml = `<feed xmlns="http://www.w3.org/2005/Atom">
+    <entry><title>Toll rises after blast</title>
+      <link rel="alternate" href="https://example.org/blast"/>
+      <published>2026-11-14T06:00:00Z</published>
+      <updated>2026-11-14T10:00:00Z</updated>
+    </entry></feed>`;
+  const [item] = parseFeed(xml);
+  assert.equal(item.published, Date.parse('2026-11-14T06:00:00Z'));
+  assert.equal(item.updated, Date.parse('2026-11-14T10:00:00Z'));
+  assert.equal(item.time, Date.parse('2026-11-14T10:00:00Z'));
 });
 
 test('rejects non-http links', () => {

@@ -161,6 +161,10 @@ function toIncident({ members }) {
   }
 
   const first = members.reduce((a, b) => (a.time <= b.time ? a : b));
+  const time = Math.max(...members.map((m) => m.time));
+  // A later report (or an Atom updated timestamp) means the card time is a revision, not first publish.
+  const revised =
+    members.some((m) => m.revised) || time - first.time >= 30 * 60000;
   return {
     id: hashId(first.url + '|' + first.title),
     title: lead.title,
@@ -174,8 +178,9 @@ function toIncident({ members }) {
       injured: Math.max(0, ...pool.map((m) => m.cls.casualties.injured)),
     },
     retrospective: pool.every((m) => m.cls.retrospective),
-    time: Math.max(...members.map((m) => m.time)),
+    time,
     firstSeen: first.time,
+    revised: revised || undefined,
     location: loc,
     sources: sources.slice(0, 12),
     sourceCount: sourceNames.size || 1,
