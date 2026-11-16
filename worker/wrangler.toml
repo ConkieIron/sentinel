@@ -18,6 +18,7 @@ binding = "AI"
 
 [vars]
 SITE_URL = "https://sentinelglobalnews.pages.dev"
+SELF_URL = "https://sentinel-gatherer.connormccutcheon2581.workers.dev"
 BSKY_APPVIEW = "https://api.bsky.app"
 # Minimum minutes between Pages rebuilds. Pages Free allows 500 builds/month (~every 90 min).
 PUBLISH_INTERVAL_MINUTES = "120"

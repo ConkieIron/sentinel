@@ -190,15 +190,8 @@ function collectJobs(snapshot) {
           location: story.location,
         }),
     });
-    for (const u of story.updates || []) {
-      jobs.push({
-        kind: 'update',
-        target: u,
-        title: u.title,
-        summary: u.summary || '',
-        fallback: () => templateForUpdate({ ...u, location: story.location }),
-      });
-    }
+    // Live update rows stay as compact source headlines for now — paraphrasing every
+    // update blows the Worker subrequest budget. The story title/summary are rewritten.
   }
   return jobs;
 }
