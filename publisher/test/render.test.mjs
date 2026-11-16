@@ -342,7 +342,7 @@ test('Global terror lists outlet reports; social posts and anniversaries sit apa
   assert.match(home, /story-lead" id="i-t1"/);
   assert.doesNotMatch(home.slice(home.indexOf('id="latest"')), /id="i-t1"/);
   assert.match(home, /data-cat="unconfirmed"/);
-  assert.match(aboutPage(context(snapshot)), /cat-terrorism">Suspected terrorism<\/span><\/td><td class="num">[\d.]+<\/td><td class="num">1<\/td>/);
+  assert.match(aboutPage(context(snapshot)), /cat-terrorism">Suspected terrorism<\/span><\/td><td class="num">1<\/td>/);
 });
 
 test('region pages show official travel advice for countries in the news', () => {
