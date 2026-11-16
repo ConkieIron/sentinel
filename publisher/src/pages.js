@@ -16,7 +16,7 @@ import {
   storyFigure,
 } from './components.js';
 import { leanCaveat } from './lean.js';
-import { esc, safeHref, timeTag, fmtUtc, ago, LEVEL_LABEL, isReportedTerror, filterCategory, inLatest, bySeriousness, compactHeadline, displayTime, isUpdatedIncident } from './util.js';
+import { esc, safeHref, timeTag, fmtUtc, ago, LEVEL_LABEL, isReportedTerror, filterCategory, inLatest, bySeriousness, byPublishedThenSeverity, compactHeadline, publishedTime } from './util.js';
 import { countriesOf, countryPath, adviceChangedAt, adviceChanges } from './countries.js';
 
 const OFFICIAL_LINKS = [
@@ -73,7 +73,7 @@ function homePanels(ctx, serious) {
 <ol class="ranked">${serious
     .map(
       (i) =>
-        `<li><a href="${esc(safeHref(i.url))}" target="_blank" rel="noopener noreferrer">${esc(compactHeadline(i.title))}</a><span class="muted small">${esc(i.location?.country || 'Location unclear')} · ${timeTag(displayTime(i, now), now, { updated: isUpdatedIncident(i, now) })}</span></li>`,
+        `<li><a href="${esc(safeHref(i.url))}" target="_blank" rel="noopener noreferrer">${esc(compactHeadline(i.title))}</a><span class="muted small">${esc(i.location?.country || 'Location unclear')} · ${timeTag(publishedTime(i, now), now)}</span></li>`,
     )
     .join('')}</ol>
 </section>`;
@@ -91,9 +91,12 @@ export function livePage(ctx, story) {
   const { snapshot, now, regionNames } = ctx;
   const counts = new Map();
   for (const u of story.updates) counts.set(u.source, (counts.get(u.source) || 0) + 1);
+  // When every headline was a restatement, the timeline is empty — still list covering outlets.
+  if (!counts.size) for (const name of story.outlets || []) counts.set(name, 1);
   const others = (snapshot.live || []).filter((s) => s.id !== story.id);
   const loc = story.location;
   const region = loc?.region && regionNames[loc.region];
+  const updateCount = story.updates?.length || 0;
   const body = `<div class="wrap">
 <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <span>Live coverage</span></nav>
 <section class="hero hero-small live-hero">
@@ -114,11 +117,16 @@ ${storyFigure(story, { className: 'live-hero-figure' })}
 <div class="main-col">
 <section class="section section-first">
 ${sectionHead('Latest updates', { id: 'updates' })}
-<p class="section-dek">Newest first. Near-identical headlines are shown once. Every row links to the original report on the publisher's site.</p>
+${
+  updateCount
+    ? `<p class="section-dek">Newest first. Near-identical headlines are shown once. Every row links to the original report on the publisher's site.</p>
 <ol class="live-feed" data-live-id="${esc(story.id)}" data-latest="${story.updatedAt}" data-page-size="20">
 ${story.updates.map((u) => liveUpdate(u, now, snapshot)).join('')}
 </ol>
-${story.reportCount > story.updates.length ? `<p class="small muted">${story.outlets.length} outlets · ${story.updates.length} distinct update${story.updates.length === 1 ? '' : 's'} from ${story.reportCount} reports.</p>` : ''}
+${story.reportCount > updateCount ? `<p class="small muted">${story.outlets.length} outlets · ${updateCount} distinct update${updateCount === 1 ? '' : 's'} from ${story.reportCount} reports.</p>` : ''}`
+    : `<p class="section-dek">Outlets are still covering this story, but every new headline so far restates the same development — new distinct updates will appear here as they land.</p>
+<ol class="live-feed" data-live-id="${esc(story.id)}" data-latest="${story.updatedAt}" data-page-size="20"></ol>`
+}
 </section>
 </div>
 <aside class="sidebar">
@@ -152,6 +160,11 @@ ${
     path: `/live/${story.id}/`,
     body,
     ctx,
+    breadcrumbs: [
+      { name: 'Home', path: '/' },
+      { name: 'Live coverage', path: `/live/${story.id}/` },
+    ],
+    live: story,
   });
 }
 
@@ -174,13 +187,13 @@ ${foldPanel('Official resources', `<ul class="link-list">${OFFICIAL_LINKS.map(([
 }
 
 /**
- * Latest headlines: newest verified reports of severity 3–5. Severity ranking belongs in
- * "Most serious right now", not here — otherwise a stale 5/5 blocks fresher breaking news.
+ * Latest headlines: newest verified reports of severity 3–5 (published time, then severity).
+ * "Most serious right now" still ranks severity first.
  */
 export function headlineIncidents(incidents, limit = 7) {
   return incidents
     .filter((i) => i.evidence !== 'social' && !i.retrospective && i.severity >= 3)
-    .sort((a, b) => b.time - a.time || b.severity - a.severity)
+    .sort(byPublishedThenSeverity)
     .slice(0, limit);
 }
 
@@ -188,7 +201,7 @@ export function headlineIncidents(incidents, limit = 7) {
 const latestFeed = (ctx, excludeIds = new Set()) =>
   ctx.snapshot.incidents
     .filter((i) => inLatest(i) && !excludeIds.has(i.id))
-    .sort((a, b) => b.time - a.time)
+    .sort(byPublishedThenSeverity)
     .slice(0, ctx.site.homeIncidents);
 
 export function homePage(ctx) {
@@ -270,6 +283,7 @@ ${sidebar(ctx, homePanels(ctx, serious))}
     body,
     ctx,
     active: 'home',
+    pageType: 'WebPage',
   });
 }
 
@@ -287,7 +301,19 @@ ${countrySearch(ctx)}
 ${renderMap(snapshot, { incidents: pins })}
 <ol class="region-list region-list-full">${snapshot.regions.map((r, i) => regionRow(r, i + 1)).join('')}</ol>
 </div>`;
-  return layout({ title: 'Incident map', description: 'Map of located world incidents with the threat level, index and incident counts for every monitored region.', path: '/regions/', body, ctx, active: 'regions' });
+  return layout({
+    title: 'Incident map',
+    description: 'Map of located world incidents with the threat level, index and incident counts for every monitored region.',
+    path: '/regions/',
+    body,
+    ctx,
+    active: 'regions',
+    pageType: 'CollectionPage',
+    breadcrumbs: [
+      { name: 'Home', path: '/' },
+      { name: 'Incident map', path: '/regions/' },
+    ],
+  });
 }
 
 const US_LEVEL_CLASS = { 1: 'adv-1', 2: 'adv-2', 3: 'adv-3', 4: 'adv-4' };
@@ -404,6 +430,12 @@ ${foldPanel(
     body,
     ctx,
     active: 'regions',
+    pageType: 'CollectionPage',
+    breadcrumbs: [
+      { name: 'Home', path: '/' },
+      { name: 'Incident map', path: '/regions/' },
+      { name: region.name, path: `/region/${region.id}/` },
+    ],
   });
 }
 
@@ -495,6 +527,13 @@ ${
     body,
     ctx,
     active: 'regions',
+    pageType: 'CollectionPage',
+    breadcrumbs: [
+      { name: 'Home', path: '/' },
+      { name: 'Incident map', path: '/regions/' },
+      ...(region ? [{ name: region.name, path: `/region/${region.id}/` }] : []),
+      { name: country.name, path: country.path },
+    ],
   });
 }
 
@@ -520,7 +559,20 @@ ${countrySearch(ctx)}
 <ul class="country-list" data-country-list>${rows}</ul>
 <p class="empty" data-country-empty hidden>No country with a briefing matches that name. Only countries in this edition's news, or with notable travel advice, have a page.</p>
 </div>`;
-  return layout({ title: 'Countries', description: 'Country briefings: incidents in the news and official UK and US travel advice.', path: '/countries/', body, ctx, active: 'regions' });
+  return layout({
+    title: 'Countries',
+    description: 'Country briefings: incidents in the news and official UK and US travel advice.',
+    path: '/countries/',
+    body,
+    ctx,
+    active: 'regions',
+    pageType: 'CollectionPage',
+    breadcrumbs: [
+      { name: 'Home', path: '/' },
+      { name: 'Incident map', path: '/regions/' },
+      { name: 'Countries', path: '/countries/' },
+    ],
+  });
 }
 
 /**
@@ -564,6 +616,11 @@ ${sectionHead('Latest headlines')}
     body,
     ctx,
     active: 'local',
+    pageType: 'WebPage',
+    breadcrumbs: [
+      { name: 'Home', path: '/' },
+      { name: 'Local incidents', path: '/local/' },
+    ],
   });
 }
 
@@ -624,7 +681,19 @@ ${
 ${sidebar(ctx)}
 </div>
 </div>`;
-  return layout({ title: 'Global terror', description: `Suspected terrorism incidents reported worldwide in the last ${snapshot.windowHours} hours.`, path: '/terrorism/', body, ctx, active: 'terrorism' });
+  return layout({
+    title: 'Global terror',
+    description: `Suspected terrorism incidents reported worldwide in the last ${snapshot.windowHours} hours.`,
+    path: '/terrorism/',
+    body,
+    ctx,
+    active: 'terrorism',
+    pageType: 'CollectionPage',
+    breadcrumbs: [
+      { name: 'Home', path: '/' },
+      { name: 'Global terror', path: '/terrorism/' },
+    ],
+  });
 }
 
 export function aboutPage(ctx) {
@@ -690,7 +759,19 @@ ${sourceTable(snapshot.sources, now, snapshot)}
 ${evidenceGuide()}
 </article>
 </div>`;
-  return layout({ title: 'Methodology & sources', description: 'How SENTINEL reads public reporting and turns it into a regional threat briefing.', path: '/about/', body, ctx, active: 'about' });
+  return layout({
+    title: 'Methodology & sources',
+    description: 'How SENTINEL reads public reporting and turns it into a regional threat briefing.',
+    path: '/about/',
+    body,
+    ctx,
+    active: 'about',
+    pageType: 'AboutPage',
+    breadcrumbs: [
+      { name: 'Home', path: '/' },
+      { name: 'Methodology & sources', path: '/about/' },
+    ],
+  });
 }
 
 export function notFoundPage(ctx) {

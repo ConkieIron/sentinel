@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { esc, safeHref, ago, timeLabel, isUpdatedIncident, bySeriousness } from '../src/util.js';
+import { esc, safeHref, ago, timeLabel, isUpdatedIncident, publishedTime, bySeriousness, byPublishedThenSeverity } from '../src/util.js';
 import { homePage, regionsIndexPage, regionPage, terrorismPage, aboutPage, notFoundPage, livePage, countryPage, countriesIndexPage, localPage, localCardsByIso, headlineIncidents } from '../src/pages.js';
 import { buildCountries } from '../src/countries.js';
 import { project, MAP_WIDTH, MAP_HEIGHT } from '../src/projection.js';
@@ -100,6 +100,40 @@ test('isUpdatedIncident is true for revised or late follow-up reports', () => {
   );
 });
 
+test('cards show source+lean up top, category bottom-right, published time only', async () => {
+  const now = Date.parse('2026-11-14T12:00:00Z');
+  const first = now - 2 * 3600000;
+  const updated = now - 60000;
+  const inc = {
+    id: 'u1',
+    title: 'Blast hits port city',
+    summary: 'A blast hit the port city, officials said, with damage reported near the harbour.',
+    category: 'armed_conflict',
+    severity: 3,
+    evidence: 'publisher',
+    casualties: { killed: 0, injured: 0 },
+    location: null,
+    sources: [{ name: 'Reuters', url: 'https://www.reuters.com/x', time: updated }],
+    sourceCount: 1,
+    reportCount: 1,
+    weight: 1,
+    time: updated,
+    firstSeen: first,
+    url: 'https://www.reuters.com/x',
+  };
+  assert.equal(publishedTime(inc, now), first);
+  const { incidentCard } = await import('../src/components.js');
+  const html = incidentCard(inc, {
+    snapshot: { categories: { armed_conflict: 'Armed conflict' }, leans: { wire: 'Wire' }, mediaLean: {} },
+    now,
+  });
+  assert.match(html, /story-byline[\s\S]*Reuters/);
+  assert.match(html, /story-foot-right[\s\S]*Armed conflict/);
+  assert.match(html, /story-times[\s\S]*>2 hr ago</);
+  assert.match(html, /class="dek"/);
+  assert.doesNotMatch(html, /updated |Severity |sev-3|story-updated/);
+});
+
 test('projection keeps the visible world inside the map frame', () => {
   for (const [lon, lat] of [[-180, 84], [180, -58], [0, 0], [151.2, -33.9]]) {
     const [x, y] = project(lon, lat);
@@ -115,7 +149,11 @@ test('every page renders a complete document from the fixture', () => {
     assert.match(html, /^<!doctype html>/i);
     assert.match(html, /<\/html>\s*$/);
     assert.ok(!/\sstyle=/i.test(html), 'inline styles would be blocked by the CSP');
-    assert.ok(!/<script(?![^>]*\bsrc=)/i.test(html), 'inline scripts would be blocked by the CSP');
+    // JSON-LD uses type=application/ld+json (not executable); CSP script-src only blocks JS.
+    assert.ok(
+      !/<script(?![^>]*(?:\bsrc=|type=["']application\/ld\+json["']))/i.test(html),
+      'inline scripts would be blocked by the CSP',
+    );
   }
 });
 
@@ -286,10 +324,7 @@ test('headlines are newest first, Most serious is severity first, and neither re
   const headlines = home.slice(home.indexOf('Latest headlines'), home.indexOf('id="latest"'));
   const latest = home.slice(home.indexOf('id="latest"'));
   const mostSerious = home.slice(home.indexOf('Most serious right now'));
-  const fresh = [...fixture.incidents]
-    .filter((i) => i.evidence !== 'social' && !i.retrospective && i.severity >= 3)
-    .sort((a, b) => b.time - a.time || b.severity - a.severity)
-    .slice(0, 7);
+  const fresh = headlineIncidents(fixture.incidents, 7);
   const serious = [...fixture.incidents]
     .filter((i) => i.evidence !== 'social' && !i.retrospective && i.severity >= 3)
     .sort(bySeriousness)
@@ -442,4 +477,33 @@ test('empty snapshot still renders', () => {
   snapshot.breakingId = null;
   for (const r of snapshot.regions) Object.assign(r, { level: 'low', index: 0, score: 0, incidents: 0, hotspots: [], topIncidentIds: [] });
   for (const html of allPages(context(snapshot))) assert.match(html, /<\/html>\s*$/);
+});
+
+test('pages emit JSON-LD for Organization, WebSite, breadcrumbs and live blogs', () => {
+  const ctx = context(withLiveStory(fixture));
+  const home = homePage(ctx);
+  assert.match(home, /application\/ld\+json/);
+  assert.match(home, /"@type":"Organization"/);
+  assert.match(home, /"@type":"WebSite"/);
+  assert.match(home, /"@type":"WebPage"/);
+
+  const about = aboutPage(ctx);
+  assert.match(about, /"@type":"AboutPage"/);
+  assert.match(about, /"@type":"BreadcrumbList"/);
+
+  const region = regionPage(ctx, ctx.snapshot.regions[0]);
+  assert.match(region, /"@type":"CollectionPage"/);
+  assert.match(region, /"@type":"BreadcrumbList"/);
+
+  const live = livePage(ctx, ctx.snapshot.live[0]);
+  assert.match(live, /"@type":"LiveBlogPosting"/);
+  assert.match(live, /"@type":"BlogPosting"/);
+  assert.match(live, /liveBlogUpdate/);
+
+  // Hostile titles must not break out of the JSON-LD script.
+  const evil = context(withLiveStory(fixture, { title: EVIL, url: 'javascript:alert(1)' }));
+  const evilLive = livePage(evil, evil.snapshot.live[0]);
+  assert.match(evilLive, /\\u003cscript/);
+  assert.doesNotMatch(evilLive, /application\/ld\+json"[^>]*>[^<]*<script/i);
+  assert.doesNotMatch(evilLive, /<script>alert\(/);
 });

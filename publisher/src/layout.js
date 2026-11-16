@@ -1,4 +1,5 @@
 import { esc, fmtUtc, clockTag } from './util.js';
+import { pageJsonLd } from './jsonld.js';
 
 const NAV = [
   ['/', 'Home', 'home'],
@@ -39,7 +40,7 @@ function breakingKicker(breaking) {
 </div>`;
 }
 
-export function layout({ title, description, path, body, ctx, active = '' }) {
+export function layout({ title, description, path, body, ctx, active = '', breadcrumbs, live, pageType = 'WebPage' }) {
   const { snapshot, site, assets } = ctx;
   const generated = Date.parse(snapshot.generatedAt);
   const breaking = snapshot.live?.[0];
@@ -50,6 +51,15 @@ export function layout({ title, description, path, body, ctx, active = '' }) {
   const nav = NAV.map(
     ([href, label, key]) => `<li><a href="${href}"${key === active ? ' aria-current="page"' : ''}>${esc(label)}</a></li>`,
   ).join('');
+  const jsonLd = pageJsonLd({
+    site,
+    title: fullTitle,
+    description,
+    path,
+    pageType,
+    breadcrumbs,
+    live,
+  });
 
   return `<!doctype html>
 <html lang="en-GB">
@@ -77,6 +87,7 @@ ${breaking ? `<meta name="sentinel-breaking" content="${esc(breaking.id)}">` : '
 <link rel="manifest" href="/site.webmanifest">
 <link rel="stylesheet" href="${esc(assets.css)}">
 <script src="${esc(assets.js)}" defer></script>
+${jsonLd}
 </head>
 <body>
 <a class="skip" href="#content">Skip to content</a>
