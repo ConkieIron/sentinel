@@ -499,7 +499,7 @@ test('empty snapshot still renders', () => {
   for (const html of allPages(context(snapshot))) assert.match(html, /<\/html>\s*$/);
 });
 
-test('Open Graph uses share art, and Breaking art when coverage is Breaking', () => {
+test('Open Graph uses share art, and Breaking art only on the Breaking live page', () => {
   const normal = homePage(context(fixture));
   assert.match(normal, /property="og:image" content="https:\/\/example\.pages\.dev\/og\/share\.png"/);
   assert.match(normal, /name="twitter:card" content="summary_large_image"/);
@@ -507,12 +507,14 @@ test('Open Graph uses share art, and Breaking art when coverage is Breaking', ()
 
   const withBreaking = context(withLiveStory(fixture, { breaking: true }));
   const home = homePage(withBreaking);
-  assert.match(home, /property="og:image" content="https:\/\/example\.pages\.dev\/og\/breaking\.png"/);
-  assert.match(livePage(withBreaking, withBreaking.snapshot.live[0]), /og\/breaking\.png/);
+  // Home meta stays on normal share art even while a Breaking story exists (teaser may still show Breaking art).
+  assert.match(home, /property="og:image" content="https:\/\/example\.pages\.dev\/og\/share\.png"/);
+  assert.doesNotMatch(home, /property="og:image" content="[^"]*og\/breaking\.png"/);
+  assert.match(livePage(withBreaking, withBreaking.snapshot.live[0]), /property="og:image" content="https:\/\/example\.pages\.dev\/og\/breaking\.png"/);
 
   const oldLive = context(withLiveStory(fixture, { breaking: false, startedHoursAgo: 10 }));
-  assert.match(homePage(oldLive), /og\/share\.png"/);
-  assert.match(livePage(oldLive, oldLive.snapshot.live[0]), /og\/share\.png"/);
+  assert.match(homePage(oldLive), /property="og:image" content="https:\/\/example\.pages\.dev\/og\/share\.png"/);
+  assert.match(livePage(oldLive, oldLive.snapshot.live[0]), /property="og:image" content="https:\/\/example\.pages\.dev\/og\/share\.png"/);
 });
 
 test('pages emit JSON-LD for Organization, WebSite, breadcrumbs and live blogs', () => {

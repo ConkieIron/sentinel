@@ -49,9 +49,8 @@ export function layout({ title, description, path, body, ctx, active = '', bread
   const canonical = origin + path;
   // Browsers keep favicons in a cache of their own, keyed by URL, so a changed icon gets a new URL.
   const iconV = assets.icons ? `?v=${esc(assets.icons)}` : '';
-  // Breaking share art on the home page while a story is Breaking, and on that story's live page.
-  // Stable paths (no ?v=) — X caches image URLs hard; changing the path is what busts a bad preview.
-  const shareBreaking = Boolean(live?.breaking) || (path === '/' && breaking);
+  // Breaking share art only on that story's live page — not site-wide / home, or every share looks Breaking.
+  const shareBreaking = Boolean(live?.breaking);
   const sharePath = shareBreaking ? '/og/breaking.png' : '/og/share.png';
   const shareAlt = shareBreaking ? 'SENTINEL breaking coverage' : 'SENTINEL — Global Incident and Threat Monitor';
   const shareUrl = `${origin}${sharePath}`;
