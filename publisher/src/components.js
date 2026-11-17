@@ -120,20 +120,49 @@ function liveHeadline(u) {
   return `<a href="${esc(safeHref(u.url))}" target="_blank" rel="noopener noreferrer">${esc(compactHeadline(u.title))}<span class="vh"> (opens ${esc(u.source)} in a new tab)</span></a>`;
 }
 
+/** True when an outlet image is a generic "BREAKING" chyron / branded card rather than event photography. */
+export function isGenericBreakingArt(img) {
+  if (!img?.url) return true;
+  const blob = `${img.url} ${img.title || ''} ${img.source || ''}`;
+  return /\bbreaking\b|breaking[-_ ]?news|live[-_ ]?blog[-_ ]?card|chyron|breakingcard/i.test(blob);
+}
+
 /**
- * A live story's picture, shown from the publisher's own servers and credited to it. The image
- * links to `href` (the live page from the front page, else the article it came from); the
- * figure hides itself if the image fails to load.
+ * Picture to show for a live story. Breaking coverage always uses SENTINEL's own Breaking card
+ * (missing art, generic BREAKING chyrons, and unrelated stock are replaced). Other live stories
+ * keep the outlet photo when we have one.
+ */
+export function resolveStoryImage(story) {
+  if (story?.breaking) {
+    return {
+      url: '/og/breaking.png',
+      source: 'SENTINEL',
+      link: `/live/${story.id}/`,
+      title: 'Breaking coverage',
+      sentinel: true,
+    };
+  }
+  const img = story?.image;
+  if (img?.url && safeHref(img.url).startsWith('https://') && !isGenericBreakingArt(img)) return img;
+  return null;
+}
+
+/**
+ * A live story's picture. Outlet photos are credited and linked; SENTINEL Breaking art is not.
+ * The figure hides itself if the image fails to load.
  */
 export function storyFigure(story, { href, className = '' } = {}) {
-  const img = story.image;
-  const src = img && safeHref(img.url);
-  if (!src || !src.startsWith('https://')) return '';
-  const external = !href;
-  const link = href || safeHref(img.link);
+  const img = resolveStoryImage(story);
+  const src = img && (img.sentinel ? img.url : safeHref(img.url));
+  if (!src || (!img.sentinel && !src.startsWith('https://'))) return '';
+  const external = !href && !img.sentinel;
+  const link = href || (img.sentinel ? img.link : safeHref(img.link));
+  const credit = img.sentinel
+    ? `<figcaption>Picture: SENTINEL</figcaption>`
+    : `<figcaption>Picture: <a href="${esc(safeHref(img.link))}" target="_blank" rel="noopener noreferrer">${esc(img.source)}<span class="vh"> (opens the article in a new tab)</span></a></figcaption>`;
   return `<figure class="story-figure ${esc(className)}" data-hide-on-error>
-<a href="${esc(link)}"${external ? ' target="_blank" rel="noopener noreferrer"' : ''} tabindex="-1" aria-hidden="true"><img src="${esc(src)}" alt="" width="976" height="549" decoding="async" referrerpolicy="no-referrer"></a>
-<figcaption>Picture: <a href="${esc(safeHref(img.link))}" target="_blank" rel="noopener noreferrer">${esc(img.source)}<span class="vh"> (opens the article in a new tab)</span></a></figcaption>
+<a href="${esc(link)}"${external ? ' target="_blank" rel="noopener noreferrer"' : ''} tabindex="-1" aria-hidden="true"><img src="${esc(src)}" alt="${esc(img.title || '')}" width="1200" height="630" decoding="async" referrerpolicy="no-referrer"></a>
+${credit}
 </figure>`;
 }
 

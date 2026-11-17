@@ -89,10 +89,10 @@ export function pageJsonLd({ site, title, description, path, pageType = 'WebPage
       isPartOf: { '@id': siteId },
       inLanguage: 'en-GB',
     };
-    // Prefer SENTINEL share art so scrapers do not latch onto a publisher CDN image (or fail open to the logo).
+    // Breaking pages stick to SENTINEL share art; other live pages may also list an outlet photo.
     const images = [];
     if (shareImage) images.push(shareImage);
-    if (live.image?.url && safeHref(live.image.url) !== '#') images.push(safeHref(live.image.url));
+    if (!live.breaking && live.image?.url && safeHref(live.image.url) !== '#') images.push(safeHref(live.image.url));
     if (images.length) article.image = images;
     if (updates.length) article.liveBlogUpdate = updates;
     graph.push(article);
