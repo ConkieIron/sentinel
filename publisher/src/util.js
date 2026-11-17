@@ -1,5 +1,31 @@
+/** Feeds sometimes leave &apos; / &amp;apos; in text; unwrap before HTML-escaping. */
+function decodeEntities(s) {
+  let out = String(s ?? '');
+  for (let i = 0; i < 4; i++) {
+    const next = out.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, code) => {
+      if (code[0] === '#') {
+        const n = code[1] === 'x' || code[1] === 'X' ? parseInt(code.slice(2), 16) : parseInt(code.slice(1), 10);
+        return Number.isFinite(n) && n > 0 && n < 0x110000 ? String.fromCodePoint(n) : '';
+      }
+      return (
+        {
+          amp: '&',
+          lt: '<',
+          gt: '>',
+          quot: '"',
+          apos: "'",
+          nbsp: ' ',
+        }[code.toLowerCase()] ?? m
+      );
+    });
+    if (next === out) break;
+    out = next;
+  }
+  return out;
+}
+
 export const esc = (s) =>
-  String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+  decodeEntities(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 export function safeHref(u) {
   try {
@@ -101,6 +127,15 @@ export function isUpdatedIncident(inc, now = Date.now()) {
   return Number.isFinite(first) && raw - first >= 30 * 60000;
 }
 
+/** Original publish (or event-day) timestamp for the card's main time label. */
+export function publishedTime(inc, now = Date.now()) {
+  if (!isUpdatedIncident(inc, now)) return displayTime(inc, now);
+  const first = Number(inc?.firstSeen);
+  const raw = Number(inc?.time);
+  if (Number.isFinite(first) && Number.isFinite(raw) && first < raw) return first;
+  return displayTime(inc, now);
+}
+
 /** Clock time ("14:05", UTC in the HTML; the script switches it to the reader's time zone). */
 export function clockTag(ts) {
   const d = new Date(ts);
@@ -172,11 +207,21 @@ export const filterCategory = (i) => (i.category === 'terrorism' && !isReportedT
 export const inLatest = (i) => i.severity >= 2;
 
 /**
- * Rank by the severity badge first, then threat weight, then freshness.
- * A 5/5 always outranks a 4/5 — category and recency must not reorder severity levels.
+ * Rank by severity, then published time only (no threat-weight tie-break).
+ * A 5/5 always outranks a 4/5.
  */
-export const bySeriousness = (a, b) =>
-  b.severity - a.severity || (b.weight ?? 0) - (a.weight ?? 0) || b.time - a.time;
+export const bySeriousness = (a, b) => {
+  const sev = b.severity - a.severity;
+  if (sev) return sev;
+  return Number(publishedTime(b)) - Number(publishedTime(a));
+};
+
+/** Newest published first, then higher severity. */
+export const byPublishedThenSeverity = (a, b) => {
+  const t = Number(publishedTime(b)) - Number(publishedTime(a));
+  if (t) return t;
+  return b.severity - a.severity;
+};
 export const TREND = {
   rising: ['▲', 'Rising'],
   falling: ['▼', 'Falling'],

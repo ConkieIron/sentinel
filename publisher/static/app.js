@@ -73,9 +73,23 @@
     const mins = Math.max(0, Math.round((Date.now() - ts) / 60000));
     el.textContent = mins < 1 ? 'As of just now' : mins < 60 ? `As of ${mins} min ago` : `As of ${Math.floor(mins / 60)} hr ago`;
   }
+  /** Keep card kickers (location · category · severity) on one line by scaling slightly. */
+  function fitScaled(root = document) {
+    for (const k of $$('[data-fit-kicker]', root)) {
+      const inner = $('.kicker-fit', k) || k;
+      inner.style.transform = '';
+      const avail = k.clientWidth;
+      const need = inner.scrollWidth;
+      if (avail > 0 && need > avail) {
+        inner.style.transform = `scale(${Math.max(0.72, avail / need)})`;
+      }
+    }
+  }
   refreshTimes();
   refreshClocks();
   refreshEditionAge();
+  fitScaled();
+  addEventListener('resize', () => fitScaled());
   setInterval(() => {
     refreshTimes();
     refreshEditionAge();
@@ -387,6 +401,7 @@
       });
       refreshTimes();
       refreshClocks(list);
+      fitScaled(list);
       return cards.length;
     };
 
@@ -775,6 +790,7 @@
     feed.dataset.latest = String(Math.max(...fresh.map((u) => u.time), latest));
     refreshTimes();
     refreshClocks(feed);
+    fitScaled(feed);
     return fresh.length;
   }
 
