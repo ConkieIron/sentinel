@@ -285,20 +285,27 @@ This works with both Direct Upload and Git-connected Pages projects. If your pro
 Git-connected, turn off its automatic builds so they don't compete with the Action. You can also
 run `npm run pages:deploy` locally after `npm run build`.
 
-### 4. Breaking-news watcher (optional, free)
+### 4. Breaking-news watcher (required for a fresh site)
 
-GitHub's 5-minute schedule is a minimum and is often late. `watcher/` is a separate Worker that
-runs every minute on the Workers Free plan. It reads the latest Reuters, AP and CNN posts on Bluesky
-every minute, plus AFP, NBC News, The Guardian, The New York Times, The Washington Post, Sky News,
-Al Jazeera and the WSJ in rotation (two per run normally, four while the site has live stories so
-follow-ups land about every two minutes), and USGS earthquakes from the last hour. Any new headline
-goes through the shared classifier.
-When something rates severity 4 or above (`BREAKING_MIN_SEVERITY`), it starts the publish workflow
-straight away through GitHub's `workflow_dispatch` API, so major news is live in about 2 minutes.
-It does the same when a new wire post matches a story the site is covering live. It reads those
-stories' topics from the published `SITE_URL/data/live.json`. Every `NUDGE_MINUTES` (5) it also
-starts a routine run, which keeps the cadence steady when GitHub's schedule slips. The workflow
-still deploys only when the edition changed.
+GitHub's `*/5` schedule is **not** reliable — in practice it often fires only a few times a day,
+so the site will look frozen for hours if nothing else starts publishes. `watcher/` is the real
+cadence: a Cloudflare Worker on the free plan that runs every minute.
+
+It reads the latest Reuters, AP and CNN posts on Bluesky every minute, plus AFP, NBC News, The
+Guardian, The New York Times, The Washington Post, Sky News, Al Jazeera and the WSJ in rotation
+(two per run normally, four while the site has live stories so follow-ups land about every two
+minutes), and USGS earthquakes from the last hour. Any new headline goes through the shared
+classifier. When something rates severity 4 or above (`BREAKING_MIN_SEVERITY`), it starts the
+publish workflow straight away through GitHub's `workflow_dispatch` API, so major news is live in
+about 2 minutes. It does the same when a new wire post matches a story the site is covering live.
+It reads those stories' topics from the published `SITE_URL/data/live.json`. Every `NUDGE_MINUTES`
+(5) it also starts a routine run. The workflow still deploys only when the edition changed.
+
+If the watcher's status page shows `publishRequestsFailingSince` / HTTP **401 Bad credentials**,
+the fine-grained `GITHUB_TOKEN` has expired or lost **Actions: Read and write**. Create a new
+token, run `npx wrangler@4 secret put GITHUB_TOKEN` in `watcher/`, and publishes resume within a
+minute. Until then the site only updates when someone pushes to `main` or GitHub's sparse schedule
+happens to run.
 
 Fast publishes (breaking or live) are at least 90 seconds apart. KV remembers which posts already
 triggered one, and is written only when that happens, well inside the free 1,000 writes a day.
@@ -325,8 +332,8 @@ which is free and needs no account:
 2. In `watcher/`, run `npx wrangler@4 secret put NTFY_TOPIC` and enter that topic name.
 3. Optional: run `npx wrangler@4 secret put ALERT_EMAIL` to also get each alert by email.
 
-The watcher can't report its own outage. If it stops, GitHub's schedule keeps publishing, just
-less promptly.
+The watcher can't report its own outage. If it stops, GitHub's schedule may still publish
+eventually, but often only every several hours — treat a working watcher token as mandatory.
 
 To check it, open the worker's `workers.dev` URL. It shows its status, the live edition's age and
 any current problem. Runs it starts appear in
