@@ -23,8 +23,9 @@ export function ldScript(data) {
  * @param {'WebPage'|'CollectionPage'|'AboutPage'} [opts.pageType]
  * @param {{ name: string, path: string }[]} [opts.breadcrumbs]
  * @param {object} [opts.live] live story for LiveBlogPosting
+ * @param {string} [opts.shareImage] absolute URL of the page's Open Graph image
  */
-export function pageJsonLd({ site, title, description, path, pageType = 'WebPage', breadcrumbs, live }) {
+export function pageJsonLd({ site, title, description, path, pageType = 'WebPage', breadcrumbs, live, shareImage }) {
   const origin = String(site.url || '').replace(/\/$/, '');
   const url = absoluteUrl(origin, path);
   const orgId = `${origin}/#organization`;
@@ -88,9 +89,11 @@ export function pageJsonLd({ site, title, description, path, pageType = 'WebPage
       isPartOf: { '@id': siteId },
       inLanguage: 'en-GB',
     };
-    if (live.image?.url && safeHref(live.image.url) !== '#') {
-      article.image = [safeHref(live.image.url)];
-    }
+    // Prefer SENTINEL share art so scrapers do not latch onto a publisher CDN image (or fail open to the logo).
+    const images = [];
+    if (shareImage) images.push(shareImage);
+    if (live.image?.url && safeHref(live.image.url) !== '#') images.push(safeHref(live.image.url));
+    if (images.length) article.image = images;
     if (updates.length) article.liveBlogUpdate = updates;
     graph.push(article);
     graph.push({

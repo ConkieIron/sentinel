@@ -50,10 +50,11 @@ export function layout({ title, description, path, body, ctx, active = '', bread
   // Browsers keep favicons in a cache of their own, keyed by URL, so a changed icon gets a new URL.
   const iconV = assets.icons ? `?v=${esc(assets.icons)}` : '';
   // Breaking share art on the home page while a story is Breaking, and on that story's live page.
+  // Stable paths (no ?v=) — X caches image URLs hard; changing the path is what busts a bad preview.
   const shareBreaking = Boolean(live?.breaking) || (path === '/' && breaking);
-  const sharePath = shareBreaking ? '/og-breaking.png' : '/og-share.png';
+  const sharePath = shareBreaking ? '/og/breaking.png' : '/og/share.png';
   const shareAlt = shareBreaking ? 'SENTINEL breaking coverage' : 'SENTINEL — Global Incident and Threat Monitor';
-  const shareUrl = `${origin}${sharePath}${iconV}`;
+  const shareUrl = `${origin}${sharePath}`;
   const nav = NAV.map(
     ([href, label, key]) => `<li><a href="${href}"${key === active ? ' aria-current="page"' : ''}>${esc(label)}</a></li>`,
   ).join('');
@@ -65,6 +66,7 @@ export function layout({ title, description, path, body, ctx, active = '', bread
     pageType,
     breadcrumbs,
     live,
+    shareImage: shareUrl,
   });
 
   return `<!doctype html>
@@ -82,9 +84,11 @@ export function layout({ title, description, path, body, ctx, active = '', bread
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${esc(canonical)}">
 <meta property="og:image" content="${esc(shareUrl)}">
+<meta property="og:image:secure_url" content="${esc(shareUrl)}">
+<meta property="og:image:type" content="image/png">
 <meta property="og:image:alt" content="${esc(shareAlt)}">
-<meta property="og:image:width" content="1024">
-<meta property="og:image:height" content="537">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(fullTitle)}">
 <meta name="twitter:description" content="${esc(description)}">

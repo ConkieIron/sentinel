@@ -487,18 +487,18 @@ test('empty snapshot still renders', () => {
 
 test('Open Graph uses share art, and Breaking art when coverage is Breaking', () => {
   const normal = homePage(context(fixture));
-  assert.match(normal, /property="og:image" content="https:\/\/example\.pages\.dev\/og-share\.png/);
+  assert.match(normal, /property="og:image" content="https:\/\/example\.pages\.dev\/og\/share\.png"/);
   assert.match(normal, /name="twitter:card" content="summary_large_image"/);
-  assert.doesNotMatch(normal, /og-breaking\.png/);
+  assert.doesNotMatch(normal, /og\/breaking\.png/);
 
   const withBreaking = context(withLiveStory(fixture, { breaking: true }));
   const home = homePage(withBreaking);
-  assert.match(home, /property="og:image" content="https:\/\/example\.pages\.dev\/og-breaking\.png/);
-  assert.match(livePage(withBreaking, withBreaking.snapshot.live[0]), /og-breaking\.png/);
+  assert.match(home, /property="og:image" content="https:\/\/example\.pages\.dev\/og\/breaking\.png"/);
+  assert.match(livePage(withBreaking, withBreaking.snapshot.live[0]), /og\/breaking\.png/);
 
   const oldLive = context(withLiveStory(fixture, { breaking: false, startedHoursAgo: 10 }));
-  assert.match(homePage(oldLive), /og-share\.png/);
-  assert.match(livePage(oldLive, oldLive.snapshot.live[0]), /og-share\.png/);
+  assert.match(homePage(oldLive), /og\/share\.png"/);
+  assert.match(livePage(oldLive, oldLive.snapshot.live[0]), /og\/share\.png"/);
 });
 
 test('pages emit JSON-LD for Organization, WebSite, breadcrumbs and live blogs', () => {

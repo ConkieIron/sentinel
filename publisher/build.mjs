@@ -120,8 +120,8 @@ async function iconVersion() {
     'favicon.svg',
     'apple-touch-icon.png',
     'sentinel-wordmark.png',
-    'og-share.png',
-    'og-breaking.png',
+    'og/share.png',
+    'og/breaking.png',
   ])
     hash.update(await readFile(join(here, 'static/public', name)));
   return hash.digest('hex').slice(0, 8);
