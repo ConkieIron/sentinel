@@ -114,7 +114,16 @@ async function fingerprint(name) {
 
 async function iconVersion() {
   const hash = createHash('sha256');
-  for (const name of ['favicon.ico', 'favicon-32.png', 'favicon.svg', 'apple-touch-icon.png', 'sentinel-wordmark.png']) hash.update(await readFile(join(here, 'static/public', name)));
+  for (const name of [
+    'favicon.ico',
+    'favicon-32.png',
+    'favicon.svg',
+    'apple-touch-icon.png',
+    'sentinel-wordmark.png',
+    'og-share.png',
+    'og-breaking.png',
+  ])
+    hash.update(await readFile(join(here, 'static/public', name)));
   return hash.digest('hex').slice(0, 8);
 }
 

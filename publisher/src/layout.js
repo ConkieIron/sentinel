@@ -45,9 +45,15 @@ export function layout({ title, description, path, body, ctx, active = '', bread
   const generated = Date.parse(snapshot.generatedAt);
   const breaking = (snapshot.live || []).find((s) => s.breaking);
   const fullTitle = title ? `${title} · SENTINEL` : 'SENTINEL · Global Incident & Threat Monitor';
-  const canonical = site.url.replace(/\/$/, '') + path;
+  const origin = site.url.replace(/\/$/, '');
+  const canonical = origin + path;
   // Browsers keep favicons in a cache of their own, keyed by URL, so a changed icon gets a new URL.
   const iconV = assets.icons ? `?v=${esc(assets.icons)}` : '';
+  // Breaking share art on the home page while a story is Breaking, and on that story's live page.
+  const shareBreaking = Boolean(live?.breaking) || (path === '/' && breaking);
+  const sharePath = shareBreaking ? '/og-breaking.png' : '/og-share.png';
+  const shareAlt = shareBreaking ? 'SENTINEL breaking coverage' : 'SENTINEL — Global Incident and Threat Monitor';
+  const shareUrl = `${origin}${sharePath}${iconV}`;
   const nav = NAV.map(
     ([href, label, key]) => `<li><a href="${href}"${key === active ? ' aria-current="page"' : ''}>${esc(label)}</a></li>`,
   ).join('');
@@ -75,9 +81,15 @@ export function layout({ title, description, path, body, ctx, active = '', bread
 <meta property="og:title" content="${esc(fullTitle)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${esc(canonical)}">
-<meta property="og:image" content="${esc(site.url.replace(/\/$/, ''))}/icon-512.png">
-<meta property="og:image:alt" content="SENTINEL logo">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="${esc(shareUrl)}">
+<meta property="og:image:alt" content="${esc(shareAlt)}">
+<meta property="og:image:width" content="1024">
+<meta property="og:image:height" content="537">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(fullTitle)}">
+<meta name="twitter:description" content="${esc(description)}">
+<meta name="twitter:image" content="${esc(shareUrl)}">
+<meta name="twitter:image:alt" content="${esc(shareAlt)}">
 <meta name="sentinel-generated" content="${esc(snapshot.generatedAt)}">
 ${breaking ? `<meta name="sentinel-breaking" content="${esc(breaking.id)}">` : ''}
 <link rel="icon" href="/favicon.ico${iconV}" sizes="16x16 32x32 48x48">
